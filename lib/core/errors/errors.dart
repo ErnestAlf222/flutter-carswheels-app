@@ -1,1 +1,2 @@
-// Errores del núcleo: aún sin exportaciones.
+// Fallas
+export 'app_failure.dart';

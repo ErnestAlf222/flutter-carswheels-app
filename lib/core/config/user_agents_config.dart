@@ -9,4 +9,6 @@ class UserAgentsConfig {
   static const String nhtsaUserAgent = commonsUserAgent;
   // CONUEE bloquea con 403 el identificador que lleva URL y mailto.
   static const String conueeUserAgent = 'AppAutosPrueba/1.0 (ernesto)';
+  // Provisional: es el identificador que ya se probó con otras fuentes.
+  static const String fuelEconomyUserAgent = 'AppAutosPrueba/1.0 (ernesto)';
 }

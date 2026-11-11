@@ -5,6 +5,7 @@ export 'api_config.dart';
 export 'app_config.dart';
 export 'assets_config.dart';
 export 'catalog_config.dart';
+export 'fuel_economy_config.dart';
 export 'nav_config.dart';
 export 'network_config.dart';
 export 'photos_config.dart';
