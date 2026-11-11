@@ -41,11 +41,20 @@ class ModelsCubit extends Cubit<ModelsState> {
       );
     } on AppFailure catch (failure) {
       await _waitMinimumLoading(loadingTimer);
-      emit(ModelsError(failure));
+      emit(ModelsError(failure, year: year, brand: brand));
     } catch (error) {
       await _waitMinimumLoading(loadingTimer);
-      emit(ModelsError(UnknownFailure(error.toString())));
+      emit(
+        ModelsError(UnknownFailure(error.toString()), year: year, brand: brand),
+      );
     }
+  }
+
+  /// Repite la consulta que falló con el mismo año y marca.
+  Future<void> retry() async {
+    final current = state;
+    if (current is! ModelsError) return;
+    await load(current.year, current.brand);
   }
 
   /// Muestra una página más sin pasar del total; no emite si ya se ve todo.

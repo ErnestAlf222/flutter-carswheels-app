@@ -10,14 +10,14 @@ class _FakeCatalogRepository implements CatalogRepository {
     this.years = const [],
     this.error,
     this.brandsByYear,
-    this.failingYears = const {},
-  });
+    Set<int> failingYears = const {},
+  }) : failingYears = {...failingYears};
 
   final Set<int> failingYears;
   final List<int> years;
   final Map<int, List<BrandEntity>>? brandsByYear;
   final List<int> brandCalls = [];
-  final Object? error;
+  Object? error;
   int yearCalls = 0;
 
   @override
@@ -46,7 +46,7 @@ CatalogCubit _cubit(
   Duration minimumLoadingTime = Duration.zero,
 }) => CatalogCubit(
   minimumLoadingTime: minimumLoadingTime,
-  getLatestYear: GetLatestYearUseCase(repository),
+  getAvailableYears: GetAvailableYearsUseCase(repository),
   getBrands: GetBrandsUseCase(
     repository: repository,
     sortStrategy: const AdaptiveSortStrategy<BrandEntity>(
@@ -326,18 +326,62 @@ void main() {
       skip: 2,
       expect: () => const [
         CatalogLoading(),
-        CatalogError(NetworkFailure('sin red')),
+        CatalogError(NetworkFailure('sin red'), failedYear: 2025),
       ],
     );
 
+    test('retry repite el año que falló aunque venga de un error', () async {
+      final repository = _FakeCatalogRepository(
+        years: [2026, 2025],
+        brandsByYear: {
+          2026: [const BrandEntity(name: 'Alfa')],
+          2025: [const BrandEntity(name: 'Alfa')],
+        },
+        failingYears: {2025},
+      );
+      final cubit = _cubit(repository);
+      await cubit.loadBrands();
+      await cubit.selectYear(2025);
+      expect(cubit.state, isA<CatalogError>());
+      repository.failingYears.clear();
+      await cubit.retry();
+      expect(cubit.state, isA<CatalogLoaded>());
+      expect((cubit.state as CatalogLoaded).year, 2025);
+      await cubit.close();
+    });
+
+    test('retry sin año fallido vuelve a llamar a loadBrands', () async {
+      final repository = _FakeCatalogRepository(
+        years: [2026],
+        error: const NetworkFailure('sin red'),
+      );
+      final cubit = _cubit(repository);
+      await cubit.loadBrands();
+      expect(cubit.state, const CatalogError(NetworkFailure('sin red')));
+      repository.error = null;
+      await cubit.retry();
+      expect(cubit.state, isA<CatalogLoaded>());
+      expect(repository.yearCalls, 2);
+      await cubit.close();
+    });
+
+    test('retry fuera de un estado de error no hace nada', () async {
+      final repository = _FakeCatalogRepository(years: [2026]);
+      final cubit = _cubit(repository);
+      await cubit.retry();
+      expect(cubit.state, const CatalogInitial());
+      expect(repository.yearCalls, 0);
+      await cubit.close();
+    });
+
     blocTest<CatalogCubit, CatalogState>(
-      'showPreviousYear va al año anterior y se detiene en el más antiguo',
+      'showOlderYear va al año anterior y se detiene en el más antiguo',
       build: build,
       act: (cubit) async {
         await cubit.loadBrands();
-        await cubit.showPreviousYear();
-        await cubit.showPreviousYear();
-        await cubit.showPreviousYear();
+        await cubit.showOlderYear();
+        await cubit.showOlderYear();
+        await cubit.showOlderYear();
       },
       skip: 2,
       expect: () => [
@@ -349,15 +393,15 @@ void main() {
     );
 
     blocTest<CatalogCubit, CatalogState>(
-      'showNextYear va al año siguiente y se detiene en el más reciente',
+      'showNewerYear va al año siguiente y se detiene en el más reciente',
       build: build,
       act: (cubit) async {
         await cubit.loadBrands();
-        await cubit.showNextYear();
+        await cubit.showNewerYear();
         await cubit.selectYear(2024);
-        await cubit.showNextYear();
-        await cubit.showNextYear();
-        await cubit.showNextYear();
+        await cubit.showNewerYear();
+        await cubit.showNewerYear();
+        await cubit.showNewerYear();
       },
       skip: 4,
       expect: () => [
@@ -370,8 +414,8 @@ void main() {
 
     test('los cambios de año no hacen nada antes de cargar', () async {
       final cubit = build();
-      await cubit.showNextYear();
-      await cubit.showPreviousYear();
+      await cubit.showNewerYear();
+      await cubit.showOlderYear();
       expect(cubit.state, const CatalogInitial());
       await cubit.close();
     });

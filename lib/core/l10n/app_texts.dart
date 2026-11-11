@@ -20,5 +20,11 @@ class AppTexts {
   static const String previousBrandsLabel = 'Marcas anteriores';
   static const String nextBrandsLabel = 'Marcas siguientes';
 
+  static const String olderYearLabel = 'Año anterior';
+  static const String newerYearLabel = 'Año siguiente';
+
+  static String modelsCountLabel(int count) =>
+      count == 1 ? '1 modelo' : '$count modelos';
+
   static String brandTileLabel(String name) => 'Marca $name';
 }

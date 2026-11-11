@@ -4,9 +4,10 @@ import 'package:cars_wheels_app/features/catalog/domain/entities/model_entity.da
 class ModelMapper {
   const ModelMapper._();
 
-  /// Descarta los textos vacíos y conserva el resto sin cambios.
+  /// Recorta los espacios de los extremos y descarta los textos vacíos.
   static List<ModelEntity> toModels(List<String> itemTexts) => itemTexts
-      .where((text) => text.trim().isNotEmpty)
+      .map((text) => text.trim())
+      .where((text) => text.isNotEmpty)
       .map((text) => ModelEntity(name: text))
       .toList();
 }

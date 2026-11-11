@@ -33,10 +33,16 @@ class ModelsLoaded extends ModelsState {
 }
 
 class ModelsError extends ModelsState {
-  const ModelsError(this.failure);
+  const ModelsError(this.failure, {required this.year, required this.brand});
 
   final AppFailure failure;
 
+  /// Año de la consulta que falló.
+  final int year;
+
+  /// Marca de la consulta que falló.
+  final String brand;
+
   @override
-  List<Object?> get props => [failure];
+  List<Object?> get props => [failure, year, brand];
 }

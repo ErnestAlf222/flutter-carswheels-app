@@ -33,6 +33,9 @@ class _AppState extends State<App> {
         RepositoryProvider<CatalogRepository>.value(
           value: _dependencies.catalogRepository,
         ),
+        RepositoryProvider<GetAvailableYearsUseCase>.value(
+          value: _dependencies.getAvailableYearsUseCase,
+        ),
         RepositoryProvider<GetLatestYearUseCase>.value(
           value: _dependencies.getLatestYearUseCase,
         ),
@@ -55,7 +58,7 @@ class _AppState extends State<App> {
           ),
           BlocProvider<CatalogCubit>(
             create: (context) => CatalogCubit(
-              getLatestYear: context.read<GetLatestYearUseCase>(),
+              getAvailableYears: context.read<GetAvailableYearsUseCase>(),
               getBrands: context.read<GetBrandsUseCase>(),
             )..loadBrands(),
           ),

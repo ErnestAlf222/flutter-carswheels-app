@@ -9,7 +9,8 @@ class _FakeCatalogRepository implements CatalogRepository {
   _FakeCatalogRepository({this.modelCount = 0, this.error});
 
   final int modelCount;
-  final Object? error;
+  Object? error;
+  final List<(int, String)> calls = [];
 
   @override
   Future<List<int>> fetchYears() async => const [];
@@ -19,6 +20,7 @@ class _FakeCatalogRepository implements CatalogRepository {
 
   @override
   Future<List<ModelEntity>> fetchModels(int year, String brand) async {
+    calls.add((year, brand));
     if (error != null) throw error!;
     return [
       for (int index = 0; index < modelCount; index++)
@@ -102,9 +104,33 @@ void main() {
     act: (cubit) => cubit.load(2020, 'Honda'),
     expect: () => const [
       ModelsLoading(),
-      ModelsError(NetworkFailure('sin red')),
+      ModelsError(NetworkFailure('sin red'), year: 2020, brand: 'Honda'),
     ],
   );
+
+  test('retry repite la consulta con el mismo año y marca', () async {
+    final repository = _FakeCatalogRepository(
+      modelCount: 3,
+      error: const NetworkFailure('sin red'),
+    );
+    final cubit = _cubit(repository);
+    await cubit.load(2020, 'Honda');
+    expect(cubit.state, isA<ModelsError>());
+    repository.error = null;
+    await cubit.retry();
+    expect(cubit.state, _loaded(3, 3));
+    expect(repository.calls, [(2020, 'Honda'), (2020, 'Honda')]);
+    await cubit.close();
+  });
+
+  test('retry fuera de un estado de error no hace nada', () async {
+    final repository = _FakeCatalogRepository(modelCount: 3);
+    final cubit = _cubit(repository);
+    await cubit.retry();
+    expect(cubit.state, const ModelsInitial());
+    expect(repository.calls, isEmpty);
+    await cubit.close();
+  });
 
   blocTest<ModelsCubit, ModelsState>(
     'una excepción no esperada se vuelve UnknownFailure',

@@ -45,6 +45,16 @@ void main() {
     );
   });
 
+  test('recorta los espacios de los extremos antes de descartar vacíos', () {
+    expect(
+      _map(
+        '{"menuItem":[{"text":"  Civic ","value":"a"},'
+        '{"text":"   ","value":"b"},{"text":" Divo ","value":"c"}]}',
+      ),
+      const [ModelEntity(name: 'Civic'), ModelEntity(name: 'Divo')],
+    );
+  });
+
   test('un cuerpo inválido lanza ParsingFailure', () {
     expect(() => _map('"texto"'), throwsA(isA<ParsingFailure>()));
     expect(() => _map('{"menuItem":"x"}'), throwsA(isA<ParsingFailure>()));

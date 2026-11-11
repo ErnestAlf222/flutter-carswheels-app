@@ -60,10 +60,13 @@ class CatalogLoaded extends CatalogState {
 }
 
 class CatalogError extends CatalogState {
-  const CatalogError(this.failure);
+  const CatalogError(this.failure, {this.failedYear});
 
   final AppFailure failure;
 
+  /// Año que falló; nulo si falló la carga inicial.
+  final int? failedYear;
+
   @override
-  List<Object?> get props => [failure];
+  List<Object?> get props => [failure, failedYear];
 }

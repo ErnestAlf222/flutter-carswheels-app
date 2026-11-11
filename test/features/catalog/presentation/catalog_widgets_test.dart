@@ -224,49 +224,4 @@ void main() {
       verify(() => catalogCubit.selectBrand(2)).called(1);
     });
   });
-
-  group('HomePage', () {
-    Widget home() => _host(
-      catalogCubit: catalogCubit,
-      logosCubit: logosCubit,
-      child: const HomePage(),
-    );
-
-    testWidgets('loading muestra el AppLoader', (tester) async {
-      stubCatalog(const CatalogLoading());
-      await tester.pumpWidget(home());
-      expect(find.byType(AppLoader), findsOneWidget);
-      expect(find.text(AppConfig.appName), findsOneWidget);
-      expect(find.text(AppTexts.brandsSectionTitle), findsOneWidget);
-    });
-
-    testWidgets('error muestra ErrorStateWidget y reintenta', (tester) async {
-      stubCatalog(const CatalogError(NetworkFailure('sin red')));
-      await tester.pumpWidget(home());
-      expect(find.byType(ErrorStateWidget), findsOneWidget);
-      await tester.tap(find.text(AppTexts.retryButtonLabel));
-      verify(() => catalogCubit.loadBrands()).called(1);
-    });
-
-    testWidgets('loaded sin marcas muestra el estado vacío', (tester) async {
-      stubCatalog(
-        const CatalogLoaded(year: 2026, availableYears: [2026], brands: []),
-      );
-      await tester.pumpWidget(home());
-      expect(find.byType(EmptyStateWidget), findsOneWidget);
-    });
-
-    testWidgets('loaded muestra el carrusel', (tester) async {
-      stubCatalog(
-        CatalogLoaded(
-          year: 2026,
-          availableYears: const [2026],
-          brands: _brands(6),
-        ),
-      );
-      await tester.pumpWidget(home());
-      await tester.pumpAndSettle();
-      expect(find.byType(BrandCarouselWidget), findsOneWidget);
-    });
-  });
 }

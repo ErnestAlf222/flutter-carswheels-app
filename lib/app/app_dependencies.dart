@@ -8,6 +8,7 @@ import 'package:cars_wheels_app/features/catalog/catalog.dart';
 class AppDependencies {
   AppDependencies._({
     required this.catalogRepository,
+    required this.getAvailableYearsUseCase,
     required this.getLatestYearUseCase,
     required this.getBrandsUseCase,
     required this.getModelsUseCase,
@@ -41,9 +42,11 @@ class AppDependencies {
       smallListStrategy: BubbleSortStrategy<ModelEntity>(),
       largeListStrategy: ShellSortStrategy<ModelEntity>(),
     );
+    final getAvailableYears = GetAvailableYearsUseCase(repository);
     return AppDependencies._(
       catalogRepository: repository,
-      getLatestYearUseCase: GetLatestYearUseCase(repository),
+      getAvailableYearsUseCase: getAvailableYears,
+      getLatestYearUseCase: GetLatestYearUseCase(getAvailableYears),
       getBrandsUseCase: GetBrandsUseCase(
         repository: repository,
         sortStrategy: sortStrategy,
@@ -59,6 +62,7 @@ class AppDependencies {
   }
 
   final CatalogRepository catalogRepository;
+  final GetAvailableYearsUseCase getAvailableYearsUseCase;
   final GetLatestYearUseCase getLatestYearUseCase;
   final GetBrandsUseCase getBrandsUseCase;
   final GetModelsUseCase getModelsUseCase;

@@ -1,21 +1,11 @@
-import 'package:cars_wheels_app/core/core.dart';
-import 'package:cars_wheels_app/features/catalog/domain/repositories/catalog_repository.dart';
+import 'package:cars_wheels_app/features/catalog/domain/usecases/get_available_years_usecase.dart';
 
 /// Obtiene el año más reciente disponible.
 class GetLatestYearUseCase {
-  const GetLatestYearUseCase(this._repository);
+  const GetLatestYearUseCase(this._getAvailableYears);
 
-  final CatalogRepository _repository;
+  final GetAvailableYearsUseCase _getAvailableYears;
 
   /// Lanza ParsingFailure si no hay años.
-  Future<int> call() async => (await availableYears()).first;
-
-  /// Años disponibles en orden descendente; lanza ParsingFailure si no hay.
-  Future<List<int>> availableYears() async {
-    final years = await _repository.fetchYears();
-    if (years.isEmpty) {
-      throw const ParsingFailure('La lista de años está vacía');
-    }
-    return years.toSet().toList()..sort((a, b) => b.compareTo(a));
-  }
+  Future<int> call() async => (await _getAvailableYears()).first;
 }
