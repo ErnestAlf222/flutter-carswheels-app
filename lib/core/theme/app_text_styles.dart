@@ -1,7 +1,7 @@
 import 'package:flutter/painting.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'app_colors.dart';
+import 'package:cars_wheels_app/core/theme/app_colors.dart';
 
 /// Estilos de texto: Outfit para títulos y cifras, Inter para texto.
 class AppTextStyles {

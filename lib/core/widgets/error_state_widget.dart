@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-import '../config/core_config.dart';
-import '../l10n/core_l10n.dart';
-import '../theme/core_theme.dart';
-import 'gradient_button_widget.dart';
+import 'package:cars_wheels_app/core/config/config.dart';
+import 'package:cars_wheels_app/core/l10n/l10n.dart';
+import 'package:cars_wheels_app/core/theme/theme.dart';
+import 'package:cars_wheels_app/core/widgets/gradient_button_widget.dart';
 
 /// Estado de error con mensaje y botón para reintentar.
 class ErrorStateWidget extends StatelessWidget {

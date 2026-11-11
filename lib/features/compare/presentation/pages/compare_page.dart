@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import '../../../../core/core.dart';
+import 'package:cars_wheels_app/core/core.dart';
 
 /// Pantalla de compare (temporal, con relleno).
 class ComparePage extends StatelessWidget {

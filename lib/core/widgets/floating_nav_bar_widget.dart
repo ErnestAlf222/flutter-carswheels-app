@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../config/core_config.dart';
-import '../theme/core_theme.dart';
-import 'floating_nav_item_model.dart';
+import 'package:cars_wheels_app/core/config/config.dart';
+import 'package:cars_wheels_app/core/theme/theme.dart';
+import 'package:cars_wheels_app/core/widgets/floating_nav_item_model.dart';
 
 /// Menú flotante de botones cuadrados que se oculta al desplazar.
 class FloatingNavBar extends StatelessWidget {

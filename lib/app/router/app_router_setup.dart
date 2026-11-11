@@ -1,13 +1,13 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/core.dart';
-import '../../features/catalog/catalog.dart';
-import '../../features/compare/compare.dart';
-import '../../features/favorites/favorites.dart';
-import '../../features/navigation/navigation.dart';
-import '../../features/search/search.dart';
-import '../../features/settings/settings.dart';
+import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/catalog/catalog.dart';
+import 'package:cars_wheels_app/features/compare/compare.dart';
+import 'package:cars_wheels_app/features/favorites/favorites.dart';
+import 'package:cars_wheels_app/features/navigation/navigation.dart';
+import 'package:cars_wheels_app/features/search/search.dart';
+import 'package:cars_wheels_app/features/settings/settings.dart';
 
 /// Página de ruta con la transición de AppPageTransition.
 CustomTransitionPage<void> _page(GoRouterState state, Widget child) =>

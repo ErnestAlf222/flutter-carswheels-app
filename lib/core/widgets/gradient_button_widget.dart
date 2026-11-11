@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../config/core_config.dart';
-import '../theme/core_theme.dart';
+import 'package:cars_wheels_app/core/config/config.dart';
+import 'package:cars_wheels_app/core/theme/theme.dart';
 
 /// Botón de píldora con el degradado principal.
 class GradientButton extends StatelessWidget {

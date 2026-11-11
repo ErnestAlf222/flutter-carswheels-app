@@ -1,9 +1,9 @@
-// Barril del núcleo: exporta los barriles de sus subcarpetas.
-export 'algorithms/core_algorithms.dart';
-export 'config/core_config.dart';
-export 'errors/core_errors.dart';
-export 'l10n/core_l10n.dart';
-export 'network/core_network.dart';
-export 'storage/core_storage.dart';
-export 'theme/core_theme.dart';
-export 'widgets/core_widgets.dart';
+// Barriles del núcleo
+export 'algorithms/algorithms.dart';
+export 'config/config.dart';
+export 'errors/errors.dart';
+export 'l10n/l10n.dart';
+export 'network/network.dart';
+export 'storage/storage.dart';
+export 'theme/theme.dart';
+export 'widgets/widgets.dart';

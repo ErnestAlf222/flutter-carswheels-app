@@ -2,9 +2,9 @@ import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-import '../config/core_config.dart';
-import '../l10n/core_l10n.dart';
-import '../theme/core_theme.dart';
+import 'package:cars_wheels_app/core/config/config.dart';
+import 'package:cars_wheels_app/core/l10n/l10n.dart';
+import 'package:cars_wheels_app/core/theme/theme.dart';
 
 /// Estado vacío con icono y mensaje.
 class EmptyStateWidget extends StatelessWidget {

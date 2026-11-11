@@ -1,6 +1,6 @@
 import 'package:flutter/painting.dart';
 
-import 'app_colors.dart';
+import 'package:cars_wheels_app/core/theme/app_colors.dart';
 
 /// Degradados de la app.
 class AppGradients {

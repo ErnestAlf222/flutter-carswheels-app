@@ -3,9 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-import '../../../../core/core.dart';
-import '../cubits/nav_visibility_cubit.dart';
-import '../cubits/nav_visibility_state.dart';
+import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/navigation/presentation/cubits/cubits.dart';
 
 /// Marco de la app: contenido (la transición la hace cada ruta) y menú encima.
 class MainShellPage extends StatelessWidget {

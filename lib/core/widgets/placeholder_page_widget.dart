@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../config/core_config.dart';
-import '../l10n/core_l10n.dart';
-import '../theme/core_theme.dart';
+import 'package:cars_wheels_app/core/config/config.dart';
+import 'package:cars_wheels_app/core/l10n/l10n.dart';
+import 'package:cars_wheels_app/core/theme/theme.dart';
 
 /// Pantalla temporal de relleno; la reemplaza cada pantalla real.
 class PlaceholderPage extends StatelessWidget {

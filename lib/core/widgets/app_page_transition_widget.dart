@@ -1,7 +1,7 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 
-import '../config/core_config.dart';
+import 'package:cars_wheels_app/core/config/config.dart';
 
 /// Única puerta para las transiciones entre pantallas.
 class AppPageTransition extends StatelessWidget {

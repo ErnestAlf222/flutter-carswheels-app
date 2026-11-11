@@ -1,2 +1,4 @@
-// Barril público de la feature navigation.
-export 'presentation/navigation_presentation.dart';
+// Páginas públicas
+export 'presentation/pages/pages.dart';
+// Estado de visibilidad
+export 'presentation/cubits/cubits.dart';

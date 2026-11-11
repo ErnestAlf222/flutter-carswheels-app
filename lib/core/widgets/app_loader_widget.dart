@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../config/core_config.dart';
+import 'package:cars_wheels_app/core/config/config.dart';
 
 /// Indicador de carga animado con el GIF de la app.
 class AppLoader extends StatelessWidget {

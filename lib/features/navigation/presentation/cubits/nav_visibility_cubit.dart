@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/core.dart';
-import 'nav_visibility_state.dart';
+import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/navigation/presentation/cubits/nav_visibility_state.dart';
 
 /// Oculta el menú al bajar y lo muestra al subir o tras una pausa.
 class NavVisibilityCubit extends Cubit<NavVisibilityState> {

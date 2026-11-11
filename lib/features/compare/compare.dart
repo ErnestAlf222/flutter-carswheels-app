@@ -1,2 +1,2 @@
-// Barril público de la feature compare.
-export 'presentation/compare_presentation.dart';
+// Páginas públicas
+export 'presentation/pages/pages.dart';

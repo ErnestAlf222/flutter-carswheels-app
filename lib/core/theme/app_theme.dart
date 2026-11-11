@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'app_colors.dart';
-import 'app_text_styles.dart';
+import 'package:cars_wheels_app/core/theme/app_colors.dart';
+import 'package:cars_wheels_app/core/theme/app_text_styles.dart';
 
 /// Tema claro de la app.
 class AppTheme {

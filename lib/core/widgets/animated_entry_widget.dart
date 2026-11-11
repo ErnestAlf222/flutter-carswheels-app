@@ -1,7 +1,7 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 
-import '../config/core_config.dart';
+import 'package:cars_wheels_app/core/config/config.dart';
 
 /// Entrada sutil (aparece subiendo) escalonada por índice.
 class AnimatedEntryWidget extends StatelessWidget {
