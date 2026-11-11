@@ -20,7 +20,11 @@ class EmptyStateWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Symbols.search_off, color: AppColors.subtle),
+            const Icon(
+              Symbols.search_off,
+              size: UiConfig.iconSize,
+              color: AppColors.subtle,
+            ),
             const SizedBox(height: AppSpacing.xs),
             Text(AppTexts.emptyStateTitle, style: AppTextStyles.bodyStrong),
           ],

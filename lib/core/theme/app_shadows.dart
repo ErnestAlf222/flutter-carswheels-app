@@ -9,4 +9,13 @@ class AppShadows {
   static const List<BoxShadow> soft = [
     BoxShadow(color: AppColors.shadow, blurRadius: 24, offset: Offset(0, 8)),
   ];
+
+  // Sombra de acento: el color del degradado al 35% de opacidad.
+  static final List<BoxShadow> accent = [
+    BoxShadow(
+      color: AppColors.gradientStart.withValues(alpha: 0.35),
+      blurRadius: 24,
+      offset: const Offset(0, 10),
+    ),
+  ];
 }

@@ -6,4 +6,5 @@ class AppRadii {
   static const double pill = 30;
   static const double chip = 22;
   static const double tile = 20;
+  static const double navButton = 18;
 }

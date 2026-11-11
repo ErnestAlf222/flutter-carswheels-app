@@ -1,1 +1,2 @@
-// Barril de páginas del catálogo: aún sin exportaciones.
+// Barril de páginas del catálogo.
+export 'home_page.dart';

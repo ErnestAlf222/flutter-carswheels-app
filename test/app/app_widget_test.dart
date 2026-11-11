@@ -8,8 +8,9 @@ void main() {
     GoogleFonts.config.allowRuntimeFetching = false;
   });
 
-  testWidgets('App muestra el nombre de la app', (tester) async {
+  testWidgets('App muestra la pantalla de inicio', (tester) async {
     await tester.pumpWidget(const App());
-    expect(find.text(AppConfig.appName), findsOneWidget);
+    await tester.pumpAndSettle();
+    expect(find.text(AppTexts.homePageTitle), findsOneWidget);
   });
 }
