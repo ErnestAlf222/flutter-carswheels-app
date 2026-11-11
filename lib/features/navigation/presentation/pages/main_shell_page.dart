@@ -7,11 +7,25 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/navigation/presentation/cubits/cubits.dart';
 
 /// Marco de la app: contenido (la transición la hace cada ruta) y menú encima.
-class MainShellPage extends StatelessWidget {
+class MainShellPage extends StatefulWidget {
   const MainShellPage({super.key, required this.child, required this.location});
 
   final Widget child;
   final String location;
+
+  @override
+  State<MainShellPage> createState() => _MainShellPageState();
+}
+
+class _MainShellPageState extends State<MainShellPage> {
+  @override
+  void didUpdateWidget(MainShellPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Solo un cambio de ubicación avisa; la carga inicial no pasa por aquí.
+    if (oldWidget.location != widget.location) {
+      context.read<SectionLoaderCubit>().onSectionChanged();
+    }
+  }
 
   // Rutas en el mismo orden que los botones del menú.
   static const List<String> _routes = [
@@ -41,7 +55,7 @@ class MainShellPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final int index = _routes.indexOf(location);
+    final int index = _routes.indexOf(widget.location);
     return BlocProvider(
       create: (_) => NavVisibilityCubit(),
       child: Builder(
@@ -56,7 +70,13 @@ class MainShellPage extends StatelessWidget {
                   }
                   return false;
                 },
-                child: child,
+                child: widget.child,
+              ),
+              Positioned.fill(
+                child: BlocBuilder<SectionLoaderCubit, SectionLoaderState>(
+                  builder: (context, state) =>
+                      SectionLoaderOverlay(visible: state.visible),
+                ),
               ),
               Positioned(
                 left: 0,

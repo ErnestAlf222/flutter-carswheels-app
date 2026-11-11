@@ -249,7 +249,8 @@ void main() {
     );
 
     blocTest<CatalogCubit, CatalogState>(
-      'selectYear recarga las marcas y conserva la marca por nombre',
+      'selectYear mantiene marcas y selección mientras refresca y luego '
+      'emite el año nuevo conservando la marca por nombre',
       build: build,
       act: (cubit) async {
         await cubit.loadBrands();
@@ -258,11 +259,18 @@ void main() {
       },
       skip: 3,
       expect: () => [
-        const CatalogLoading(),
         isA<CatalogLoaded>()
+            .having((s) => s.isRefreshing, 'isRefreshing', true)
+            .having((s) => s.year, 'year', 2026)
+            .having((s) => s.brands.length, 'brands', 3)
+            .having((s) => s.selectedIndex, 'selectedIndex', 1),
+        isA<CatalogLoaded>()
+            .having((s) => s.isRefreshing, 'isRefreshing', false)
             .having((s) => s.year, 'year', 2025)
             .having((s) => s.selectedIndex, 'selectedIndex', 1)
             .having((s) => s.windowStart, 'windowStart', 1)
+            .having((s) => s.failedYear, 'failedYear', isNull)
+            .having((s) => s.refreshFailure, 'refreshFailure', isNull)
             .having((s) => s.availableYears, 'availableYears', [
               2026,
               2025,
@@ -279,13 +287,13 @@ void main() {
         cubit.selectBrand(1);
         await cubit.selectYear(2024);
       },
-      skip: 3,
+      skip: 4,
       expect: () => [
-        const CatalogLoading(),
         isA<CatalogLoaded>()
             .having((s) => s.year, 'year', 2024)
             .having((s) => s.selectedIndex, 'selectedIndex', 0)
-            .having((s) => s.windowStart, 'windowStart', 0),
+            .having((s) => s.windowStart, 'windowStart', 0)
+            .having((s) => s.isRefreshing, 'isRefreshing', false),
       ],
     );
 
@@ -309,7 +317,7 @@ void main() {
     });
 
     blocTest<CatalogCubit, CatalogState>(
-      'selectYear emite error si falla la carga de marcas',
+      'si falla el cambio de año vuelve al estado anterior con el fallo',
       build: () => _cubit(
         _FakeCatalogRepository(
           years: [2026, 2025],
@@ -324,13 +332,26 @@ void main() {
         await cubit.selectYear(2025);
       },
       skip: 2,
-      expect: () => const [
-        CatalogLoading(),
-        CatalogError(NetworkFailure('sin red'), failedYear: 2025),
+      expect: () => [
+        isA<CatalogLoaded>().having(
+          (s) => s.isRefreshing,
+          'isRefreshing',
+          true,
+        ),
+        isA<CatalogLoaded>()
+            .having((s) => s.isRefreshing, 'isRefreshing', false)
+            .having((s) => s.year, 'year', 2026)
+            .having((s) => s.brands.length, 'brands', 1)
+            .having((s) => s.failedYear, 'failedYear', 2025)
+            .having(
+              (s) => s.refreshFailure,
+              'refreshFailure',
+              const NetworkFailure('sin red'),
+            ),
       ],
     );
 
-    test('retry repite el año que falló aunque venga de un error', () async {
+    test('retry repite la petición del año que falló', () async {
       final repository = _FakeCatalogRepository(
         years: [2026, 2025],
         brandsByYear: {
@@ -342,15 +363,18 @@ void main() {
       final cubit = _cubit(repository);
       await cubit.loadBrands();
       await cubit.selectYear(2025);
-      expect(cubit.state, isA<CatalogError>());
+      expect((cubit.state as CatalogLoaded).failedYear, 2025);
       repository.failingYears.clear();
       await cubit.retry();
-      expect(cubit.state, isA<CatalogLoaded>());
-      expect((cubit.state as CatalogLoaded).year, 2025);
+      final loaded = cubit.state as CatalogLoaded;
+      expect(loaded.year, 2025);
+      expect(loaded.failedYear, isNull);
+      expect(loaded.refreshFailure, isNull);
+      expect(repository.brandCalls, [2026, 2025, 2025]);
       await cubit.close();
     });
 
-    test('retry sin año fallido vuelve a llamar a loadBrands', () async {
+    test('retry desde CatalogError llama a loadBrands', () async {
       final repository = _FakeCatalogRepository(
         years: [2026],
         error: const NetworkFailure('sin red'),
@@ -374,6 +398,19 @@ void main() {
       await cubit.close();
     });
 
+    test('el refresco de año no espera el tiempo mínimo del loader', () async {
+      final cubit = _cubit(
+        _FakeCatalogRepository(years: [2026, 2025], brandsByYear: brandsByYear),
+        minimumLoadingTime: const Duration(milliseconds: 300),
+      );
+      await cubit.loadBrands();
+      final timer = Stopwatch()..start();
+      await cubit.selectYear(2025);
+      expect(timer.elapsedMilliseconds, lessThan(150));
+      expect((cubit.state as CatalogLoaded).year, 2025);
+      await cubit.close();
+    });
+
     blocTest<CatalogCubit, CatalogState>(
       'showOlderYear va al año anterior y se detiene en el más antiguo',
       build: build,
@@ -385,9 +422,17 @@ void main() {
       },
       skip: 2,
       expect: () => [
-        const CatalogLoading(),
+        isA<CatalogLoaded>().having(
+          (s) => s.isRefreshing,
+          'isRefreshing',
+          true,
+        ),
         isA<CatalogLoaded>().having((s) => s.year, 'year', 2025),
-        const CatalogLoading(),
+        isA<CatalogLoaded>().having(
+          (s) => s.isRefreshing,
+          'isRefreshing',
+          true,
+        ),
         isA<CatalogLoaded>().having((s) => s.year, 'year', 2024),
       ],
     );
@@ -405,9 +450,17 @@ void main() {
       },
       skip: 4,
       expect: () => [
-        const CatalogLoading(),
+        isA<CatalogLoaded>().having(
+          (s) => s.isRefreshing,
+          'isRefreshing',
+          true,
+        ),
         isA<CatalogLoaded>().having((s) => s.year, 'year', 2025),
-        const CatalogLoading(),
+        isA<CatalogLoaded>().having(
+          (s) => s.isRefreshing,
+          'isRefreshing',
+          true,
+        ),
         isA<CatalogLoaded>().having((s) => s.year, 'year', 2026),
       ],
     );

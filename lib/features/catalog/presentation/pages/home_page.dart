@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/cubits/cubits.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/widgets/widgets.dart';
 
@@ -11,15 +12,27 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<CatalogCubit, CatalogState>(
-      listenWhen: _shouldLoadModels,
-      listener: (context, state) {
-        if (state is! CatalogLoaded) return;
-        context.read<ModelsCubit>().load(
-          state.year,
-          state.brands[state.selectedIndex].name,
-        );
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<CatalogCubit, CatalogState>(
+          listenWhen: _shouldLoadModels,
+          listener: (context, state) {
+            if (state is! CatalogLoaded) return;
+            context.read<ModelsCubit>().load(
+              state.year,
+              state.brands[state.selectedIndex].name,
+            );
+          },
+        ),
+        BlocListener<CatalogCubit, CatalogState>(
+          listenWhen: (previous, current) => current is CatalogLoaded,
+          listener: (context, _) => _precacheLogos(context),
+        ),
+        BlocListener<BrandLogosCubit, BrandLogosState>(
+          listenWhen: (previous, current) => current is BrandLogosLoaded,
+          listener: (context, _) => _precacheLogos(context),
+        ),
+      ],
       child: NotificationListener<ScrollNotification>(
         onNotification: (notification) {
           _loadMoreNearEnd(context, notification);
@@ -29,22 +42,14 @@ class HomePage extends StatelessWidget {
         child: Scaffold(
           body: SafeArea(
             bottom: false,
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.xl,
-                AppSpacing.xl,
-                AppSpacing.xl,
-                UiConfig.navClearance,
-              ),
-              children: [
-                Text(AppConfig.appName, style: AppTextStyles.cardTitle),
-                const SizedBox(height: AppSpacing.xl),
-                const _BrandsHeader(),
-                const SizedBox(height: AppSpacing.m),
-                const _BrandsCarousel(),
-                const SizedBox(height: AppSpacing.xl),
-                const _ModelsSection(),
-              ],
+            child: BlocBuilder<CatalogCubit, CatalogState>(
+              builder: (context, state) => switch (state) {
+                CatalogInitial() || CatalogLoading() => const AppLoader(),
+                CatalogError() => ErrorStateWidget(
+                  onRetry: context.read<CatalogCubit>().retry,
+                ),
+                CatalogLoaded() => _LoadedContent(state: state),
+              },
             ),
           ),
         ),
@@ -55,10 +60,25 @@ class HomePage extends StatelessWidget {
   // Solo carga modelos si cambió el año o la marca seleccionada.
   static bool _shouldLoadModels(CatalogState previous, CatalogState current) {
     if (current is! CatalogLoaded || current.brands.isEmpty) return false;
+    if (current.isRefreshing || current.refreshFailure != null) return false;
     if (previous is! CatalogLoaded || previous.brands.isEmpty) return true;
     return previous.year != current.year ||
         previous.brands[previous.selectedIndex].name !=
             current.brands[current.selectedIndex].name;
+  }
+
+  // Precarga los logos de las primeras marcas cuando marcas y logos están.
+  static void _precacheLogos(BuildContext context) {
+    final catalog = context.read<CatalogCubit>().state;
+    final logos = context.read<BrandLogosCubit>();
+    if (catalog is! CatalogLoaded || logos.state is! BrandLogosLoaded) return;
+    final urls = <String>[
+      for (final brand in catalog.brands.take(
+        CarouselConfig.logoPrecacheMaxItems,
+      ))
+        ?logos.urlFor(brand.name),
+    ];
+    context.read<LogoPrecacheCubit>().precache(context, urls);
   }
 
   // Pide la siguiente página cuando el scroll se acerca al final.
@@ -78,12 +98,67 @@ class HomePage extends StatelessWidget {
   }
 }
 
-/// Título de marcas con el selector de año.
-class _BrandsHeader extends StatelessWidget {
-  const _BrandsHeader();
+/// Contenido de la pantalla con las marcas cargadas.
+class _LoadedContent extends StatelessWidget {
+  const _LoadedContent({required this.state});
+
+  final CatalogLoaded state;
 
   @override
   Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xl,
+        AppSpacing.xl,
+        AppSpacing.xl,
+        UiConfig.navClearance,
+      ),
+      children: [
+        Text(AppConfig.appName, style: AppTextStyles.cardTitle),
+        const SizedBox(height: AppSpacing.xl),
+        RefreshableContentWidget(
+          isRefreshing: state.isRefreshing,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _BrandsHeader(state: state),
+              if (state.refreshFailure != null)
+                InlineMessageWidget(
+                  message: AppTexts.refreshFailedLabel,
+                  actionLabel: AppTexts.retryButtonLabel,
+                  onAction: context.read<CatalogCubit>().retry,
+                ),
+              const SizedBox(height: AppSpacing.m),
+              if (state.brands.isEmpty)
+                const EmptyStateWidget()
+              else ...[
+                const BrandCarouselWidget(),
+                const SizedBox(height: AppSpacing.xl),
+                BlocBuilder<ModelsCubit, ModelsState>(
+                  builder: (context, modelsState) => ModelsSectionWidget(
+                    brandName: state.brands[state.selectedIndex].name,
+                    state: modelsState,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Título de marcas con el selector de año.
+class _BrandsHeader extends StatelessWidget {
+  const _BrandsHeader({required this.state});
+
+  final CatalogLoaded state;
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<CatalogCubit>();
+    final yearIndex = state.availableYears.indexOf(state.year);
     return Row(
       children: [
         Expanded(
@@ -92,64 +167,14 @@ class _BrandsHeader extends StatelessWidget {
             style: AppTextStyles.sectionTitle,
           ),
         ),
-        BlocBuilder<CatalogCubit, CatalogState>(
-          builder: (context, state) {
-            if (state is! CatalogLoaded) return const SizedBox.shrink();
-            final cubit = context.read<CatalogCubit>();
-            final yearIndex = state.availableYears.indexOf(state.year);
-            return YearSelectorWidget(
-              year: state.year,
-              canShowOlder: yearIndex < state.availableYears.length - 1,
-              canShowNewer: yearIndex > 0,
-              onOlder: cubit.showOlderYear,
-              onNewer: cubit.showNewerYear,
-            );
-          },
+        YearSelectorWidget(
+          year: state.year,
+          canShowOlder: yearIndex < state.availableYears.length - 1,
+          canShowNewer: yearIndex > 0,
+          onOlder: cubit.showOlderYear,
+          onNewer: cubit.showNewerYear,
         ),
       ],
-    );
-  }
-}
-
-/// Carrusel de marcas según el estado del catálogo.
-class _BrandsCarousel extends StatelessWidget {
-  const _BrandsCarousel();
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<CatalogCubit, CatalogState>(
-      builder: (context, state) => switch (state) {
-        CatalogInitial() || CatalogLoading() => const AppLoader(),
-        CatalogError() => ErrorStateWidget(
-          onRetry: context.read<CatalogCubit>().retry,
-        ),
-        CatalogLoaded(:final brands) =>
-          brands.isEmpty
-              ? const EmptyStateWidget()
-              : const BrandCarouselWidget(),
-      },
-    );
-  }
-}
-
-/// Modelos de la marca seleccionada.
-class _ModelsSection extends StatelessWidget {
-  const _ModelsSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<CatalogCubit, CatalogState>(
-      builder: (context, catalogState) {
-        if (catalogState is! CatalogLoaded || catalogState.brands.isEmpty) {
-          return const SizedBox.shrink();
-        }
-        return BlocBuilder<ModelsCubit, ModelsState>(
-          builder: (context, modelsState) => ModelsSectionWidget(
-            brandName: catalogState.brands[catalogState.selectedIndex].name,
-            state: modelsState,
-          ),
-        );
-      },
     );
   }
 }

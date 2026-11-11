@@ -42,23 +42,43 @@ ModelsLoaded _models(int total, int visible) => ModelsLoaded(
     for (int index = 0; index < total; index++) ModelEntity(name: 'M$index'),
   ],
   visibleCount: visible,
+  year: 2026,
+  brand: 'Marca0',
 );
 
+class _FakeBuildContext extends Fake implements BuildContext {}
+
+class _MockLogoPrecacheCubit extends MockCubit<LogoPrecacheState>
+    implements LogoPrecacheCubit {}
+
 void main() {
+  late _MockLogoPrecacheCubit precacheCubit;
   late _MockCatalogCubit catalogCubit;
   late _MockModelsCubit modelsCubit;
   late _MockBrandLogosCubit logosCubit;
   late StreamController<CatalogState> catalogEvents;
+  late StreamController<BrandLogosState> logosEvents;
 
   setUpAll(() {
     GoogleFonts.config.allowRuntimeFetching = false;
+    registerFallbackValue(_FakeBuildContext());
+    registerFallbackValue(<String>[]);
   });
 
   setUp(() {
     catalogCubit = _MockCatalogCubit();
     modelsCubit = _MockModelsCubit();
     logosCubit = _MockBrandLogosCubit();
+    precacheCubit = _MockLogoPrecacheCubit();
+    when(() => precacheCubit.state).thenReturn(const LogoPrecacheState());
+    when(() => precacheCubit.precache(any(), any())).thenReturn(null);
     catalogEvents = StreamController<CatalogState>.broadcast();
+    logosEvents = StreamController<BrandLogosState>.broadcast();
+    whenListen(
+      logosCubit,
+      logosEvents.stream,
+      initialState: const BrandLogosInitial(),
+    );
     when(() => logosCubit.state).thenReturn(const BrandLogosInitial());
     when(() => logosCubit.urlFor(any())).thenReturn(null);
     when(() => modelsCubit.load(any(), any())).thenAnswer((_) async {});
@@ -69,7 +89,10 @@ void main() {
     when(() => catalogCubit.showNewerYear()).thenAnswer((_) async {});
   });
 
-  tearDown(() => catalogEvents.close());
+  tearDown(() {
+    catalogEvents.close();
+    logosEvents.close();
+  });
 
   Future<void> pumpHome(
     WidgetTester tester, {
@@ -85,6 +108,7 @@ void main() {
             BlocProvider<CatalogCubit>.value(value: catalogCubit),
             BlocProvider<ModelsCubit>.value(value: modelsCubit),
             BlocProvider<BrandLogosCubit>.value(value: logosCubit),
+            BlocProvider<LogoPrecacheCubit>.value(value: precacheCubit),
           ],
           child: const HomePage(),
         ),
@@ -113,6 +137,93 @@ void main() {
     expect(find.byType(AppLoader), findsOneWidget);
     expect(find.byType(YearSelectorWidget), findsNothing);
     expect(find.byType(ModelsSectionWidget), findsNothing);
+  });
+
+  testWidgets('con isRefreshing no hay AppLoader y el contenido sigue', (
+    tester,
+  ) async {
+    await pumpHome(
+      tester,
+      catalog: _loaded().refreshing(),
+      models: _models(3, 3),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(AppLoader), findsNothing);
+    expect(find.byType(BrandCarouselWidget), findsOneWidget);
+    expect(find.byType(ModelCardWidget), findsNWidgets(3));
+    final dimmed = tester.widget<AnimatedOpacity>(
+      find
+          .descendant(
+            of: find.byType(RefreshableContentWidget),
+            matching: find.byType(AnimatedOpacity),
+          )
+          .first,
+    );
+    expect(dimmed.opacity, UiConfig.dimmedOpacity);
+  });
+
+  testWidgets('el fallo al cambiar de año muestra mensaje y reintenta', (
+    tester,
+  ) async {
+    await pumpHome(
+      tester,
+      catalog: _loaded().failedRefresh(2025, const NetworkFailure('sin red')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text(AppTexts.refreshFailedLabel), findsOneWidget);
+    await tester.tap(find.text(AppTexts.retryButtonLabel));
+    verify(() => catalogCubit.retry()).called(1);
+  });
+
+  group('precarga de logos', () {
+    void stubLogosLoaded() {
+      when(() => logosCubit.state)
+          .thenReturn(const BrandLogosLoaded({'marca0': 'a.png'}));
+      when(() => logosCubit.urlFor('Marca0')).thenReturn('a.png');
+    }
+
+    testWidgets('se dispara al cargar los logos con marcas presentes', (
+      tester,
+    ) async {
+      await pumpHome(tester, catalog: _loaded());
+      stubLogosLoaded();
+      logosEvents.add(const BrandLogosLoaded({'marca0': 'a.png'}));
+      await tester.pump();
+      verify(() => precacheCubit.precache(any(), ['a.png'])).called(1);
+    });
+
+    testWidgets('se dispara al cargar las marcas con logos presentes', (
+      tester,
+    ) async {
+      stubLogosLoaded();
+      await pumpHome(tester, catalog: const CatalogLoading());
+      catalogEvents.add(_loaded());
+      await tester.pump();
+      verify(() => precacheCubit.precache(any(), ['a.png'])).called(1);
+    });
+
+    testWidgets('no se dispara si los logos aún no cargaron', (tester) async {
+      await pumpHome(tester, catalog: const CatalogLoading());
+      catalogEvents.add(_loaded());
+      await tester.pump();
+      verifyNever(() => precacheCubit.precache(any(), any()));
+    });
+
+    testWidgets('respeta el máximo de logos a precargar', (tester) async {
+      final brands = _brands(CarouselConfig.logoPrecacheMaxItems + 5);
+      when(() => logosCubit.state).thenReturn(const BrandLogosLoaded({}));
+      when(() => logosCubit.urlFor(any()))
+          .thenAnswer((call) => '${call.positionalArguments.first}.png');
+      await pumpHome(tester, catalog: const CatalogLoading());
+      catalogEvents.add(_loaded(brands: brands));
+      await tester.pump();
+      final captured = verify(() => precacheCubit.precache(any(), captureAny()))
+          .captured;
+      expect(
+        (captured.last as Iterable<String>).length,
+        CarouselConfig.logoPrecacheMaxItems,
+      );
+    });
   });
 
   testWidgets('el error de marcas llama a retry', (tester) async {
@@ -176,9 +287,46 @@ void main() {
   });
 
   group('modelos', () {
-    testWidgets('loading muestra el loader de modelos', (tester) async {
+    testWidgets('loading muestra esqueletos y ningún AppLoader', (
+      tester,
+    ) async {
       await pumpHome(tester, catalog: _loaded(), models: const ModelsLoading());
-      expect(find.byType(AppLoader), findsOneWidget);
+      expect(find.byType(AppLoader), findsNothing);
+      expect(
+        find.byType(ModelCardSkeletonWidget),
+        findsNWidgets(UiConfig.skeletonCardCount),
+      );
+    });
+
+    testWidgets('refrescar modelos mantiene las tarjetas visibles', (
+      tester,
+    ) async {
+      await pumpHome(
+        tester,
+        catalog: _loaded(),
+        models: _models(3, 3).refreshing(),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(AppLoader), findsNothing);
+      expect(find.byType(ModelCardWidget), findsNWidgets(3));
+    });
+
+    testWidgets('fallo al refrescar modelos muestra mensaje y reintenta', (
+      tester,
+    ) async {
+      await pumpHome(
+        tester,
+        catalog: _loaded(),
+        models: _models(
+          3,
+          3,
+        ).failedRefresh(2025, const NetworkFailure('sin red')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(InlineMessageWidget), findsOneWidget);
+      await tester.ensureVisible(find.text(AppTexts.retryButtonLabel));
+      await tester.tap(find.text(AppTexts.retryButtonLabel));
+      verify(() => modelsCubit.retry()).called(1);
     });
 
     testWidgets('error muestra reintento que llama a ModelsCubit.retry', (
@@ -203,7 +351,12 @@ void main() {
       await pumpHome(
         tester,
         catalog: _loaded(),
-        models: const ModelsLoaded(models: [], visibleCount: 0),
+        models: const ModelsLoaded(
+          models: [],
+          visibleCount: 0,
+          year: 2026,
+          brand: 'Honda',
+        ),
       );
       expect(find.byType(EmptyStateWidget), findsOneWidget);
     });

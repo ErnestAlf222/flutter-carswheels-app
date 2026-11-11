@@ -45,10 +45,93 @@ void main() {
     expect(find.textContaining('modelo'), findsNothing);
   });
 
-  testWidgets('loading muestra el AppLoader sin conteo', (tester) async {
+  testWidgets('loading muestra esqueletos, sin AppLoader ni conteo', (
+    tester,
+  ) async {
     await tester.pumpWidget(section(const ModelsLoading()));
-    expect(find.byType(AppLoader), findsOneWidget);
+    expect(find.byType(AppLoader), findsNothing);
+    expect(
+      find.byType(ModelCardSkeletonWidget),
+      findsNWidgets(UiConfig.skeletonCardCount),
+    );
     expect(find.textContaining('modelo'), findsNothing);
+  });
+
+  ModelsLoaded loaded({
+    int total = 3,
+    int year = 2026,
+    String brand = 'Honda',
+    bool isRefreshing = false,
+    AppFailure? failure,
+  }) => ModelsLoaded(
+    models: _models(total),
+    visibleCount: total,
+    year: year,
+    brand: brand,
+    isRefreshing: isRefreshing,
+    refreshFailure: failure,
+  );
+
+  testWidgets('refrescando atenúa las tarjetas y no muestra loader', (
+    tester,
+  ) async {
+    await tester.pumpWidget(section(loaded(isRefreshing: true)));
+    await tester.pumpAndSettle();
+    expect(find.byType(AppLoader), findsNothing);
+    expect(find.byType(ModelCardWidget), findsNWidgets(3));
+    final refreshable = tester.widget<RefreshableContentWidget>(
+      find.byType(RefreshableContentWidget),
+    );
+    expect(refreshable.isRefreshing, isTrue);
+  });
+
+  testWidgets('el fallo de refresco muestra mensaje y llama a retry', (
+    tester,
+  ) async {
+    when(() => modelsCubit.retry()).thenAnswer((_) async {});
+    await tester.pumpWidget(
+      section(loaded(failure: const NetworkFailure('sin red'))),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text(AppTexts.refreshFailedLabel), findsOneWidget);
+    await tester.tap(find.text(AppTexts.retryButtonLabel));
+    verify(() => modelsCubit.retry()).called(1);
+  });
+
+  testWidgets('otra marca entra con fundido de columna sin entrada por '
+      'tarjeta en la primera página', (tester) async {
+    await tester.pumpWidget(section(loaded(brand: 'Honda')));
+    await tester.pumpAndSettle();
+    expect(find.byType(AnimatedEntryWidget), findsNothing);
+    await tester.pumpWidget(section(loaded(brand: 'Audi')));
+    await tester.pump();
+    // Durante el fundido conviven la lista anterior y la nueva.
+    expect(find.byType(AnimatedSwitcher), findsWidgets);
+    expect(find.byType(AnimatedEntryWidget), findsNothing);
+    await tester.pumpAndSettle();
+    expect(find.byType(ModelCardWidget), findsNWidgets(3));
+  });
+
+  testWidgets('las tarjetas añadidas por loadMore conservan su entrada', (
+    tester,
+  ) async {
+    const page = CatalogConfig.defaultPageSize;
+    await tester.pumpWidget(
+      section(
+        ModelsLoaded(
+          models: _models(page + 3),
+          visibleCount: page + 3,
+          year: 2026,
+          brand: 'Honda',
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(
+      find.byType(AnimatedEntryWidget, skipOffstage: false),
+      findsNWidgets(3),
+    );
+    await tester.pumpAndSettle();
   });
 
   testWidgets('error muestra ErrorStateWidget y reintenta', (tester) async {
@@ -69,7 +152,14 @@ void main() {
 
   testWidgets('loaded sin modelos muestra el estado vacío', (tester) async {
     await tester.pumpWidget(
-      section(const ModelsLoaded(models: [], visibleCount: 0)),
+      section(
+        const ModelsLoaded(
+          models: [],
+          visibleCount: 0,
+          year: 2026,
+          brand: 'Honda',
+        ),
+      ),
     );
     expect(find.byType(EmptyStateWidget), findsOneWidget);
     expect(find.text('0 modelos'), findsOneWidget);
@@ -77,7 +167,14 @@ void main() {
 
   testWidgets('con un modelo el conteo dice 1 modelo', (tester) async {
     await tester.pumpWidget(
-      section(ModelsLoaded(models: _models(1), visibleCount: 1)),
+      section(
+        ModelsLoaded(
+          models: _models(1),
+          visibleCount: 1,
+          year: 2026,
+          brand: 'Honda',
+        ),
+      ),
     );
     await tester.pumpAndSettle();
     expect(find.text('1 modelo'), findsOneWidget);
@@ -88,7 +185,14 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      section(ModelsLoaded(models: _models(51), visibleCount: 10)),
+      section(
+        ModelsLoaded(
+          models: _models(51),
+          visibleCount: 10,
+          year: 2026,
+          brand: 'Honda',
+        ),
+      ),
     );
     await tester.pumpAndSettle();
     expect(find.text('51 modelos'), findsOneWidget);

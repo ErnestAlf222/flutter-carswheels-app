@@ -18,43 +18,70 @@ class BrandCarouselWidget extends StatelessWidget {
     return BlocBuilder<CatalogCubit, CatalogState>(
       builder: (context, state) {
         if (state is! CatalogLoaded) return const SizedBox.shrink();
-        final brandCount = state.brands.length;
-        final visibleCount = math.min(
-          CarouselConfig.visibleBrandCount,
-          brandCount,
-        );
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _ArrowButton(
-              icon: Symbols.chevron_left,
-              label: AppTexts.previousBrandsLabel,
-              onPressed: cubit.showPreviousBrands,
-            ),
-            ...List.generate(visibleCount, (position) {
-              final brandIndex = (state.windowStart + position) % brandCount;
-              return Expanded(
-                key: ValueKey(brandIndex),
-                child: AnimatedEntryWidget(
-                  index: position,
-                  child: Center(
-                    child: BrandTileWidget(
-                      brandName: state.brands[brandIndex].name,
-                      selected: brandIndex == state.selectedIndex,
-                      onTap: () => cubit.selectBrand(brandIndex),
-                    ),
-                  ),
-                ),
-              );
-            }),
-            _ArrowButton(
-              icon: Symbols.chevron_right,
-              label: AppTexts.nextBrandsLabel,
-              onPressed: cubit.showNextBrands,
-            ),
-          ],
+        // La entrada es de la fila completa y ocurre solo al aparecer.
+        return AnimatedEntryWidget(
+          index: 0,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _ArrowButton(
+                icon: Symbols.chevron_left,
+                label: AppTexts.previousBrandsLabel,
+                onPressed: cubit.showPreviousBrands,
+              ),
+              Expanded(child: _BrandsRow(state: state)),
+              _ArrowButton(
+                icon: Symbols.chevron_right,
+                label: AppTexts.nextBrandsLabel,
+                onPressed: cubit.showNextBrands,
+              ),
+            ],
+          ),
         );
       },
+    );
+  }
+}
+
+/// Marcas de la ventana actual; cambian con un fundido de toda la fila.
+class _BrandsRow extends StatelessWidget {
+  const _BrandsRow({required this.state});
+
+  final CatalogLoaded state;
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<CatalogCubit>();
+    final brandCount = state.brands.length;
+    final visibleCount = math.min(CarouselConfig.visibleBrandCount, brandCount);
+    final duration = MediaQuery.of(context).disableAnimations
+        ? Duration.zero
+        : const Duration(milliseconds: CarouselConfig.shiftFadeMilliseconds);
+    return AnimatedSwitcher(
+      duration: duration,
+      child: Row(
+        key: ValueKey('${state.year}-${state.windowStart}'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (int position = 0; position < visibleCount; position++)
+            Expanded(
+              key: ValueKey((state.windowStart + position) % brandCount),
+              child: Center(
+                child: BrandTileWidget(
+                  brandName: state
+                      .brands[(state.windowStart + position) % brandCount]
+                      .name,
+                  selected:
+                      (state.windowStart + position) % brandCount ==
+                      state.selectedIndex,
+                  onTap: () => cubit.selectBrand(
+                    (state.windowStart + position) % brandCount,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

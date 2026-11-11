@@ -1,7 +1,9 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:cars_wheels_app/app/app.dart';
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
+import 'package:cars_wheels_app/features/navigation/navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,12 +14,32 @@ import 'package:mocktail/mocktail.dart';
 class _MockCatalogCubit extends MockCubit<CatalogState>
     implements CatalogCubit {}
 
-/// Envuelve la app con un CatalogCubit en estado inicial.
+class _MockModelsCubit extends MockCubit<ModelsState> implements ModelsCubit {}
+
+class _MockBrandLogosCubit extends MockCubit<BrandLogosState>
+    implements BrandLogosCubit {}
+
+class _MockLogoPrecacheCubit extends MockCubit<LogoPrecacheState>
+    implements LogoPrecacheCubit {}
+
+/// Envuelve la app con los cubits que necesita la pantalla de inicio.
 Widget _app(GoRouter router) {
-  final cubit = _MockCatalogCubit();
-  when(() => cubit.state).thenReturn(const CatalogInitial());
-  return BlocProvider<CatalogCubit>.value(
-    value: cubit,
+  final catalog = _MockCatalogCubit();
+  final models = _MockModelsCubit();
+  final logos = _MockBrandLogosCubit();
+  final precache = _MockLogoPrecacheCubit();
+  when(() => catalog.state).thenReturn(const CatalogInitial());
+  when(() => models.state).thenReturn(const ModelsInitial());
+  when(() => logos.state).thenReturn(const BrandLogosInitial());
+  when(() => precache.state).thenReturn(const LogoPrecacheState());
+  return MultiBlocProvider(
+    providers: [
+      BlocProvider<CatalogCubit>.value(value: catalog),
+      BlocProvider<ModelsCubit>.value(value: models),
+      BlocProvider<BrandLogosCubit>.value(value: logos),
+      BlocProvider<LogoPrecacheCubit>.value(value: precache),
+      BlocProvider<SectionLoaderCubit>(create: (_) => SectionLoaderCubit()),
+    ],
     child: MaterialApp.router(routerConfig: router),
   );
 }
@@ -36,9 +58,8 @@ void main() {
         child: _app(router),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
     const expected = {
-      RoutesConfig.home: AppTexts.brandsSectionTitle,
       RoutesConfig.search: AppTexts.searchPageTitle,
       RoutesConfig.compare: AppTexts.comparePageTitle,
       RoutesConfig.favorites: AppTexts.favoritesPageTitle,
@@ -46,6 +67,12 @@ void main() {
     };
     for (final entry in expected.entries) {
       router.go(entry.key);
+      await tester.pump();
+      await tester.pump(
+        const Duration(
+          milliseconds: AnimationConfig.sectionLoaderVisibleMilliseconds,
+        ),
+      );
       await tester.pumpAndSettle();
       expect(find.text(entry.value), findsOneWidget);
     }
@@ -57,10 +84,53 @@ void main() {
     final router = buildAppRouter();
     addTearDown(router.dispose);
     await tester.pumpWidget(_app(router));
-    await tester.pumpAndSettle();
+    await tester.pump();
     router.go(RoutesConfig.search);
+    await tester.pump();
+    await tester.pump(
+      const Duration(
+        milliseconds: AnimationConfig.sectionLoaderVisibleMilliseconds,
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text(AppTexts.searchPageTitle), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  group('aviso al cambiar de sección', () {
+    bool loaderVisible(WidgetTester tester) => find
+        .descendant(
+          of: find.byType(SectionLoaderOverlay),
+          matching: find.byType(AppLoader),
+        )
+        .evaluate()
+        .isNotEmpty;
+
+    testWidgets('al arrancar la app no aparece', (tester) async {
+      final router = buildAppRouter();
+      addTearDown(router.dispose);
+      await tester.pumpWidget(_app(router));
+      await tester.pump();
+      expect(find.byType(SectionLoaderOverlay), findsOneWidget);
+      expect(loaderVisible(tester), isFalse);
+    });
+
+    testWidgets('al navegar aparece y luego desaparece', (tester) async {
+      final router = buildAppRouter();
+      addTearDown(router.dispose);
+      await tester.pumpWidget(_app(router));
+      await tester.pump();
+      router.go(RoutesConfig.search);
+      await tester.pump();
+      await tester.pump();
+      expect(loaderVisible(tester), isTrue);
+      await tester.pump(
+        const Duration(
+          milliseconds: AnimationConfig.sectionLoaderVisibleMilliseconds,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(loaderVisible(tester), isFalse);
+    });
   });
 }

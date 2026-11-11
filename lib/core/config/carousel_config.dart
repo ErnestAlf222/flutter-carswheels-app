@@ -13,4 +13,8 @@ class CarouselConfig {
   static const double yearTextMinWidth = 56.0;
   // Opacidad de una flecha deshabilitada.
   static const double disabledArrowOpacity = 0.4;
+  // Fundido de la fila al mover la ventana de marcas.
+  static const int shiftFadeMilliseconds = 150;
+  // Máximo de logos que se precargan.
+  static const int logoPrecacheMaxItems = 60;
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
@@ -153,6 +155,35 @@ void main() {
       expect(find.text('Marca4'), findsOneWidget);
       expect(find.text('Marca0'), findsOneWidget);
       expect(find.text('Marca1'), findsOneWidget);
+    });
+
+    testWidgets('al mover la ventana no hay entrada por tile y el fundido '
+        'muestra los nombres nuevos', (tester) async {
+      final events = StreamController<CatalogState>.broadcast();
+      addTearDown(events.close);
+      CatalogLoaded window(int start) => CatalogLoaded(
+        year: 2026,
+        availableYears: const [2026],
+        brands: _brands(10),
+        windowStart: start,
+      );
+      whenListen(catalogCubit, events.stream, initialState: window(0));
+      await tester.pumpWidget(carousel());
+      await tester.pumpAndSettle();
+      // La entrada es una sola, de la fila completa.
+      expect(find.byType(AnimatedEntryWidget), findsOneWidget);
+      expect(find.text('Marca0'), findsOneWidget);
+      expect(find.text('Marca4'), findsNothing);
+
+      events.add(window(1));
+      await tester.pump();
+      await tester.pump(
+        const Duration(milliseconds: CarouselConfig.shiftFadeMilliseconds),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(AnimatedEntryWidget), findsOneWidget);
+      expect(find.text('Marca4'), findsOneWidget);
+      expect(find.text('Marca0'), findsNothing);
     });
 
     testWidgets('las flechas llaman al cubit', (tester) async {

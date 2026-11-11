@@ -1,14 +1,13 @@
-import 'dart:async';
-
 import 'package:bloc_test/bloc_test.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _FakeCatalogRepository implements CatalogRepository {
-  _FakeCatalogRepository({this.modelCount = 0, this.error});
+  _FakeCatalogRepository({this.modelCount = 0, this.error, this.delay});
 
   final int modelCount;
+  final Duration? delay;
   Object? error;
   final List<(int, String)> calls = [];
 
@@ -21,6 +20,7 @@ class _FakeCatalogRepository implements CatalogRepository {
   @override
   Future<List<ModelEntity>> fetchModels(int year, String brand) async {
     calls.add((year, brand));
+    if (delay != null) await Future<void>.delayed(delay!);
     if (error != null) throw error!;
     return [
       for (int index = 0; index < modelCount; index++)
@@ -29,11 +29,7 @@ class _FakeCatalogRepository implements CatalogRepository {
   }
 }
 
-ModelsCubit _cubit(
-  _FakeCatalogRepository repository, {
-  Duration minimumLoadingTime = Duration.zero,
-}) => ModelsCubit(
-  minimumLoadingTime: minimumLoadingTime,
+ModelsCubit _cubit(_FakeCatalogRepository repository) => ModelsCubit(
   getModels: GetModelsUseCase(
     repository: repository,
     sortStrategy: const AdaptiveSortStrategy<ModelEntity>(
@@ -55,6 +51,19 @@ void main() {
     build: () => _cubit(_FakeCatalogRepository(modelCount: page * 3)),
     act: (cubit) => cubit.load(2020, 'Honda'),
     expect: () => [const ModelsLoading(), _loaded(page * 3, page)],
+  );
+
+  blocTest<ModelsCubit, ModelsState>(
+    'el loaded guarda el año y la marca de la consulta',
+    build: () => _cubit(_FakeCatalogRepository(modelCount: 3)),
+    act: (cubit) => cubit.load(2020, 'Honda'),
+    verify: (cubit) {
+      final loaded = cubit.state as ModelsLoaded;
+      expect(loaded.year, 2020);
+      expect(loaded.brand, 'Honda');
+      expect(loaded.isRefreshing, isFalse);
+      expect(loaded.refreshFailure, isNull);
+    },
   );
 
   blocTest<ModelsCubit, ModelsState>(
@@ -98,7 +107,7 @@ void main() {
   });
 
   blocTest<ModelsCubit, ModelsState>(
-    'loading -> error cuando falla el repositorio',
+    'loading -> error cuando falla el repositorio sin datos previos',
     build: () =>
         _cubit(_FakeCatalogRepository(error: const NetworkFailure('sin red'))),
     act: (cubit) => cubit.load(2020, 'Honda'),
@@ -108,7 +117,66 @@ void main() {
     ],
   );
 
-  test('retry repite la consulta con el mismo año y marca', () async {
+  blocTest<ModelsCubit, ModelsState>(
+    'misma marca: refresca en el lugar sin pasar por loading',
+    build: () => _cubit(_FakeCatalogRepository(modelCount: 3)),
+    act: (cubit) async {
+      await cubit.load(2020, 'Honda');
+      await cubit.load(2021, 'Honda');
+    },
+    skip: 2,
+    expect: () => [
+      isA<ModelsLoaded>()
+          .having((s) => s.isRefreshing, 'isRefreshing', true)
+          .having((s) => s.year, 'year', 2020),
+      isA<ModelsLoaded>()
+          .having((s) => s.isRefreshing, 'isRefreshing', false)
+          .having((s) => s.year, 'year', 2021)
+          .having((s) => s.visibleCount, 'visibleCount', 3),
+    ],
+  );
+
+  blocTest<ModelsCubit, ModelsState>(
+    'marca distinta: pasa por loading',
+    build: () => _cubit(_FakeCatalogRepository(modelCount: 3)),
+    act: (cubit) async {
+      await cubit.load(2020, 'Honda');
+      await cubit.load(2020, 'Audi');
+    },
+    skip: 2,
+    expect: () => [const ModelsLoading(), _loaded(3, 3)],
+  );
+
+  test('un fallo en el refresco conserva la lista y guarda el fallo', () async {
+    final repository = _FakeCatalogRepository(modelCount: 3);
+    final cubit = _cubit(repository);
+    await cubit.load(2020, 'Honda');
+    repository.error = const NetworkFailure('sin red');
+    await cubit.load(2021, 'Honda');
+    final loaded = cubit.state as ModelsLoaded;
+    expect(loaded.models.length, 3);
+    expect(loaded.isRefreshing, isFalse);
+    expect(loaded.refreshFailure, const NetworkFailure('sin red'));
+    expect(loaded.year, 2021);
+    await cubit.close();
+  });
+
+  test('retry tras un refresco fallido repite el año pedido', () async {
+    final repository = _FakeCatalogRepository(modelCount: 3);
+    final cubit = _cubit(repository);
+    await cubit.load(2020, 'Honda');
+    repository.error = const NetworkFailure('sin red');
+    await cubit.load(2021, 'Honda');
+    repository.error = null;
+    await cubit.retry();
+    final loaded = cubit.state as ModelsLoaded;
+    expect(loaded.refreshFailure, isNull);
+    expect(loaded.year, 2021);
+    expect(repository.calls.last, (2021, 'Honda'));
+    await cubit.close();
+  });
+
+  test('retry desde ModelsError repite la consulta', () async {
     final repository = _FakeCatalogRepository(
       modelCount: 3,
       error: const NetworkFailure('sin red'),
@@ -123,12 +191,28 @@ void main() {
     await cubit.close();
   });
 
-  test('retry fuera de un estado de error no hace nada', () async {
+  test('retry sin error no hace nada', () async {
     final repository = _FakeCatalogRepository(modelCount: 3);
     final cubit = _cubit(repository);
     await cubit.retry();
     expect(cubit.state, const ModelsInitial());
-    expect(repository.calls, isEmpty);
+    await cubit.load(2020, 'Honda');
+    await cubit.retry();
+    expect(repository.calls, [(2020, 'Honda')]);
+    await cubit.close();
+  });
+
+  test('loadMore se ignora mientras se refresca', () async {
+    final repository = _FakeCatalogRepository(
+      modelCount: page * 2,
+      delay: const Duration(milliseconds: 50),
+    );
+    final cubit = _cubit(repository);
+    await cubit.load(2020, 'Honda');
+    final refresh = cubit.load(2021, 'Honda');
+    cubit.loadMore();
+    await refresh;
+    expect((cubit.state as ModelsLoaded).visibleCount, page);
     await cubit.close();
   });
 
@@ -142,36 +226,11 @@ void main() {
     },
   );
 
-  blocTest<ModelsCubit, ModelsState>(
-    'el tiempo mínimo del loader retrasa el estado loaded',
-    build: () => _cubit(
-      _FakeCatalogRepository(modelCount: 3),
-      minimumLoadingTime: const Duration(milliseconds: 300),
-    ),
-    act: (cubit) => unawaited(cubit.load(2020, 'Honda')),
-    wait: const Duration(milliseconds: 100),
-    expect: () => const [ModelsLoading()],
-  );
-
-  blocTest<ModelsCubit, ModelsState>(
-    'tras el tiempo mínimo emite loaded',
-    build: () => _cubit(
-      _FakeCatalogRepository(modelCount: 3),
-      minimumLoadingTime: const Duration(milliseconds: 200),
-    ),
-    act: (cubit) => unawaited(cubit.load(2020, 'Honda')),
-    wait: const Duration(milliseconds: 400),
-    expect: () => [const ModelsLoading(), isA<ModelsLoaded>()],
-  );
-
-  blocTest<ModelsCubit, ModelsState>(
-    'el error también espera el tiempo mínimo del loader',
-    build: () => _cubit(
-      _FakeCatalogRepository(error: const NetworkFailure('sin red')),
-      minimumLoadingTime: const Duration(milliseconds: 300),
-    ),
-    act: (cubit) => unawaited(cubit.load(2020, 'Honda')),
-    wait: const Duration(milliseconds: 100),
-    expect: () => const [ModelsLoading()],
-  );
+  test('no espera ningún tiempo mínimo al cargar', () async {
+    final cubit = _cubit(_FakeCatalogRepository(modelCount: 3));
+    final timer = Stopwatch()..start();
+    await cubit.load(2020, 'Honda');
+    expect(timer.elapsedMilliseconds, lessThan(100));
+    await cubit.close();
+  });
 }
