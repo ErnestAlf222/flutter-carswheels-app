@@ -11,4 +11,6 @@ class UserAgentsConfig {
   static const String conueeUserAgent = 'AppAutosPrueba/1.0 (ernesto)';
   // Provisional: es el identificador que ya se probó con otras fuentes.
   static const String fuelEconomyUserAgent = 'AppAutosPrueba/1.0 (ernesto)';
+  // Provisional: mismo identificador que las demás fuentes.
+  static const String logosUserAgent = 'AppAutosPrueba/1.0 (ernesto)';
 }

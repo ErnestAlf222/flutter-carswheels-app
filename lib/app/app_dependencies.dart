@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 
 /// Construye las dependencias de la app en un solo lugar.
@@ -9,6 +10,7 @@ class AppDependencies {
     required this.catalogRepository,
     required this.getLatestYearUseCase,
     required this.getBrandsUseCase,
+    required this.brandLogosRepository,
   });
 
   factory AppDependencies.create() {
@@ -17,11 +19,16 @@ class AppDependencies {
       acceptHeaderValue: FuelEconomyConfig.acceptHeaderValue,
       userAgent: UserAgentsConfig.fuelEconomyUserAgent,
     );
-    return AppDependencies.fromDio(fuelEconomyDio);
+    final logosDio = ApiClientFactory.create(
+      baseUrl: LogosConfig.logosBaseUrl,
+      acceptHeaderValue: LogosConfig.acceptHeaderValue,
+      userAgent: UserAgentsConfig.logosUserAgent,
+    );
+    return AppDependencies.fromDio(fuelEconomyDio, logosDio);
   }
 
   /// Compone todo sobre un Dio dado.
-  factory AppDependencies.fromDio(Dio fuelEconomyDio) {
+  factory AppDependencies.fromDio(Dio fuelEconomyDio, Dio logosDio) {
     final repository = CatalogRepositoryImpl(
       FuelEconomyCatalogDatasource(fuelEconomyDio),
     );
@@ -36,10 +43,14 @@ class AppDependencies {
         repository: repository,
         sortStrategy: sortStrategy,
       ),
+      brandLogosRepository: BrandLogosRepositoryImpl(
+        BrandLogosCdnDatasource(logosDio),
+      ),
     );
   }
 
   final CatalogRepository catalogRepository;
   final GetLatestYearUseCase getLatestYearUseCase;
   final GetBrandsUseCase getBrandsUseCase;
+  final BrandLogosRepository brandLogosRepository;
 }

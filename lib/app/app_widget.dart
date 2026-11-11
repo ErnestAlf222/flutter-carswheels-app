@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cars_wheels_app/app/app_dependencies.dart';
 import 'package:cars_wheels_app/app/router/app_router_setup.dart';
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 
 /// Widget raíz de la app.
@@ -38,12 +39,24 @@ class _AppState extends State<App> {
         RepositoryProvider<GetBrandsUseCase>.value(
           value: _dependencies.getBrandsUseCase,
         ),
-      ],
-      child: BlocProvider<CatalogCubit>(
-        create: (context) => CatalogCubit(
-          getLatestYear: context.read<GetLatestYearUseCase>(),
-          getBrands: context.read<GetBrandsUseCase>(),
+        RepositoryProvider<BrandLogosRepository>.value(
+          value: _dependencies.brandLogosRepository,
         ),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<BrandLogosCubit>(
+            create: (context) =>
+                BrandLogosCubit(context.read<BrandLogosRepository>())
+                  ..loadLogos(),
+          ),
+          BlocProvider<CatalogCubit>(
+            create: (context) => CatalogCubit(
+              getLatestYear: context.read<GetLatestYearUseCase>(),
+              getBrands: context.read<GetBrandsUseCase>(),
+            )..loadBrands(),
+          ),
+        ],
         child: MaterialApp.router(
           title: AppConfig.appName,
           theme: AppTheme.light,

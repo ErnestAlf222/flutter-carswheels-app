@@ -18,4 +18,11 @@ class AppShadows {
       offset: const Offset(0, 10),
     ),
   ];
+
+  // Anillo sólido del color del degradado, sin desenfoque.
+  static BoxShadow selectedRing(double width) => BoxShadow(
+    color: AppColors.gradientStart,
+    blurRadius: 0,
+    spreadRadius: width,
+  );
 }

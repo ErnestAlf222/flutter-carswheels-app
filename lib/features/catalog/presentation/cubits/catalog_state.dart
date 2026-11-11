@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
-import 'package:cars_wheels_app/features/catalog/domain/entities/brand_entity.dart';
+import 'package:cars_wheels_app/features/catalog/domain/domain.dart';
 
 /// Estado de la carga del catálogo.
 sealed class CatalogState extends Equatable {
@@ -20,13 +20,32 @@ class CatalogLoading extends CatalogState {
 }
 
 class CatalogLoaded extends CatalogState {
-  const CatalogLoaded({required this.year, required this.brands});
+  const CatalogLoaded({
+    required this.year,
+    required this.brands,
+    this.selectedIndex = 0,
+    this.windowStart = 0,
+  });
 
   final int year;
   final List<BrandEntity> brands;
 
+  /// Índice de la marca seleccionada.
+  final int selectedIndex;
+
+  /// Índice de la primera marca visible en el carrusel.
+  final int windowStart;
+
+  CatalogLoaded copyWith({int? selectedIndex, int? windowStart}) =>
+      CatalogLoaded(
+        year: year,
+        brands: brands,
+        selectedIndex: selectedIndex ?? this.selectedIndex,
+        windowStart: windowStart ?? this.windowStart,
+      );
+
   @override
-  List<Object?> get props => [year, brands];
+  List<Object?> get props => [year, brands, selectedIndex, windowStart];
 }
 
 class CatalogError extends CatalogState {

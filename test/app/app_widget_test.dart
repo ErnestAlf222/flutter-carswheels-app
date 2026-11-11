@@ -10,7 +10,11 @@ void main() {
 
   testWidgets('App muestra la pantalla de inicio', (tester) async {
     await tester.pumpWidget(const App());
+    // Deja pasar el tiempo mínimo del loader para no dejar temporizadores.
+    await tester.pump(
+      const Duration(milliseconds: UiConfig.loaderMinimumVisibleMilliseconds),
+    );
     await tester.pumpAndSettle();
-    expect(find.text(AppTexts.homePageTitle), findsOneWidget);
+    expect(find.text(AppTexts.brandsSectionTitle), findsOneWidget);
   });
 }

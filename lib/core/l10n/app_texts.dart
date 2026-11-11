@@ -16,4 +16,9 @@ class AppTexts {
   static const String navCompareLabel = 'Comparar';
   static const String navFavoritesLabel = 'Favoritos';
   static const String navSettingsLabel = 'Ajustes';
+  static const String brandsSectionTitle = 'Marcas';
+  static const String previousBrandsLabel = 'Marcas anteriores';
+  static const String nextBrandsLabel = 'Marcas siguientes';
+
+  static String brandTileLabel(String name) => 'Marca $name';
 }
