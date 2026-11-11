@@ -23,12 +23,16 @@ class CatalogLoaded extends CatalogState {
   const CatalogLoaded({
     required this.year,
     required this.brands,
+    required this.availableYears,
     this.selectedIndex = 0,
     this.windowStart = 0,
   });
 
   final int year;
   final List<BrandEntity> brands;
+
+  /// Años disponibles en orden descendente.
+  final List<int> availableYears;
 
   /// Índice de la marca seleccionada.
   final int selectedIndex;
@@ -40,12 +44,19 @@ class CatalogLoaded extends CatalogState {
       CatalogLoaded(
         year: year,
         brands: brands,
+        availableYears: availableYears,
         selectedIndex: selectedIndex ?? this.selectedIndex,
         windowStart: windowStart ?? this.windowStart,
       );
 
   @override
-  List<Object?> get props => [year, brands, selectedIndex, windowStart];
+  List<Object?> get props => [
+    year,
+    brands,
+    availableYears,
+    selectedIndex,
+    windowStart,
+  ];
 }
 
 class CatalogError extends CatalogState {

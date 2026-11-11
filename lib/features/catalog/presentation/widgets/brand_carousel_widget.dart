@@ -78,18 +78,31 @@ class _ArrowButton extends StatelessWidget {
       label: label,
       excludeSemantics: true,
       onTap: onPressed,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onPressed,
-        child: Container(
-          width: CarouselConfig.arrowButtonSize,
-          height: CarouselConfig.arrowButtonSize,
-          decoration: const BoxDecoration(
-            color: AppColors.card,
-            shape: BoxShape.circle,
-            boxShadow: AppShadows.soft,
+      child: SizedBox(
+        width: CarouselConfig.arrowTouchTargetSize,
+        height: CarouselConfig.arrowTouchTargetSize,
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: onPressed,
+            child: Center(
+              child: Container(
+                width: CarouselConfig.arrowButtonSize,
+                height: CarouselConfig.arrowButtonSize,
+                decoration: const BoxDecoration(
+                  color: AppColors.card,
+                  shape: BoxShape.circle,
+                  boxShadow: AppShadows.soft,
+                ),
+                child: Icon(
+                  icon,
+                  size: CarouselConfig.arrowIconSize,
+                  color: AppColors.ink,
+                ),
+              ),
+            ),
           ),
-          child: Icon(icon, size: UiConfig.iconSize, color: AppColors.ink),
         ),
       ),
     );

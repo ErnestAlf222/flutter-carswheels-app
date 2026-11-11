@@ -8,11 +8,14 @@ class GetLatestYearUseCase {
   final CatalogRepository _repository;
 
   /// Lanza ParsingFailure si no hay años.
-  Future<int> call() async {
+  Future<int> call() async => (await availableYears()).first;
+
+  /// Años disponibles en orden descendente; lanza ParsingFailure si no hay.
+  Future<List<int>> availableYears() async {
     final years = await _repository.fetchYears();
     if (years.isEmpty) {
       throw const ParsingFailure('La lista de años está vacía');
     }
-    return years.reduce((a, b) => a >= b ? a : b);
+    return years.toSet().toList()..sort((a, b) => b.compareTo(a));
   }
 }

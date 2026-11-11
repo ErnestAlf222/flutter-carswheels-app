@@ -6,9 +6,17 @@ import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _FakeCatalogRepository implements CatalogRepository {
-  _FakeCatalogRepository({this.years = const [], this.error});
+  _FakeCatalogRepository({
+    this.years = const [],
+    this.error,
+    this.brandsByYear,
+    this.failingYears = const {},
+  });
 
+  final Set<int> failingYears;
   final List<int> years;
+  final Map<int, List<BrandEntity>>? brandsByYear;
+  final List<int> brandCalls = [];
   final Object? error;
   int yearCalls = 0;
 
@@ -22,8 +30,15 @@ class _FakeCatalogRepository implements CatalogRepository {
 
   @override
   Future<List<BrandEntity>> fetchBrands(int year) async {
+    brandCalls.add(year);
+    if (failingYears.contains(year)) throw const NetworkFailure('sin red');
+    if (brandsByYear != null) return brandsByYear![year] ?? const [];
     return const [BrandEntity(name: 'Zeta'), BrandEntity(name: 'Alfa')];
   }
+
+  @override
+  Future<List<ModelEntity>> fetchModels(int year, String brand) async =>
+      const [];
 }
 
 CatalogCubit _cubit(
@@ -50,6 +65,7 @@ void main() {
       CatalogLoading(),
       CatalogLoaded(
         year: 2027,
+        availableYears: [2027, 2024, 2020],
         brands: [
           BrandEntity(name: 'Alfa'),
           BrandEntity(name: 'Zeta'),
@@ -105,6 +121,7 @@ void main() {
     expect: () => const [
       CatalogLoaded(
         year: 2026,
+        availableYears: [2026],
         brands: [
           BrandEntity(name: 'Alfa'),
           BrandEntity(name: 'Zeta'),
@@ -197,4 +214,166 @@ void main() {
     wait: const Duration(milliseconds: 100),
     expect: () => const [CatalogLoading()],
   );
+
+  group('años', () {
+    const brandsByYear = {
+      2026: [
+        BrandEntity(name: 'Alfa'),
+        BrandEntity(name: 'Éclair'),
+        BrandEntity(name: 'Zeta'),
+      ],
+      2025: [
+        BrandEntity(name: 'Alfa'),
+        BrandEntity(name: 'ECLAIR'),
+        BrandEntity(name: 'Zeta'),
+      ],
+      2024: [BrandEntity(name: 'Otra'), BrandEntity(name: 'Zeta')],
+    };
+
+    CatalogCubit build() => _cubit(
+      _FakeCatalogRepository(
+        years: [2024, 2026, 2025],
+        brandsByYear: brandsByYear,
+      ),
+    );
+
+    blocTest<CatalogCubit, CatalogState>(
+      'loadBrands guarda los años descendentes y elige el más alto',
+      build: build,
+      act: (cubit) => cubit.loadBrands(),
+      verify: (cubit) {
+        final loaded = cubit.state as CatalogLoaded;
+        expect(loaded.availableYears, [2026, 2025, 2024]);
+        expect(loaded.year, 2026);
+      },
+    );
+
+    blocTest<CatalogCubit, CatalogState>(
+      'selectYear recarga las marcas y conserva la marca por nombre',
+      build: build,
+      act: (cubit) async {
+        await cubit.loadBrands();
+        cubit.selectBrand(1);
+        await cubit.selectYear(2025);
+      },
+      skip: 3,
+      expect: () => [
+        const CatalogLoading(),
+        isA<CatalogLoaded>()
+            .having((s) => s.year, 'year', 2025)
+            .having((s) => s.selectedIndex, 'selectedIndex', 1)
+            .having((s) => s.windowStart, 'windowStart', 1)
+            .having((s) => s.availableYears, 'availableYears', [
+              2026,
+              2025,
+              2024,
+            ]),
+      ],
+    );
+
+    blocTest<CatalogCubit, CatalogState>(
+      'selectYear selecciona la primera si la marca no existe en ese año',
+      build: build,
+      act: (cubit) async {
+        await cubit.loadBrands();
+        cubit.selectBrand(1);
+        await cubit.selectYear(2024);
+      },
+      skip: 3,
+      expect: () => [
+        const CatalogLoading(),
+        isA<CatalogLoaded>()
+            .having((s) => s.year, 'year', 2024)
+            .having((s) => s.selectedIndex, 'selectedIndex', 0)
+            .having((s) => s.windowStart, 'windowStart', 0),
+      ],
+    );
+
+    blocTest<CatalogCubit, CatalogState>(
+      'selectYear con un año inválido o el actual no hace nada',
+      build: build,
+      act: (cubit) async {
+        await cubit.loadBrands();
+        await cubit.selectYear(1999);
+        await cubit.selectYear(2026);
+      },
+      skip: 2,
+      expect: () => const <CatalogState>[],
+    );
+
+    test('selectYear antes de cargar no hace nada', () async {
+      final cubit = build();
+      await cubit.selectYear(2025);
+      expect(cubit.state, const CatalogInitial());
+      await cubit.close();
+    });
+
+    blocTest<CatalogCubit, CatalogState>(
+      'selectYear emite error si falla la carga de marcas',
+      build: () => _cubit(
+        _FakeCatalogRepository(
+          years: [2026, 2025],
+          brandsByYear: {
+            2026: [const BrandEntity(name: 'Alfa')],
+          },
+          failingYears: {2025},
+        ),
+      ),
+      act: (cubit) async {
+        await cubit.loadBrands();
+        await cubit.selectYear(2025);
+      },
+      skip: 2,
+      expect: () => const [
+        CatalogLoading(),
+        CatalogError(NetworkFailure('sin red')),
+      ],
+    );
+
+    blocTest<CatalogCubit, CatalogState>(
+      'showPreviousYear va al año anterior y se detiene en el más antiguo',
+      build: build,
+      act: (cubit) async {
+        await cubit.loadBrands();
+        await cubit.showPreviousYear();
+        await cubit.showPreviousYear();
+        await cubit.showPreviousYear();
+      },
+      skip: 2,
+      expect: () => [
+        const CatalogLoading(),
+        isA<CatalogLoaded>().having((s) => s.year, 'year', 2025),
+        const CatalogLoading(),
+        isA<CatalogLoaded>().having((s) => s.year, 'year', 2024),
+      ],
+    );
+
+    blocTest<CatalogCubit, CatalogState>(
+      'showNextYear va al año siguiente y se detiene en el más reciente',
+      build: build,
+      act: (cubit) async {
+        await cubit.loadBrands();
+        await cubit.showNextYear();
+        await cubit.selectYear(2024);
+        await cubit.showNextYear();
+        await cubit.showNextYear();
+        await cubit.showNextYear();
+      },
+      skip: 4,
+      expect: () => [
+        const CatalogLoading(),
+        isA<CatalogLoaded>().having((s) => s.year, 'year', 2025),
+        const CatalogLoading(),
+        isA<CatalogLoaded>().having((s) => s.year, 'year', 2026),
+      ],
+    );
+
+    test('los cambios de año no hacen nada antes de cargar', () async {
+      final cubit = build();
+      await cubit.showNextYear();
+      await cubit.showPreviousYear();
+      expect(cubit.state, const CatalogInitial());
+      await cubit.close();
+    });
+  });
 }

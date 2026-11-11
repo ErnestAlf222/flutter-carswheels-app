@@ -3,7 +3,9 @@ import 'package:dio/dio.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/catalog/domain/datasources/catalog_datasource.dart';
 import 'package:cars_wheels_app/features/catalog/domain/entities/brand_entity.dart';
+import 'package:cars_wheels_app/features/catalog/domain/entities/model_entity.dart';
 import 'package:cars_wheels_app/features/catalog/infrastructure/mappers/brand_mapper.dart';
+import 'package:cars_wheels_app/features/catalog/infrastructure/mappers/model_mapper.dart';
 import 'package:cars_wheels_app/features/catalog/infrastructure/models/fuel_economy_menu_model.dart';
 
 /// Catálogo sobre la API de FuelEconomy.
@@ -24,6 +26,15 @@ class FuelEconomyCatalogDatasource implements CatalogDatasource {
       FuelEconomyConfig.yearQueryParameter: year,
     });
     return menu.itemTexts.map(BrandMapper.toBrand).toList();
+  }
+
+  @override
+  Future<List<ModelEntity>> fetchModels(int year, String brand) async {
+    final menu = await _fetchMenu(FuelEconomyConfig.menuModelPath, {
+      FuelEconomyConfig.yearQueryParameter: year,
+      FuelEconomyConfig.makeQueryParameter: brand,
+    });
+    return ModelMapper.toModels(menu.itemTexts);
   }
 
   // Pide un menú y traduce los errores de Dio a AppFailure.

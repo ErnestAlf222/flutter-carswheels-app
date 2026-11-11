@@ -8,7 +8,7 @@ void main() {
   test('crea un Dio con URL base, tiempos y cabeceras', () {
     final dio = ApiClientFactory.create(
       baseUrl: 'https://example.test/api',
-      acceptHeaderValue: 'application/json',
+      acceptHeaderValue: NetworkConfig.jsonAcceptHeaderValue,
       userAgent: 'agente-prueba',
     );
     expect(dio.options.baseUrl, 'https://example.test/api');
@@ -20,7 +20,10 @@ void main() {
       dio.options.receiveTimeout,
       const Duration(seconds: NetworkConfig.receiveTimeoutSeconds),
     );
-    expect(dio.options.headers[Headers.acceptHeader], 'application/json');
+    expect(
+      dio.options.headers[Headers.acceptHeader],
+      NetworkConfig.jsonAcceptHeaderValue,
+    );
     expect(dio.options.headers[HttpHeaders.userAgentHeader], 'agente-prueba');
   });
 }

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 class _FakeCatalogDatasource implements CatalogDatasource {
   int? requestedYear;
+  String? requestedBrand;
 
   @override
   Future<List<int>> fetchYears() async => [2026, 2025];
@@ -11,6 +12,13 @@ class _FakeCatalogDatasource implements CatalogDatasource {
   Future<List<BrandEntity>> fetchBrands(int year) async {
     requestedYear = year;
     return const [BrandEntity(name: 'Audi')];
+  }
+
+  @override
+  Future<List<ModelEntity>> fetchModels(int year, String brand) async {
+    requestedYear = year;
+    requestedBrand = brand;
+    return const [ModelEntity(name: 'A4')];
   }
 }
 
@@ -27,5 +35,15 @@ void main() {
       BrandEntity(name: 'Audi'),
     ]);
     expect(datasource.requestedYear, 2024);
+  });
+
+  test('fetchModels delega en el datasource con año y marca', () async {
+    final datasource = _FakeCatalogDatasource();
+    final repository = CatalogRepositoryImpl(datasource);
+    expect(await repository.fetchModels(2024, 'Audi'), const [
+      ModelEntity(name: 'A4'),
+    ]);
+    expect(datasource.requestedYear, 2024);
+    expect(datasource.requestedBrand, 'Audi');
   });
 }

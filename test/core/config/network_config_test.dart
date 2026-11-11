@@ -8,4 +8,8 @@ void main() {
     expect(NetworkConfig.connectTimeoutSeconds, greaterThan(0));
     expect(NetworkConfig.receiveTimeoutSeconds, greaterThan(0));
   });
+
+  test('el valor de la cabecera Accept es JSON', () {
+    expect(NetworkConfig.jsonAcceptHeaderValue, 'application/json');
+  });
 }

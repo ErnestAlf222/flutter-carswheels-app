@@ -2,6 +2,7 @@
 class NetworkConfig {
   const NetworkConfig._();
 
+  static const String jsonAcceptHeaderValue = 'application/json';
   static const int maxConcurrentRequests = 10;
   static const int commonsMinIntervalMilliseconds = 300;
   // Los dos tiempos de espera son provisionales.

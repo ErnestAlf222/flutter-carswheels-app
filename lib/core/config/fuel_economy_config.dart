@@ -4,8 +4,9 @@ class FuelEconomyConfig {
 
   static const String menuYearPath = '/menu/year';
   static const String menuMakePath = '/menu/make';
+  static const String menuModelPath = '/menu/model';
   static const String yearQueryParameter = 'year';
+  static const String makeQueryParameter = 'make';
   static const String menuItemKey = 'menuItem';
   static const String itemTextKey = 'text';
-  static const String acceptHeaderValue = 'application/json';
 }

@@ -10,18 +10,19 @@ class AppDependencies {
     required this.catalogRepository,
     required this.getLatestYearUseCase,
     required this.getBrandsUseCase,
+    required this.getModelsUseCase,
     required this.brandLogosRepository,
   });
 
   factory AppDependencies.create() {
     final fuelEconomyDio = ApiClientFactory.create(
       baseUrl: ApiConfig.fuelEconomyBaseUrl,
-      acceptHeaderValue: FuelEconomyConfig.acceptHeaderValue,
+      acceptHeaderValue: NetworkConfig.jsonAcceptHeaderValue,
       userAgent: UserAgentsConfig.fuelEconomyUserAgent,
     );
     final logosDio = ApiClientFactory.create(
       baseUrl: LogosConfig.logosBaseUrl,
-      acceptHeaderValue: LogosConfig.acceptHeaderValue,
+      acceptHeaderValue: NetworkConfig.jsonAcceptHeaderValue,
       userAgent: UserAgentsConfig.logosUserAgent,
     );
     return AppDependencies.fromDio(fuelEconomyDio, logosDio);
@@ -36,12 +37,20 @@ class AppDependencies {
       smallListStrategy: BubbleSortStrategy<BrandEntity>(),
       largeListStrategy: ShellSortStrategy<BrandEntity>(),
     );
+    const modelSortStrategy = AdaptiveSortStrategy<ModelEntity>(
+      smallListStrategy: BubbleSortStrategy<ModelEntity>(),
+      largeListStrategy: ShellSortStrategy<ModelEntity>(),
+    );
     return AppDependencies._(
       catalogRepository: repository,
       getLatestYearUseCase: GetLatestYearUseCase(repository),
       getBrandsUseCase: GetBrandsUseCase(
         repository: repository,
         sortStrategy: sortStrategy,
+      ),
+      getModelsUseCase: GetModelsUseCase(
+        repository: repository,
+        sortStrategy: modelSortStrategy,
       ),
       brandLogosRepository: BrandLogosRepositoryImpl(
         BrandLogosCdnDatasource(logosDio),
@@ -52,5 +61,6 @@ class AppDependencies {
   final CatalogRepository catalogRepository;
   final GetLatestYearUseCase getLatestYearUseCase;
   final GetBrandsUseCase getBrandsUseCase;
+  final GetModelsUseCase getModelsUseCase;
   final BrandLogosRepository brandLogosRepository;
 }

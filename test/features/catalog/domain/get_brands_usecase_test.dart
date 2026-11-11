@@ -12,6 +12,10 @@ class _FakeCatalogRepository implements CatalogRepository {
 
   @override
   Future<List<BrandEntity>> fetchBrands(int year) async => brands;
+
+  @override
+  Future<List<ModelEntity>> fetchModels(int year, String brand) async =>
+      const [];
 }
 
 GetBrandsUseCase _useCase(List<String> names) => GetBrandsUseCase(

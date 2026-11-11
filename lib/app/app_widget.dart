@@ -39,6 +39,9 @@ class _AppState extends State<App> {
         RepositoryProvider<GetBrandsUseCase>.value(
           value: _dependencies.getBrandsUseCase,
         ),
+        RepositoryProvider<GetModelsUseCase>.value(
+          value: _dependencies.getModelsUseCase,
+        ),
         RepositoryProvider<BrandLogosRepository>.value(
           value: _dependencies.brandLogosRepository,
         ),
@@ -55,6 +58,10 @@ class _AppState extends State<App> {
               getLatestYear: context.read<GetLatestYearUseCase>(),
               getBrands: context.read<GetBrandsUseCase>(),
             )..loadBrands(),
+          ),
+          BlocProvider<ModelsCubit>(
+            create: (context) =>
+                ModelsCubit(getModels: context.read<GetModelsUseCase>()),
           ),
         ],
         child: MaterialApp.router(

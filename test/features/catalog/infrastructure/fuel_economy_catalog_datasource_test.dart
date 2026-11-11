@@ -6,6 +6,30 @@ import 'package:mocktail/mocktail.dart';
 
 class _MockDio extends Mock implements Dio {}
 
+// Adaptador que guarda la URL solicitada y responde un menú vacío.
+class _RecordingAdapter implements HttpClientAdapter {
+  Uri? requestedUri;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<List<int>>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    requestedUri = options.uri;
+    return ResponseBody.fromString(
+      '{"menuItem":[]}',
+      200,
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType],
+      },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
 Response<Object?> _response(Object? data) => Response<Object?>(
   data: data,
   requestOptions: RequestOptions(path: '/x'),
@@ -76,6 +100,83 @@ void main() {
         queryParameters: {FuelEconomyConfig.yearQueryParameter: 2020},
       ),
     ).called(1);
+  });
+
+  test('fetchModels envía año y marca como parámetros de consulta', () async {
+    stubGet({
+      'menuItem': [
+        {'text': 'DBX', 'value': 'DBX'},
+        {'text': 'Vantage', 'value': 'Vantage'},
+      ],
+    });
+    expect(await datasource.fetchModels(2027, 'Aston Martin'), const [
+      ModelEntity(name: 'DBX'),
+      ModelEntity(name: 'Vantage'),
+    ]);
+    verify(
+      () => dio.get<Object?>(
+        FuelEconomyConfig.menuModelPath,
+        queryParameters: {
+          FuelEconomyConfig.yearQueryParameter: 2027,
+          FuelEconomyConfig.makeQueryParameter: 'Aston Martin',
+        },
+      ),
+    ).called(1);
+  });
+
+  test('fetchModels acepta un solo objeto y descarta textos vacíos', () async {
+    stubGet({
+      'menuItem': {'text': 'Chiron', 'value': 'Chiron'},
+    });
+    expect(await datasource.fetchModels(2020, 'Bugatti'), const [
+      ModelEntity(name: 'Chiron'),
+    ]);
+    stubGet({
+      'menuItem': [
+        {'text': '', 'value': ''},
+      ],
+    });
+    expect(await datasource.fetchModels(2020, 'Bugatti'), isEmpty);
+  });
+
+  test('la marca con espacios llega codificada en la URL final', () async {
+    final adapter = _RecordingAdapter();
+    final realDio = Dio(BaseOptions(baseUrl: 'https://example.test/api'))
+      ..httpClientAdapter = adapter;
+    await FuelEconomyCatalogDatasource(realDio)
+        .fetchModels(2027, 'Aston Martin');
+    expect(adapter.requestedUri!.queryParameters, {
+      FuelEconomyConfig.yearQueryParameter: '2027',
+      FuelEconomyConfig.makeQueryParameter: 'Aston Martin',
+    });
+    expect(
+      adapter.requestedUri!.path,
+      endsWith(FuelEconomyConfig.menuModelPath),
+    );
+    expect(adapter.requestedUri!.query, isNot(contains(' ')));
+  });
+
+  test('fetchModels traduce los errores de Dio', () async {
+    stubGetError(DioExceptionType.connectionTimeout);
+    await expectLater(
+      datasource.fetchModels(2020, 'Audi'),
+      throwsA(isA<NetworkFailure>()),
+    );
+    stubGetError(DioExceptionType.badResponse);
+    await expectLater(
+      datasource.fetchModels(2020, 'Audi'),
+      throwsA(isA<ServerFailure>()),
+    );
+    stubGetError(DioExceptionType.cancel);
+    await expectLater(
+      datasource.fetchModels(2020, 'Audi'),
+      throwsA(isA<UnknownFailure>()),
+    );
+    stubGet('no es json');
+    await expectLater(
+      datasource.fetchModels(2020, 'Audi'),
+      throwsA(isA<ParsingFailure>()),
+    );
   });
 
   test('una respuesta inválida lanza ParsingFailure', () async {

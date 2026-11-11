@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
+import 'package:cars_wheels_app/features/catalog/presentation/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -112,14 +113,26 @@ void main() {
     );
 
     testWidgets('muestra 4 tiles aunque haya más marcas', (tester) async {
-      stubCatalog(CatalogLoaded(year: 2026, brands: _brands(10)));
+      stubCatalog(
+        CatalogLoaded(
+          year: 2026,
+          availableYears: const [2026],
+          brands: _brands(10),
+        ),
+      );
       await tester.pumpWidget(carousel());
       await tester.pumpAndSettle();
       expect(find.byType(BrandTileWidget), findsNWidgets(4));
     });
 
     testWidgets('con menos de 4 marcas muestra las que haya', (tester) async {
-      stubCatalog(CatalogLoaded(year: 2026, brands: _brands(2)));
+      stubCatalog(
+        CatalogLoaded(
+          year: 2026,
+          availableYears: const [2026],
+          brands: _brands(2),
+        ),
+      );
       await tester.pumpWidget(carousel());
       await tester.pumpAndSettle();
       expect(find.byType(BrandTileWidget), findsNWidgets(2));
@@ -127,7 +140,12 @@ void main() {
 
     testWidgets('la ventana es circular al final de la lista', (tester) async {
       stubCatalog(
-        CatalogLoaded(year: 2026, brands: _brands(5), windowStart: 3),
+        CatalogLoaded(
+          year: 2026,
+          availableYears: const [2026],
+          brands: _brands(5),
+          windowStart: 3,
+        ),
       );
       await tester.pumpWidget(carousel());
       await tester.pumpAndSettle();
@@ -138,7 +156,13 @@ void main() {
     });
 
     testWidgets('las flechas llaman al cubit', (tester) async {
-      stubCatalog(CatalogLoaded(year: 2026, brands: _brands(10)));
+      stubCatalog(
+        CatalogLoaded(
+          year: 2026,
+          availableYears: const [2026],
+          brands: _brands(10),
+        ),
+      );
       when(() => catalogCubit.showPreviousBrands()).thenReturn(null);
       when(() => catalogCubit.showNextBrands()).thenReturn(null);
       await tester.pumpWidget(carousel());
@@ -149,10 +173,50 @@ void main() {
       verify(() => catalogCubit.showNextBrands()).called(1);
     });
 
+    testWidgets('la flecha tiene área tocable de 48 y círculo de 32', (
+      tester,
+    ) async {
+      stubCatalog(
+        CatalogLoaded(
+          year: 2026,
+          availableYears: const [2026],
+          brands: _brands(10),
+        ),
+      );
+      await tester.pumpWidget(carousel());
+      await tester.pumpAndSettle();
+      final touchTargets = find.byType(InkWell);
+      expect(touchTargets, findsNWidgets(2));
+      for (final element in touchTargets.evaluate()) {
+        expect(
+          tester.getSize(find.byWidget(element.widget)),
+          const Size.square(CarouselConfig.arrowTouchTargetSize),
+        );
+      }
+      final circle = find.descendant(
+        of: touchTargets.first,
+        matching: find.byType(Container),
+      );
+      expect(
+        tester.getSize(circle),
+        const Size.square(CarouselConfig.arrowButtonSize),
+      );
+      final icon = tester.widget<Icon>(
+        find.descendant(of: touchTargets.first, matching: find.byType(Icon)),
+      );
+      expect(icon.size, CarouselConfig.arrowIconSize);
+    });
+
     testWidgets('tocar un tile llama a selectBrand con su índice', (
       tester,
     ) async {
-      stubCatalog(CatalogLoaded(year: 2026, brands: _brands(10)));
+      stubCatalog(
+        CatalogLoaded(
+          year: 2026,
+          availableYears: const [2026],
+          brands: _brands(10),
+        ),
+      );
       when(() => catalogCubit.selectBrand(any())).thenReturn(null);
       await tester.pumpWidget(carousel());
       await tester.pumpAndSettle();
@@ -185,13 +249,21 @@ void main() {
     });
 
     testWidgets('loaded sin marcas muestra el estado vacío', (tester) async {
-      stubCatalog(const CatalogLoaded(year: 2026, brands: []));
+      stubCatalog(
+        const CatalogLoaded(year: 2026, availableYears: [2026], brands: []),
+      );
       await tester.pumpWidget(home());
       expect(find.byType(EmptyStateWidget), findsOneWidget);
     });
 
     testWidgets('loaded muestra el carrusel', (tester) async {
-      stubCatalog(CatalogLoaded(year: 2026, brands: _brands(6)));
+      stubCatalog(
+        CatalogLoaded(
+          year: 2026,
+          availableYears: const [2026],
+          brands: _brands(6),
+        ),
+      );
       await tester.pumpWidget(home());
       await tester.pumpAndSettle();
       expect(find.byType(BrandCarouselWidget), findsOneWidget);
