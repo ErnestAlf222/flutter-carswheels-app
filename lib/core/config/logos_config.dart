@@ -19,6 +19,11 @@ class LogosConfig {
   static const String manifestFileName = 'brands.json';
   static const String svgExtension = '.svg';
 
+  // Marcas cuyo logo sigue en blanco tras sanear; sale de la auditoría de render
+  // (nonWhiteRatio < 0.02 con SvgSanitizer) y se regenera al subir logosVersion.
+  // Vacía: la auditoría del 2026-11-12 no marcó ninguno de los 184 logos.
+  static const List<String> brandsWithoutUsableLogo = [];
+
   // Nombres de FuelEconomy que difieren del nombre del manifiesto.
   static const Map<String, String> brandAliases = {
     'McLaren Automotive': 'McLaren',

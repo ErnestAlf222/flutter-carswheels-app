@@ -80,6 +80,47 @@ void main() {
     });
   });
 
+  group('marcas sin logo utilizable', () {
+    late BrandLogosCubit cubit;
+
+    setUp(() async {
+      cubit = BrandLogosCubit(
+        _FakeBrandLogosRepository(urls: _urls),
+        brandsWithoutLogo: const ['McLaren'],
+      );
+      await cubit.loadLogos();
+    });
+
+    tearDown(() => cubit.close());
+
+    test(
+      'una marca de la lista devuelve null aunque esté en el manifiesto',
+      () {
+        expect(cubit.urlFor('McLaren'), isNull);
+      },
+    );
+
+    test('se compara con alias, mayúsculas y acentos', () {
+      expect(cubit.urlFor('McLaren Automotive'), isNull);
+      expect(cubit.urlFor('MCLAREN'), isNull);
+    });
+
+    test('una marca que no está en la lista devuelve su URL', () {
+      expect(cubit.urlFor('Gmc'), _urls['gmc']);
+    });
+  });
+
+  test(
+    'la lista de configuración parte vacía y no afecta a ninguna marca',
+    () async {
+      expect(LogosConfig.brandsWithoutUsableLogo, isEmpty);
+      final cubit = BrandLogosCubit(_FakeBrandLogosRepository(urls: _urls));
+      await cubit.loadLogos();
+      expect(cubit.urlFor('McLaren'), _urls['mclaren']);
+      await cubit.close();
+    },
+  );
+
   test('urlFor devuelve null antes de cargar', () async {
     final cubit = BrandLogosCubit(_FakeBrandLogosRepository(urls: _urls));
     expect(cubit.urlFor('McLaren'), isNull);

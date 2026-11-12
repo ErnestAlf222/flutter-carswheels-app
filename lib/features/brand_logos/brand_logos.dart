@@ -4,5 +4,7 @@ export 'infrastructure/infrastructure.dart';
 export 'presentation/cubits/cubits.dart';
 // Servicio de precarga, inyectable en pruebas
 export 'presentation/services/services.dart';
+// Cargador SVG con limpieza
+export 'presentation/loaders/loaders.dart';
 // Widget público para otras features
 export 'presentation/widgets/widgets.dart';

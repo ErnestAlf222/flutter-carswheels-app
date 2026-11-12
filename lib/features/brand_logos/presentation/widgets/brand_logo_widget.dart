@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/presentation/cubits/cubits.dart';
+import 'package:cars_wheels_app/features/brand_logos/presentation/loaders/loaders.dart';
 
 /// Logo de una marca; muestra un monograma si no hay logo o no carga.
 class BrandLogoWidget extends StatelessWidget {
@@ -25,9 +26,8 @@ class BrandLogoWidget extends StatelessWidget {
     final monogram = _Monogram(brandName: brandName, size: size);
     if (url == null) return monogram;
     if (url.endsWith(LogosConfig.svgExtension)) {
-      return SvgPicture.network(
-        url,
-        headers: LogosConfig.requestHeaders,
+      return SvgPicture(
+        SanitizedSvgNetworkLoader(url, headers: LogosConfig.requestHeaders),
         width: size,
         height: size,
         placeholderBuilder: (_) => monogram,

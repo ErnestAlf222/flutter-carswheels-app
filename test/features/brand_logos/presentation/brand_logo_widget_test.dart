@@ -68,7 +68,7 @@ void main() {
     ).thenReturn('${LogosConfig.logosBaseUrl}audi${LogosConfig.svgExtension}');
     await tester.pumpWidget(host());
     final picture = tester.widget<SvgPicture>(find.byType(SvgPicture));
-    final loader = picture.bytesLoader as SvgNetworkLoader;
+    final loader = picture.bytesLoader as SanitizedSvgNetworkLoader;
     expect(loader.headers, LogosConfig.requestHeaders);
     expect(
       loader.headers![HttpHeaders.userAgentHeader],

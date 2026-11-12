@@ -6,9 +6,16 @@ import 'package:cars_wheels_app/features/brand_logos/presentation/cubits/brand_l
 
 /// Carga las URLs de los logos y las resuelve por nombre de marca.
 class BrandLogosCubit extends Cubit<BrandLogosState> {
-  BrandLogosCubit(this._repository) : super(const BrandLogosInitial());
+  BrandLogosCubit(
+    this._repository, {
+    List<String> brandsWithoutLogo = LogosConfig.brandsWithoutUsableLogo,
+  }) : _brandsWithoutLogo = brandsWithoutLogo
+           .map(TextNormalizer.normalize)
+           .toSet(),
+       super(const BrandLogosInitial());
 
   final BrandLogosRepository _repository;
+  final Set<String> _brandsWithoutLogo;
 
   Future<void> loadLogos() async {
     if (state is BrandLogosLoading) return;
@@ -22,11 +29,13 @@ class BrandLogosCubit extends Cubit<BrandLogosState> {
     }
   }
 
-  /// URL del logo de la marca, o null si no hay logo o aún no carga.
+  /// URL del logo de la marca, o null si no hay logo, no es usable o aún no carga.
   String? urlFor(String brandName) {
     final current = state;
     if (current is! BrandLogosLoaded) return null;
-    return current.logoUrls[TextNormalizer.normalize(_resolveAlias(brandName))];
+    final key = TextNormalizer.normalize(_resolveAlias(brandName));
+    if (_brandsWithoutLogo.contains(key)) return null;
+    return current.logoUrls[key];
   }
 
   // Aplica el alias de la marca, ignorando mayúsculas y acentos.

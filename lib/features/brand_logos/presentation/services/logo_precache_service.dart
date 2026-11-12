@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/brand_logos/presentation/loaders/loaders.dart';
 
 /// Descarga un logo y lo deja en la caché que usa BrandLogoWidget.
 class LogoPrecacheService {
@@ -13,7 +13,7 @@ class LogoPrecacheService {
     if (url.endsWith(LogosConfig.svgExtension)) {
       try {
         // Llena svg.cache con la misma llave que usa SvgPicture.network.
-        await SvgNetworkLoader(
+        await SanitizedSvgNetworkLoader(
           url,
           headers: LogosConfig.requestHeaders,
         ).loadBytes(null);
