@@ -8,6 +8,16 @@ void main() {
     expect(words.toSet().length, words.length);
   });
 
+  test('los reintentos y las esperas son positivos', () {
+    expect(PhotosConfig.maxRetryAttempts, greaterThan(0));
+    expect(PhotosConfig.defaultRetryAfterSeconds, greaterThan(0));
+  });
+
+  test('los parámetros fijos de Commons incluyen la acción de búsqueda', () {
+    expect(PhotosConfig.commonsRequestParameters['generator'], 'search');
+    expect(PhotosConfig.photoModelStripTokens, contains('4WD'));
+  });
+
   test('searchResultLimit es positivo', () {
     expect(PhotosConfig.searchResultLimit, greaterThan(0));
   });

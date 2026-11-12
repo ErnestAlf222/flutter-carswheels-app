@@ -20,6 +20,16 @@ class ServerFailure extends AppFailure {
   const ServerFailure(super.message);
 }
 
+/// El servidor pidió esperar antes de reintentar (HTTP 429).
+class RateLimitFailure extends AppFailure {
+  const RateLimitFailure(super.message, {required this.retryAfterSeconds});
+
+  final int retryAfterSeconds;
+
+  @override
+  List<Object?> get props => [message, retryAfterSeconds];
+}
+
 /// La respuesta no tiene la forma esperada.
 class ParsingFailure extends AppFailure {
   const ParsingFailure(super.message);

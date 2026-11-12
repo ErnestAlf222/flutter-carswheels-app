@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
+import 'package:cars_wheels_app/features/photos/photos.dart';
 
 /// Construye las dependencias de la app en un solo lugar.
 class AppDependencies {
@@ -12,6 +13,8 @@ class AppDependencies {
     required this.getBrandsUseCase,
     required this.getModelsUseCase,
     required this.brandLogosRepository,
+    required this.getModelPhotoUseCase,
+    required this.commonsQueue,
   });
 
   factory AppDependencies.create() {
@@ -27,11 +30,21 @@ class AppDependencies {
       userAgent: UserAgentsConfig.logosUserAgent,
       sourceLabel: LogosConfig.logosSourceLabel,
     );
-    return AppDependencies.fromDio(fuelEconomyDio, logosDio);
+    final commonsDio = ApiClientFactory.create(
+      baseUrl: ApiConfig.commonsApiUrl,
+      acceptHeaderValue: NetworkConfig.jsonAcceptHeaderValue,
+      userAgent: UserAgentsConfig.commonsUserAgent,
+      sourceLabel: PhotosConfig.commonsSourceLabel,
+    );
+    return AppDependencies.fromDio(fuelEconomyDio, logosDio, commonsDio);
   }
 
   /// Compone todo sobre un Dio dado.
-  factory AppDependencies.fromDio(Dio fuelEconomyDio, Dio logosDio) {
+  factory AppDependencies.fromDio(
+    Dio fuelEconomyDio,
+    Dio logosDio,
+    Dio commonsDio,
+  ) {
     final repository = CatalogRepositoryImpl(
       FuelEconomyCatalogDatasource(fuelEconomyDio),
     );
@@ -44,6 +57,15 @@ class AppDependencies {
       largeListStrategy: ShellSortStrategy<ModelEntity>(),
     );
     final getAvailableYears = GetAvailableYearsUseCase(repository);
+    final commonsQueue = RateLimitedQueue(
+      minInterval: const Duration(
+        milliseconds: NetworkConfig.commonsMinIntervalMilliseconds,
+      ),
+      maxRetries: PhotosConfig.maxRetryAttempts,
+    );
+    final photosRepository = PhotosRepositoryImpl(
+      CommonsPhotosDatasource(dio: commonsDio, queue: commonsQueue),
+    );
     return AppDependencies._(
       catalogRepository: repository,
       getAvailableYearsUseCase: getAvailableYears,
@@ -58,6 +80,11 @@ class AppDependencies {
       brandLogosRepository: BrandLogosRepositoryImpl(
         BrandLogosCdnDatasource(logosDio),
       ),
+      getModelPhotoUseCase: GetModelPhotoUseCase(
+        repository: photosRepository,
+        selector: const PhotoCandidateSelector(),
+      ),
+      commonsQueue: commonsQueue,
     );
   }
 
@@ -66,4 +93,9 @@ class AppDependencies {
   final GetBrandsUseCase getBrandsUseCase;
   final GetModelsUseCase getModelsUseCase;
   final BrandLogosRepository brandLogosRepository;
+  final GetModelPhotoUseCase getModelPhotoUseCase;
+  final RateLimitedQueue commonsQueue;
+
+  /// Libera los recursos de la composición.
+  Future<void> close() => commonsQueue.close();
 }

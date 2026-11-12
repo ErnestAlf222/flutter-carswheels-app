@@ -24,6 +24,7 @@ class _AppState extends State<App> {
   @override
   void dispose() {
     _router.dispose();
+    _dependencies.close();
     super.dispose();
   }
 

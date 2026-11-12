@@ -16,7 +16,15 @@ void main() {
       ServerFailure('m'),
       ParsingFailure('m'),
       UnknownFailure('m'),
+      RateLimitFailure('m', retryAfterSeconds: 1),
     ];
     expect(failures.map((f) => f.message), everyElement('m'));
+  });
+
+  test('RateLimitFailure distingue los segundos de espera', () {
+    expect(
+      const RateLimitFailure('m', retryAfterSeconds: 1),
+      isNot(const RateLimitFailure('m', retryAfterSeconds: 2)),
+    );
   });
 }
