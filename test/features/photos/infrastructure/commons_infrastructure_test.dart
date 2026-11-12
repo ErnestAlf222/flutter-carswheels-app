@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:dio/dio.dart';
@@ -224,8 +226,24 @@ void main() {
           queryParameters: any(named: 'queryParameters'),
         ),
       ).thenAnswer((_) async => _httpResponse({'batchcomplete': ''}));
-      final repository = PhotosRepositoryImpl(datasource);
+      final repository = PhotosRepositoryImpl(datasource, queue);
       expect(await repository.searchCandidates('x'), isEmpty);
+    });
+
+    test('cancelPendingSearches cancela lo pendiente de la cola', () async {
+      final gate = Completer<void>();
+      final first = queue.enqueue<void>(() => gate.future);
+      // Deja que la primera tarea empiece y quede en curso.
+      await Future<void>.delayed(Duration.zero);
+      final second = queue.enqueue<void>(() async {});
+      final secondResult = expectLater(
+        second,
+        throwsA(isA<CancelledFailure>()),
+      );
+      PhotosRepositoryImpl(datasource, queue).cancelPendingSearches();
+      await secondResult;
+      gate.complete();
+      await first;
     });
   });
 }

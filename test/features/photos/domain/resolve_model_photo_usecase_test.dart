@@ -24,6 +24,9 @@ class _FakePhotosRepository implements PhotosRepository {
   final List<int> calls = [0];
 
   @override
+  void cancelPendingSearches() {}
+
+  @override
   Future<List<PhotoCandidateEntity>> searchCandidates(String searchTerm) async {
     calls[0]++;
     final failure = error;
@@ -66,6 +69,7 @@ void main() {
         repository: repository,
         selector: const PhotoCandidateSelector(),
       ),
+      keyBuilder: const PhotoKeyBuilder(selector: PhotoCandidateSelector()),
       clock: () => now,
     );
   });

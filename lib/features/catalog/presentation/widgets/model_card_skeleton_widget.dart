@@ -10,7 +10,12 @@ class ModelCardSkeletonWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final card = Container(
-      padding: const EdgeInsets.all(AppSpacing.s),
+      padding: const EdgeInsets.fromLTRB(
+        UiConfig.modelCardLeftPadding,
+        AppSpacing.xs,
+        UiConfig.modelCardRightPadding,
+        AppSpacing.xs,
+      ),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(AppRadii.card),
@@ -19,14 +24,14 @@ class ModelCardSkeletonWidget extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: UiConfig.modelThumbnailSize,
-            height: UiConfig.modelThumbnailSize,
+            width: UiConfig.modelPhotoWidth,
+            height: UiConfig.modelPhotoHeight,
             decoration: BoxDecoration(
               color: AppColors.tint,
               borderRadius: BorderRadius.circular(AppRadii.tile),
             ),
           ),
-          const SizedBox(width: AppSpacing.s),
+          const SizedBox(width: UiConfig.modelCardGap),
           const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
-
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/photos/photos.dart';
 
-/// Tarjeta de un modelo con su icono y su nombre.
+/// Tarjeta de un modelo con su foto y su nombre.
 class ModelCardWidget extends StatelessWidget {
   const ModelCardWidget({
     super.key,
     required this.name,
+    required this.brand,
+    required this.year,
     required this.index,
     this.animateEntry = true,
   });
 
   final String name;
+  final String brand;
+  final int year;
 
   /// Posición del modelo en la lista; define el retardo de entrada.
   final int index;
@@ -26,7 +29,12 @@ class ModelCardWidget extends StatelessWidget {
       label: name,
       excludeSemantics: true,
       child: Container(
-        padding: const EdgeInsets.all(AppSpacing.s),
+        padding: const EdgeInsets.fromLTRB(
+          UiConfig.modelCardLeftPadding,
+          AppSpacing.xs,
+          UiConfig.modelCardRightPadding,
+          AppSpacing.xs,
+        ),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(AppRadii.card),
@@ -34,21 +42,15 @@ class ModelCardWidget extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
-              width: UiConfig.modelThumbnailSize,
-              height: UiConfig.modelThumbnailSize,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: AppColors.tint,
-                borderRadius: BorderRadius.circular(AppRadii.tile),
-              ),
-              child: const Icon(
-                Symbols.directions_car,
-                size: UiConfig.iconSize,
-                color: AppColors.tintText,
-              ),
+            ModelPhotoWidget(
+              brand: brand,
+              model: name,
+              year: year,
+              width: UiConfig.modelPhotoWidth,
+              height: UiConfig.modelPhotoHeight,
+              borderRadius: AppRadii.tile,
             ),
-            const SizedBox(width: AppSpacing.s),
+            const SizedBox(width: UiConfig.modelCardGap),
             Expanded(
               child: Text(
                 name,

@@ -16,6 +16,8 @@ class AppDependencies {
     required this.brandLogosRepository,
     required this.getModelPhotoUseCase,
     required this.resolveModelPhotoUseCase,
+    required this.cancelPendingPhotosUseCase,
+    required this.photoKeyBuilder,
     required this.commonsQueue,
     required this.closeStorage,
   });
@@ -88,7 +90,9 @@ class AppDependencies {
     );
     final photosRepository = PhotosRepositoryImpl(
       CommonsPhotosDatasource(dio: commonsDio, queue: commonsQueue),
+      commonsQueue,
     );
+    const photoKeyBuilder = PhotoKeyBuilder(selector: PhotoCandidateSelector());
     final getModelPhoto = GetModelPhotoUseCase(
       repository: photosRepository,
       selector: const PhotoCandidateSelector(),
@@ -111,8 +115,11 @@ class AppDependencies {
       resolveModelPhotoUseCase: ResolveModelPhotoUseCase(
         cache: photoCache,
         getModelPhoto: getModelPhoto,
+        keyBuilder: photoKeyBuilder,
         clock: DateTime.now,
       ),
+      cancelPendingPhotosUseCase: CancelPendingPhotosUseCase(photosRepository),
+      photoKeyBuilder: photoKeyBuilder,
       commonsQueue: commonsQueue,
       closeStorage: closeStorage ?? _noStorageToClose,
     );
@@ -125,6 +132,8 @@ class AppDependencies {
   final BrandLogosRepository brandLogosRepository;
   final GetModelPhotoUseCase getModelPhotoUseCase;
   final ResolveModelPhotoUseCase resolveModelPhotoUseCase;
+  final CancelPendingPhotosUseCase cancelPendingPhotosUseCase;
+  final PhotoKeyBuilder photoKeyBuilder;
   final RateLimitedQueue commonsQueue;
   final Future<void> Function() closeStorage;
 

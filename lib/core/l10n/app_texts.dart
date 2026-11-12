@@ -6,6 +6,7 @@ class AppTexts {
   static const String errorStateTitle = 'No se pudo cargar la información';
   static const String retryButtonLabel = 'Reintentar';
   static const String refreshFailedLabel = 'No se pudo actualizar';
+  static const String referencePhotoLabel = 'Foto de referencia';
   static const String homePageTitle = 'Pantalla Inicio';
   static const String searchPageTitle = 'Pantalla Buscar';
   static const String comparePageTitle = 'Pantalla Comparar';

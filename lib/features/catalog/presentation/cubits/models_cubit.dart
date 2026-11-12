@@ -53,17 +53,21 @@ class ModelsCubit extends Cubit<ModelsState> {
     emit(
       base == null
           ? ModelsError(failure, year: year, brand: brand)
-          : base.failedRefresh(year, failure),
+          : base.failedRefresh(
+              ModelsRequest(year: year, brand: brand),
+              failure,
+            ),
     );
   }
 
-  /// Repite la consulta que falló con el mismo año y marca.
+  /// Repite la consulta pedida que falló, no la que se está mostrando.
   Future<void> retry() async {
     final current = state;
     if (current is ModelsError) {
       await load(current.year, current.brand);
-    } else if (current is ModelsLoaded && current.refreshFailure != null) {
-      await load(current.year, current.brand);
+    } else if (current is ModelsLoaded) {
+      final request = current.failedRequest;
+      if (request != null) await load(request.year, request.brand);
     }
   }
 

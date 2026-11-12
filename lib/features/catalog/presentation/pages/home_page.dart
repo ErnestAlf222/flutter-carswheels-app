@@ -5,6 +5,7 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/cubits/cubits.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/widgets/widgets.dart';
+import 'package:cars_wheels_app/features/photos/photos.dart';
 
 /// Pantalla de inicio con el carrusel de marcas y sus modelos.
 class HomePage extends StatelessWidget {
@@ -18,6 +19,8 @@ class HomePage extends StatelessWidget {
           listenWhen: _shouldLoadModels,
           listener: (context, state) {
             if (state is! CatalogLoaded) return;
+            // Lo que no empezó con la selección anterior ya no hace falta.
+            context.read<PhotosCubit>().cancelPending();
             context.read<ModelsCubit>().load(
               state.year,
               state.brands[state.selectedIndex].name,
@@ -27,6 +30,10 @@ class HomePage extends StatelessWidget {
         BlocListener<CatalogCubit, CatalogState>(
           listenWhen: (previous, current) => current is CatalogLoaded,
           listener: (context, _) => _precacheLogos(context),
+        ),
+        const BlocListener<ModelsCubit, ModelsState>(
+          listenWhen: _shouldRequestPhotos,
+          listener: _requestPhotos,
         ),
         BlocListener<BrandLogosCubit, BrandLogosState>(
           listenWhen: (previous, current) => current is BrandLogosLoaded,
@@ -65,6 +72,34 @@ class HomePage extends StatelessWidget {
     return previous.year != current.year ||
         previous.brands[previous.selectedIndex].name !=
             current.brands[current.selectedIndex].name;
+  }
+
+  // Pide fotos solo con una lista cargada y sin refresco en curso o fallido.
+  static bool _shouldRequestPhotos(ModelsState previous, ModelsState current) {
+    if (current is! ModelsLoaded) return false;
+    if (current.isRefreshing || current.refreshFailure != null) return false;
+    return previous is! ModelsLoaded ||
+        !identical(previous.models, current.models) ||
+        previous.visibleCount != current.visibleCount ||
+        previous.isRefreshing ||
+        previous.year != current.year ||
+        previous.brand != current.brand;
+  }
+
+  // Pide las fotos visibles que aún no se pidieron, en el orden de la lista.
+  static void _requestPhotos(BuildContext context, ModelsState state) {
+    if (state is! ModelsLoaded) return;
+    final photos = context.read<PhotosCubit>();
+    final requests = <PhotoRequest>[
+      for (final model in state.models.take(state.visibleCount))
+        PhotoRequest(brand: state.brand, model: model.name, year: state.year),
+    ];
+    final missing = requests.where((request) {
+      final slot = photos.state.slots[photos.keyFor(request)];
+      return slot == null || slot is PhotoFailed;
+    }).toList();
+    if (missing.isEmpty) return;
+    photos.requestPhotos(missing);
   }
 
   // Precarga los logos de las primeras marcas cuando marcas y logos están.

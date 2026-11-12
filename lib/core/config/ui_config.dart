@@ -7,7 +7,16 @@ class UiConfig {
   static const double iconSize = 24.0;
   static const double primaryButtonHeight = 60.0;
   static const double navClearance = 120.0;
-  static const double modelThumbnailSize = 56.0;
+  // Foto y relleno de la tarjeta de modelo.
+  static const double modelPhotoWidth = 104.0;
+  static const double modelPhotoHeight = 72.0;
+  static const double modelCardLeftPadding = 8.0;
+  static const double modelCardRightPadding = 20.0;
+  static const double modelCardGap = 14.0;
+  // Logo de marca en el recuadro de respaldo de la foto.
+  static const double brandFallbackLogoSize = 40.0;
+  // Insignia de foto de referencia.
+  static const double referenceBadgeSize = 16.0;
   // Evita un parpadeo del loader; solo aplica a la carga inicial.
   static const int initialLoaderMinimumVisibleMilliseconds = 300;
   // Opacidad del contenido mientras se actualiza.

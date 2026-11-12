@@ -1,4 +1,5 @@
 import 'package:animate_do/animate_do.dart';
+import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -33,5 +34,17 @@ void main() {
     await tester.pumpWidget(host(disableAnimations: true));
     expect(find.bySemanticsLabel(RegExp('.+')), findsNothing);
     handle.dispose();
+  });
+
+  testWidgets('la silueta tiene la foto de 104 por 72', (tester) async {
+    await tester.pumpWidget(host(disableAnimations: true));
+    await tester.pumpAndSettle();
+    final photo = find.byWidgetPredicate(
+      (widget) =>
+          widget is Container &&
+          widget.constraints?.maxWidth == UiConfig.modelPhotoWidth &&
+          widget.constraints?.maxHeight == UiConfig.modelPhotoHeight,
+    );
+    expect(photo, findsOneWidget);
   });
 }

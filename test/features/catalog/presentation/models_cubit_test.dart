@@ -157,7 +157,12 @@ void main() {
     expect(loaded.models.length, 3);
     expect(loaded.isRefreshing, isFalse);
     expect(loaded.refreshFailure, const NetworkFailure('sin red'));
-    expect(loaded.year, 2021);
+    expect(loaded.year, 2020);
+    expect(loaded.brand, 'Honda');
+    expect(
+      loaded.failedRequest,
+      const ModelsRequest(year: 2021, brand: 'Honda'),
+    );
     await cubit.close();
   });
 
@@ -171,6 +176,7 @@ void main() {
     await cubit.retry();
     final loaded = cubit.state as ModelsLoaded;
     expect(loaded.refreshFailure, isNull);
+    expect(loaded.failedRequest, isNull);
     expect(loaded.year, 2021);
     expect(repository.calls.last, (2021, 'Honda'));
     await cubit.close();

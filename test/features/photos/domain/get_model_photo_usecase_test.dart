@@ -10,6 +10,9 @@ class _FakePhotosRepository implements PhotosRepository {
   final List<String> terms = [];
 
   @override
+  void cancelPendingSearches() {}
+
+  @override
   Future<List<PhotoCandidateEntity>> searchCandidates(String searchTerm) async {
     terms.add(searchTerm);
     final failure = error;

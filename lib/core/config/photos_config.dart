@@ -1,9 +1,24 @@
+import 'dart:io';
+
+import 'package:cars_wheels_app/core/config/user_agents_config.dart';
+
 /// Parámetros de búsqueda de fotos.
 class PhotosConfig {
   const PhotosConfig._();
 
+  // Misma instancia constante para widgets: la caché de imágenes la usa en su llave.
+  static const Map<String, String> requestHeaders = {
+    HttpHeaders.userAgentHeader: UserAgentsConfig.commonsUserAgent,
+  };
+
   static const int searchResultLimit = 20;
   static const int thumbnailWidthPixels = 600;
+  // Ancho de la miniatura de lista; se verificó que Commons responde 200.
+  static const int listThumbnailWidthPixels = 330;
+  // Segmento de ancho dentro de la URL de miniatura y su plantilla.
+  static const String thumbnailWidthSegmentPattern = r'/\d+px-';
+  static const String thumbnailWidthSegmentFormat = '/{width}px-';
+  static const String thumbnailWidthPlaceholder = '{width}';
   // Palabras que descartan un título de foto por no ser el auto completo.
   static const List<String> excludedTitleWords = [
     'Cross',

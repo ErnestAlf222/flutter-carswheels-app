@@ -1,12 +1,17 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/widgets/widgets.dart';
+import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mocktail/mocktail.dart';
+
+import '../../../support/brand_logos_test_support.dart';
+import '../../../support/photos_test_support.dart';
 
 class _MockModelsCubit extends MockCubit<ModelsState> implements ModelsCubit {}
 
@@ -16,6 +21,7 @@ List<ModelEntity> _models(int count) => [
 
 void main() {
   late _MockModelsCubit modelsCubit;
+  late MockPhotosCubit photosCubit;
 
   setUpAll(() {
     GoogleFonts.config.allowRuntimeFetching = false;
@@ -23,12 +29,17 @@ void main() {
 
   setUp(() {
     modelsCubit = _MockModelsCubit();
+    photosCubit = buildMockPhotosCubit();
     when(() => modelsCubit.state).thenReturn(const ModelsInitial());
   });
 
   Widget section(ModelsState state) => MaterialApp(
-    home: BlocProvider<ModelsCubit>.value(
-      value: modelsCubit,
+    home: MultiBlocProvider(
+      providers: [
+        BlocProvider<ModelsCubit>.value(value: modelsCubit),
+        BlocProvider<PhotosCubit>.value(value: photosCubit),
+        BlocProvider<BrandLogosCubit>.value(value: buildMockBrandLogosCubit()),
+      ],
       child: Scaffold(
         body: SingleChildScrollView(
           child: ModelsSectionWidget(brandName: 'Honda', state: state),

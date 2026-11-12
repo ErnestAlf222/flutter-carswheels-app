@@ -19,6 +19,17 @@ class ModelsLoading extends ModelsState {
   const ModelsLoading();
 }
 
+/// Consulta de modelos pedida: año y marca.
+class ModelsRequest extends Equatable {
+  const ModelsRequest({required this.year, required this.brand});
+
+  final int year;
+  final String brand;
+
+  @override
+  List<Object?> get props => [year, brand];
+}
+
 class ModelsLoaded extends ModelsState {
   const ModelsLoaded({
     required this.models,
@@ -27,6 +38,7 @@ class ModelsLoaded extends ModelsState {
     required this.brand,
     this.isRefreshing = false,
     this.refreshFailure,
+    this.failedRequest,
   });
 
   /// Lista completa de modelos.
@@ -35,10 +47,10 @@ class ModelsLoaded extends ModelsState {
   /// Cantidad de modelos visibles hasta ahora.
   final int visibleCount;
 
-  /// Año de la consulta; tras un refresco fallido, el año que se pidió.
+  /// Año de la lista que se está mostrando.
   final int year;
 
-  /// Marca de la consulta.
+  /// Marca de la lista que se está mostrando.
   final String brand;
 
   /// Verdadero mientras se pide una lista nueva de la misma marca.
@@ -47,6 +59,9 @@ class ModelsLoaded extends ModelsState {
   /// Fallo del último refresco; nulo si no hubo fallo.
   final AppFailure? refreshFailure;
 
+  /// Consulta que falló en el último refresco; nula si no hubo fallo.
+  final ModelsRequest? failedRequest;
+
   ModelsLoaded copyWith({int? visibleCount}) => ModelsLoaded(
     models: models,
     visibleCount: visibleCount ?? this.visibleCount,
@@ -54,6 +69,7 @@ class ModelsLoaded extends ModelsState {
     brand: brand,
     isRefreshing: isRefreshing,
     refreshFailure: refreshFailure,
+    failedRequest: failedRequest,
   );
 
   /// Mismo contenido, refrescando y sin el fallo anterior.
@@ -65,14 +81,15 @@ class ModelsLoaded extends ModelsState {
     isRefreshing: true,
   );
 
-  /// Mismo contenido, sin refrescar y con el fallo de la consulta pedida.
-  ModelsLoaded failedRefresh(int requestedYear, AppFailure failure) =>
+  /// Mismo contenido y año visibles, con el fallo de la consulta pedida.
+  ModelsLoaded failedRefresh(ModelsRequest request, AppFailure failure) =>
       ModelsLoaded(
         models: models,
         visibleCount: visibleCount,
-        year: requestedYear,
+        year: year,
         brand: brand,
         refreshFailure: failure,
+        failedRequest: request,
       );
 
   @override
@@ -83,6 +100,7 @@ class ModelsLoaded extends ModelsState {
     brand,
     isRefreshing,
     refreshFailure,
+    failedRequest,
   ];
 }
 

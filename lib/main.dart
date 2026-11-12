@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'app/app.dart';
-import 'core/core.dart';
-import 'features/photos/photos.dart';
+import 'package:cars_wheels_app/app/app.dart';
+import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/photos/photos.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

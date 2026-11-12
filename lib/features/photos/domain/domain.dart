@@ -9,6 +9,9 @@ export 'datasources/photos_datasource.dart';
 export 'repositories/photos_repository.dart';
 // Servicios
 export 'services/photo_candidate_selector.dart';
+export 'services/photo_key_builder.dart';
+export 'services/thumbnail_url_builder.dart';
 // Casos de uso
+export 'usecases/cancel_pending_photos_usecase.dart';
 export 'usecases/get_model_photo_usecase.dart';
 export 'usecases/resolve_model_photo_usecase.dart';

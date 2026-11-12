@@ -130,6 +130,8 @@ class _LoadedList extends StatelessWidget {
                 if (index > 0) const SizedBox(height: AppSpacing.s),
                 ModelCardWidget(
                   name: state.models[index].name,
+                  brand: state.brand,
+                  year: state.year,
                   index: index,
                   // La primera página entra con el fundido de la columna.
                   animateEntry: index >= CatalogConfig.defaultPageSize,
