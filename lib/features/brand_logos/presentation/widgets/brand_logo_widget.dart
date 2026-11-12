@@ -27,6 +27,7 @@ class BrandLogoWidget extends StatelessWidget {
     if (url.endsWith(LogosConfig.svgExtension)) {
       return SvgPicture.network(
         url,
+        headers: LogosConfig.requestHeaders,
         width: size,
         height: size,
         placeholderBuilder: (_) => monogram,
@@ -35,6 +36,7 @@ class BrandLogoWidget extends StatelessWidget {
     }
     return CachedNetworkImage(
       imageUrl: url,
+      httpHeaders: LogosConfig.requestHeaders,
       width: size,
       height: size,
       placeholder: (_, _) => monogram,

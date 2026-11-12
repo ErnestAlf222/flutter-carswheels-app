@@ -2,6 +2,7 @@
 class FuelEconomyConfig {
   const FuelEconomyConfig._();
 
+  static const String fuelEconomySourceLabel = 'fuel_economy';
   static const String menuYearPath = '/menu/year';
   static const String menuMakePath = '/menu/make';
   static const String menuModelPath = '/menu/model';

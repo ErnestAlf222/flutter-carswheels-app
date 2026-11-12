@@ -13,14 +13,17 @@ class LogoPrecacheService {
     if (url.endsWith(LogosConfig.svgExtension)) {
       try {
         // Llena svg.cache con la misma llave que usa SvgPicture.network.
-        await SvgNetworkLoader(url).loadBytes(null);
+        await SvgNetworkLoader(
+          url,
+          headers: LogosConfig.requestHeaders,
+        ).loadBytes(null);
       } catch (_) {
         // Sin red el logo se descargará al mostrarse.
       }
       return;
     }
     await precacheImage(
-      CachedNetworkImageProvider(url),
+      CachedNetworkImageProvider(url, headers: LogosConfig.requestHeaders),
       context,
       onError: (_, _) {},
     );

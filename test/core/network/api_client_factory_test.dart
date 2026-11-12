@@ -10,6 +10,8 @@ void main() {
       baseUrl: 'https://example.test/api',
       acceptHeaderValue: NetworkConfig.jsonAcceptHeaderValue,
       userAgent: 'agente-prueba',
+      sourceLabel: 'prueba',
+      enableLogging: false,
     );
     expect(dio.options.baseUrl, 'https://example.test/api');
     expect(

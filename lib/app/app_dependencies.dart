@@ -9,7 +9,6 @@ class AppDependencies {
   AppDependencies._({
     required this.catalogRepository,
     required this.getAvailableYearsUseCase,
-    required this.getLatestYearUseCase,
     required this.getBrandsUseCase,
     required this.getModelsUseCase,
     required this.brandLogosRepository,
@@ -20,11 +19,13 @@ class AppDependencies {
       baseUrl: ApiConfig.fuelEconomyBaseUrl,
       acceptHeaderValue: NetworkConfig.jsonAcceptHeaderValue,
       userAgent: UserAgentsConfig.fuelEconomyUserAgent,
+      sourceLabel: FuelEconomyConfig.fuelEconomySourceLabel,
     );
     final logosDio = ApiClientFactory.create(
       baseUrl: LogosConfig.logosBaseUrl,
       acceptHeaderValue: NetworkConfig.jsonAcceptHeaderValue,
       userAgent: UserAgentsConfig.logosUserAgent,
+      sourceLabel: LogosConfig.logosSourceLabel,
     );
     return AppDependencies.fromDio(fuelEconomyDio, logosDio);
   }
@@ -46,7 +47,6 @@ class AppDependencies {
     return AppDependencies._(
       catalogRepository: repository,
       getAvailableYearsUseCase: getAvailableYears,
-      getLatestYearUseCase: GetLatestYearUseCase(getAvailableYears),
       getBrandsUseCase: GetBrandsUseCase(
         repository: repository,
         sortStrategy: sortStrategy,
@@ -63,7 +63,6 @@ class AppDependencies {
 
   final CatalogRepository catalogRepository;
   final GetAvailableYearsUseCase getAvailableYearsUseCase;
-  final GetLatestYearUseCase getLatestYearUseCase;
   final GetBrandsUseCase getBrandsUseCase;
   final GetModelsUseCase getModelsUseCase;
   final BrandLogosRepository brandLogosRepository;

@@ -37,9 +37,6 @@ class _AppState extends State<App> {
         RepositoryProvider<GetAvailableYearsUseCase>.value(
           value: _dependencies.getAvailableYearsUseCase,
         ),
-        RepositoryProvider<GetLatestYearUseCase>.value(
-          value: _dependencies.getLatestYearUseCase,
-        ),
         RepositoryProvider<GetBrandsUseCase>.value(
           value: _dependencies.getBrandsUseCase,
         ),

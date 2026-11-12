@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cars_wheels_app/core/core.dart';
@@ -56,5 +58,37 @@ void main() {
     await tester.pumpWidget(host());
     expect(find.byType(CachedNetworkImage), findsOneWidget);
     expect(find.byType(SvgPicture), findsNothing);
+  });
+
+  testWidgets('el cargador SVG envía el User-Agent configurado', (
+    tester,
+  ) async {
+    when(
+      () => cubit.urlFor('audi'),
+    ).thenReturn('${LogosConfig.logosBaseUrl}audi${LogosConfig.svgExtension}');
+    await tester.pumpWidget(host());
+    final picture = tester.widget<SvgPicture>(find.byType(SvgPicture));
+    final loader = picture.bytesLoader as SvgNetworkLoader;
+    expect(loader.headers, LogosConfig.requestHeaders);
+    expect(
+      loader.headers![HttpHeaders.userAgentHeader],
+      UserAgentsConfig.logosUserAgent,
+    );
+  });
+
+  testWidgets('el cargador PNG envía el User-Agent configurado', (
+    tester,
+  ) async {
+    when(() => cubit.urlFor('audi'))
+        .thenReturn('${LogosConfig.logosBaseUrl}audi.png');
+    await tester.pumpWidget(host());
+    final image = tester.widget<CachedNetworkImage>(
+      find.byType(CachedNetworkImage),
+    );
+    expect(image.httpHeaders, LogosConfig.requestHeaders);
+    expect(
+      image.httpHeaders![HttpHeaders.userAgentHeader],
+      UserAgentsConfig.logosUserAgent,
+    );
   });
 }
