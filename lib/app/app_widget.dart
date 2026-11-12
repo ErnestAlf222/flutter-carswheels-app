@@ -11,7 +11,10 @@ import 'package:cars_wheels_app/features/navigation/navigation.dart';
 
 /// Widget raíz de la app.
 class App extends StatefulWidget {
-  const App({super.key});
+  const App({required this.dependencies, super.key});
+
+  /// Dependencias ya compuestas; la app las cierra al salir.
+  final AppDependencies dependencies;
 
   @override
   State<App> createState() => _AppState();
@@ -19,7 +22,7 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   final GoRouter _router = buildAppRouter();
-  final AppDependencies _dependencies = AppDependencies.create();
+  AppDependencies get _dependencies => widget.dependencies;
 
   @override
   void dispose() {

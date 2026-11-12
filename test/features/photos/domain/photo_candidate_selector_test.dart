@@ -141,7 +141,7 @@ void main() {
     test('sin año coincidente elige el de menor rank como referencia', () {
       final photo = selector.select(
         [
-          _candidate('File:2019 Toyota Corolla SE.jpg', 5),
+          _candidate('File:2022 Toyota Corolla SE.jpg', 5),
           _candidate('File:2018 Toyota Corolla SE.jpg', 2),
         ],
         'Toyota',
@@ -150,6 +150,113 @@ void main() {
       );
       expect(photo?.sourceUrl, 'fuente-2');
       expect(photo?.isReference, isTrue);
+    });
+
+    test('un candidato sin licencia se ignora', () {
+      const unlicensed = PhotoCandidateEntity(
+        title: 'File:2020 Toyota Corolla LE.jpg',
+        thumbnailUrl: 'thumb',
+        authorName: '',
+        licenseName: '',
+        sourceUrl: 'sin-licencia',
+        rank: 1,
+      );
+      final photo = selector.select(
+        [unlicensed, _candidate('File:2020 Toyota Corolla SE.jpg', 7)],
+        'Toyota',
+        'Corolla',
+        2020,
+      );
+      expect(photo?.sourceUrl, 'fuente-7');
+    });
+
+    test('el autor vacío sí es válido', () {
+      const anonymous = PhotoCandidateEntity(
+        title: 'File:2020 Toyota Corolla LE.jpg',
+        thumbnailUrl: 'thumb',
+        authorName: '',
+        licenseName: 'CC0',
+        sourceUrl: 'anonima',
+        rank: 1,
+      );
+      expect(
+        selector.select([anonymous], 'Toyota', 'Corolla', 2020)?.sourceUrl,
+        'anonima',
+      );
+    });
+
+    test('descarta la referencia con 12 años de diferencia', () {
+      final photo = selector.select(
+        [_candidate('File:2008 Ford F150, Front Left, 10-02-2020.jpg', 1)],
+        'Ford',
+        'F150 Pickup 2WD',
+        2020,
+      );
+      expect(photo, isNull);
+    });
+
+    test('elige como referencia un año cercano', () {
+      final photo = selector.select(
+        [_candidate('File:2019 BMW X3 xDrive30i front.jpg', 1)],
+        'BMW',
+        'X3',
+        2020,
+      );
+      expect(photo?.isReference, isTrue);
+    });
+
+    test('entre 2018 y 2022 para 2020 gana el menor rank del empate', () {
+      final photo = selector.select(
+        [
+          _candidate('File:2022 Toyota Corolla SE.jpg', 4),
+          _candidate('File:2018 Toyota Corolla SE.jpg', 3),
+        ],
+        'Toyota',
+        'Corolla',
+        2020,
+      );
+      expect(photo?.sourceUrl, 'fuente-3');
+    });
+
+    test('gana la menor diferencia sobre el menor rank', () {
+      final photo = selector.select(
+        [
+          _candidate('File:2017 Toyota Corolla SE.jpg', 1),
+          _candidate('File:2019 Toyota Corolla SE.jpg', 9),
+        ],
+        'Toyota',
+        'Corolla',
+        2020,
+      );
+      expect(photo?.sourceUrl, 'fuente-9');
+    });
+
+    test('sin año al inicio es referencia, tras los de año cercano', () {
+      final undated = _candidate('File:Aston Martin DBX DSC 7244.jpg', 1);
+      final dated = _candidate('File:2024 Aston Martin DBX front.jpg', 8);
+      final both = selector.select(
+        [undated, dated],
+        'Aston Martin',
+        'DBX',
+        2027,
+      );
+      expect(both?.sourceUrl, 'fuente-8');
+      final alone = selector.select([undated], 'Aston Martin', 'DBX', 2027);
+      expect(alone?.sourceUrl, 'fuente-1');
+      expect(alone?.isReference, isTrue);
+    });
+
+    test('un año lejano se descarta aunque haya uno sin año', () {
+      final photo = selector.select(
+        [
+          _candidate('File:2008 Aston Martin DBX front.jpg', 1),
+          _candidate('File:Aston Martin DBX DSC 7244.jpg', 6),
+        ],
+        'Aston Martin',
+        'DBX',
+        2027,
+      );
+      expect(photo?.sourceUrl, 'fuente-6');
     });
 
     test('el año seguido de un dígito no coincide', () {

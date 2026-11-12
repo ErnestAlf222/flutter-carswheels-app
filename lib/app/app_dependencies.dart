@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:isar_community/isar.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
@@ -14,10 +15,24 @@ class AppDependencies {
     required this.getModelsUseCase,
     required this.brandLogosRepository,
     required this.getModelPhotoUseCase,
+    required this.resolveModelPhotoUseCase,
     required this.commonsQueue,
+    required this.closeStorage,
   });
 
-  factory AppDependencies.create() {
+  /// Compone la app con la caché de fotos guardada en la instancia de Isar.
+  factory AppDependencies.withIsar(Isar isar) {
+    return AppDependencies.create(
+      photoCache: IsarPhotoCacheDatasource(isar),
+      closeStorage: () => IsarDatabase.close(isar),
+    );
+  }
+
+  /// Compone la app con clientes reales y la caché de fotos dada.
+  factory AppDependencies.create({
+    required PhotoCacheDatasource photoCache,
+    Future<void> Function()? closeStorage,
+  }) {
     final fuelEconomyDio = ApiClientFactory.create(
       baseUrl: ApiConfig.fuelEconomyBaseUrl,
       acceptHeaderValue: NetworkConfig.jsonAcceptHeaderValue,
@@ -36,7 +51,13 @@ class AppDependencies {
       userAgent: UserAgentsConfig.commonsUserAgent,
       sourceLabel: PhotosConfig.commonsSourceLabel,
     );
-    return AppDependencies.fromDio(fuelEconomyDio, logosDio, commonsDio);
+    return AppDependencies.fromDio(
+      fuelEconomyDio,
+      logosDio,
+      commonsDio,
+      photoCache,
+      closeStorage: closeStorage,
+    );
   }
 
   /// Compone todo sobre un Dio dado.
@@ -44,7 +65,9 @@ class AppDependencies {
     Dio fuelEconomyDio,
     Dio logosDio,
     Dio commonsDio,
-  ) {
+    PhotoCacheDatasource photoCache, {
+    Future<void> Function()? closeStorage,
+  }) {
     final repository = CatalogRepositoryImpl(
       FuelEconomyCatalogDatasource(fuelEconomyDio),
     );
@@ -66,6 +89,10 @@ class AppDependencies {
     final photosRepository = PhotosRepositoryImpl(
       CommonsPhotosDatasource(dio: commonsDio, queue: commonsQueue),
     );
+    final getModelPhoto = GetModelPhotoUseCase(
+      repository: photosRepository,
+      selector: const PhotoCandidateSelector(),
+    );
     return AppDependencies._(
       catalogRepository: repository,
       getAvailableYearsUseCase: getAvailableYears,
@@ -80,11 +107,14 @@ class AppDependencies {
       brandLogosRepository: BrandLogosRepositoryImpl(
         BrandLogosCdnDatasource(logosDio),
       ),
-      getModelPhotoUseCase: GetModelPhotoUseCase(
-        repository: photosRepository,
-        selector: const PhotoCandidateSelector(),
+      getModelPhotoUseCase: getModelPhoto,
+      resolveModelPhotoUseCase: ResolveModelPhotoUseCase(
+        cache: photoCache,
+        getModelPhoto: getModelPhoto,
+        clock: DateTime.now,
       ),
       commonsQueue: commonsQueue,
+      closeStorage: closeStorage ?? _noStorageToClose,
     );
   }
 
@@ -94,8 +124,15 @@ class AppDependencies {
   final GetModelsUseCase getModelsUseCase;
   final BrandLogosRepository brandLogosRepository;
   final GetModelPhotoUseCase getModelPhotoUseCase;
+  final ResolveModelPhotoUseCase resolveModelPhotoUseCase;
   final RateLimitedQueue commonsQueue;
+  final Future<void> Function() closeStorage;
+
+  static Future<void> _noStorageToClose() async {}
 
   /// Libera los recursos de la composición.
-  Future<void> close() => commonsQueue.close();
+  Future<void> close() async {
+    await commonsQueue.close();
+    await closeStorage();
+  }
 }

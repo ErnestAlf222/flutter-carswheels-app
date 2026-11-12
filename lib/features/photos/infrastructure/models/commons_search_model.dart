@@ -1,6 +1,6 @@
 import 'package:cars_wheels_app/core/core.dart';
 
-/// Respuesta de búsqueda de Commons: las páginas que traen imageinfo.
+/// Respuesta de búsqueda de Commons: las páginas con miniatura y fuente.
 class CommonsSearchModel {
   const CommonsSearchModel({required this.pages});
 
@@ -21,7 +21,7 @@ class CommonsSearchModel {
       throw const ParsingFailure('Las páginas de Commons no son un objeto');
     }
     final pages = rawPages.values.map(_readPage).toList();
-    return CommonsSearchModel(pages: pages.where(_hasImageInfo).toList());
+    return CommonsSearchModel(pages: pages.where(_isUsable).toList());
   }
 
   final List<Map<String, dynamic>> pages;
@@ -31,10 +31,17 @@ class CommonsSearchModel {
     throw const ParsingFailure('Una página de Commons no es un objeto');
   }
 
-  static bool _hasImageInfo(Map<String, dynamic> page) {
+  // Una página sin imageinfo, miniatura o fuente se salta, sin fallar.
+  static bool _isUsable(Map<String, dynamic> page) {
     final info = page[PhotosConfig.imageInfoKey];
     if (info == null) return false;
-    if (info is List<dynamic>) return info.isNotEmpty;
-    throw const ParsingFailure('El imageinfo de Commons no es una lista');
+    if (info is! List<dynamic>) {
+      throw const ParsingFailure('El imageinfo de Commons no es una lista');
+    }
+    if (info.isEmpty) return false;
+    final first = info.first;
+    return first is Map<String, dynamic> &&
+        first[PhotosConfig.thumbnailUrlKey] is String &&
+        first[PhotosConfig.descriptionUrlKey] is String;
   }
 }

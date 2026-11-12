@@ -10,7 +10,7 @@ class CommonsCandidateMapper {
     PhotosConfig.htmlEntities.keys.map(RegExp.escape).join('|'),
   );
 
-  /// Lanza ParsingFailure si falta un dato obligatorio.
+  /// Sin orden usa el rank más alto; lanza ParsingFailure si falta otro dato.
   static PhotoCandidateEntity toCandidate(Map<String, dynamic> page) {
     final info = _readInfo(page);
     final metadata = info[PhotosConfig.extMetadataKey];
@@ -54,8 +54,7 @@ class CommonsCandidateMapper {
 
   static int _readRank(Map<String, dynamic> page) {
     final value = page[PhotosConfig.rankKey];
-    if (value is int) return value;
-    throw const ParsingFailure('Falta el orden de la página de Commons');
+    return value is int ? value : PhotosConfig.missingRank;
   }
 
   // Valor de un campo de extmetadata; vacío si no existe.

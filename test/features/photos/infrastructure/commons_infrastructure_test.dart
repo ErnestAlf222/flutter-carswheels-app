@@ -61,6 +61,17 @@ void main() {
       expect(CommonsSearchModel.fromJson(json).pages, hasLength(1));
     });
 
+    test('salta las páginas sin miniatura o sin fuente, sin fallar', () {
+      final noThumb = _page('File:B.jpg', 2);
+      final noSource = _page('File:C.jpg', 3);
+      ((noThumb['imageinfo'] as List<dynamic>).first as Map<String, dynamic>)
+          .remove('thumburl');
+      ((noSource['imageinfo'] as List<dynamic>).first as Map<String, dynamic>)
+          .remove('descriptionurl');
+      final json = _response([_page('File:A.jpg', 1), noThumb, noSource]);
+      expect(CommonsSearchModel.fromJson(json).pages, hasLength(1));
+    });
+
     test('formas inválidas lanzan ParsingFailure', () {
       final invalidShapes = <Object?>[
         null,
@@ -123,6 +134,14 @@ void main() {
       final candidate = CommonsCandidateMapper.toCandidate(page);
       expect(candidate.authorName, isEmpty);
       expect(candidate.licenseName, isEmpty);
+    });
+
+    test('sin index recibe el rank más alto', () {
+      final page = _page('File:A.jpg', 1)..remove('index');
+      expect(
+        CommonsCandidateMapper.toCandidate(page).rank,
+        PhotosConfig.missingRank,
+      );
     });
 
     test('sin miniatura lanza ParsingFailure', () {

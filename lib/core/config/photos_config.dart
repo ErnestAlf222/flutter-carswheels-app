@@ -79,4 +79,21 @@ class PhotosConfig {
   static const String searchTermSeparator = ' ';
   static const String yearOpeningDelimiter = '(';
   static const String yearClosingDelimiter = ')';
+
+  // Provisionales: diferencia máxima de años y vigencias de la caché.
+  static const int maxReferenceYearDifference = 5;
+  static const int photoCacheTimeToLiveDays = 30;
+  static const int photoMissTimeToLiveDays = 3;
+  static const String cacheKeySeparator = '|';
+
+  // Rank de una página sin orden: queda al final de cualquier desempate.
+  static const int missingRank = 1000000;
+  static const int yearDigitCount = 4;
+
+  // Tabla de excepciones que crece con los casos reales.
+  static const Map<String, String> photoSearchTermAliases = {
+    'f150': 'F-150',
+    'f250': 'F-250',
+    'f350': 'F-350',
+  };
 }

@@ -12,6 +12,7 @@ export 'nav_config.dart';
 export 'network_config.dart';
 export 'photos_config.dart';
 export 'routes_config.dart';
+export 'storage_config.dart';
 export 'text_config.dart';
 export 'ui_config.dart';
 export 'units_config.dart';

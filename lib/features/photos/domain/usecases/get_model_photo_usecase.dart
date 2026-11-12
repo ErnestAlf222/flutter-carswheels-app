@@ -20,7 +20,10 @@ class GetModelPhotoUseCase {
     required int year,
   }) async {
     final cleanModel = selector.cleanModelName(modelName);
-    final baseTerm = [brand, cleanModel].join(PhotosConfig.searchTermSeparator);
+    final baseTerm = [
+      brand,
+      _applyAlias(cleanModel),
+    ].join(PhotosConfig.searchTermSeparator);
     final withYear = await repository.searchCandidates(
       '$baseTerm${PhotosConfig.searchTermSeparator}$year',
     );
@@ -36,5 +39,14 @@ class GetModelPhotoUseCase {
       sourceUrl: reference.sourceUrl,
       isReference: true,
     );
+  }
+
+  // Reemplaza la primera palabra por su alias, si tiene uno.
+  String _applyAlias(String cleanModel) {
+    final words = cleanModel.split(PhotosConfig.searchTermSeparator);
+    final alias = PhotosConfig
+        .photoSearchTermAliases[TextNormalizer.normalize(words.first)];
+    if (alias == null) return cleanModel;
+    return [alias, ...words.skip(1)].join(PhotosConfig.searchTermSeparator);
   }
 }

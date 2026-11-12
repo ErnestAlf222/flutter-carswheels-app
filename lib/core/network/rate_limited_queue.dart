@@ -16,6 +16,7 @@ class RateLimitedQueue {
   }
 
   static const String _closedMessage = 'La cola ya fue cerrada';
+  static const String _cancelledMessage = 'La tarea fue cancelada';
 
   static Future<void> _defaultWait(Duration duration) =>
       Future<void>.delayed(duration);
@@ -24,6 +25,8 @@ class RateLimitedQueue {
   final Duration minInterval;
   final int maxRetries;
   final WaitFunction wait;
+  // Tareas que aún no empezaron; cancelPending las completa con un fallo.
+  final Set<Completer<Object?>> _pending = <Completer<Object?>>{};
   final StreamController<Future<void> Function()> _controller =
       StreamController<Future<void> Function()>();
   // Recurso cancelable: procesa el flujo de tareas.
@@ -35,8 +38,23 @@ class RateLimitedQueue {
       return Future<T>.error(StateError(_closedMessage));
     }
     final completer = Completer<T>();
-    _controller.add(() => _complete(task, completer));
+    final pending = completer as Completer<Object?>;
+    _pending.add(pending);
+    _controller.add(() async {
+      // Si ya no está pendiente, cancelPending la completó.
+      if (!_pending.remove(pending)) return;
+      await _complete(task, completer);
+    });
     return completer.future;
+  }
+
+  /// Cancela las tareas que no empezaron; la que está en curso termina.
+  void cancelPending() {
+    final cancelled = _pending.toList();
+    _pending.clear();
+    for (final completer in cancelled) {
+      completer.completeError(const CancelledFailure(_cancelledMessage));
+    }
   }
 
   /// Deja de aceptar tareas y termina las pendientes.

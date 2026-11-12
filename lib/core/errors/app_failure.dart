@@ -39,3 +39,8 @@ class ParsingFailure extends AppFailure {
 class UnknownFailure extends AppFailure {
   const UnknownFailure(super.message);
 }
+
+/// La tarea se canceló antes de empezar.
+class CancelledFailure extends AppFailure {
+  const CancelledFailure(super.message);
+}

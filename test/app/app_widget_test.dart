@@ -1,8 +1,20 @@
 import 'package:cars_wheels_app/app/app.dart';
+import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+class _FakePhotoCache implements PhotoCacheDatasource {
+  @override
+  Future<CachedPhotoEntity?> read(String key) async => null;
+
+  @override
+  Future<void> write(String key, CachedPhotoEntity entry) async {}
+}
+
+App _buildApp() =>
+    App(dependencies: AppDependencies.create(photoCache: _FakePhotoCache()));
 
 void main() {
   setUpAll(() {
@@ -10,7 +22,7 @@ void main() {
   });
 
   testWidgets('App muestra la pantalla de inicio', (tester) async {
-    await tester.pumpWidget(const App());
+    await tester.pumpWidget(_buildApp());
     // Deja pasar el tiempo mínimo del loader para no dejar temporizadores.
     await tester.pump(
       const Duration(
@@ -23,7 +35,7 @@ void main() {
   });
 
   testWidgets('MaterialApp no muestra la cinta de depuración', (tester) async {
-    await tester.pumpWidget(const App());
+    await tester.pumpWidget(_buildApp());
     await tester.pump(
       const Duration(
         milliseconds: UiConfig.initialLoaderMinimumVisibleMilliseconds,

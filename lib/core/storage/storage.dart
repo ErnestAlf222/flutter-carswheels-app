@@ -1,1 +1,2 @@
-// Almacenamiento del núcleo: aún sin exportaciones.
+// Almacenamiento
+export 'isar_database.dart';

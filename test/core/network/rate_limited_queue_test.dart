@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -128,5 +130,37 @@ void main() {
     await queue.close();
     expect(await pending, 1);
     await expectLater(queue.enqueue(() async => 2), throwsA(isA<StateError>()));
+  });
+  test(
+    'cancelPending cancela las pendientes y deja terminar la actual',
+    () async {
+      final queue = _queue();
+      final release = Completer<void>();
+      final started = <String>[];
+      final running = queue.enqueue(() async {
+        started.add('actual');
+        await release.future;
+        return 'actual';
+      });
+      final waiting = queue.enqueue(() async {
+        started.add('pendiente');
+        return 'pendiente';
+      });
+      final waitingResult = waiting.then<Object?>((v) => v, onError: (e) => e);
+      await Future<void>.delayed(Duration.zero);
+      queue.cancelPending();
+      release.complete();
+      expect(await running, 'actual');
+      expect(await waitingResult, isA<CancelledFailure>());
+      expect(started, ['actual']);
+      await queue.close();
+    },
+  );
+
+  test('tras cancelPending la cola sigue aceptando tareas', () async {
+    final queue = _queue();
+    queue.cancelPending();
+    expect(await queue.enqueue(() async => 7), 7);
+    await queue.close();
   });
 }

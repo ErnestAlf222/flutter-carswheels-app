@@ -11,6 +11,8 @@ void main() {
           .listSync(recursive: true)
           .whereType<File>()
           .where((file) => file.path.endsWith('.dart'))
+          // El código generado por build_runner no se escribe a mano.
+          .where((file) => !file.path.endsWith('.g.dart'))
           .where(
             (file) =>
                 !file.path.replaceAll(r'\', '/').contains('test/code_rules/'),

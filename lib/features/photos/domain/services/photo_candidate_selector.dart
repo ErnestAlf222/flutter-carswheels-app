@@ -2,6 +2,11 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/photos/domain/entities/photo_candidate_entity.dart';
 import 'package:cars_wheels_app/features/photos/domain/entities/photo_entity.dart';
 
+// Año de cuatro dígitos al inicio, sin dígitos pegados detrás.
+final RegExp _leadingYearPattern = RegExp(
+  '^(\\d{${PhotosConfig.yearDigitCount}})(?!\\d)',
+);
+
 /// Elige la mejor foto de una lista de candidatas.
 class PhotoCandidateSelector {
   const PhotoCandidateSelector();
@@ -33,9 +38,42 @@ class PhotoCandidateSelector {
     final sameYear = valid.where((c) => _matchesYear(_titleOf(c), year));
     final fromYear = _bestRanked(sameYear);
     if (fromYear != null) return _toPhoto(fromYear, isReference: false);
-    final fallback = _bestRanked(valid);
+    final others = valid.where((c) => !_matchesYear(_titleOf(c), year));
+    final fallback = _bestReference(others, year);
     if (fallback != null) return _toPhoto(fallback, isReference: true);
     return null;
+  }
+
+  // Año de cuatro dígitos al inicio del título, o null si no lo trae.
+  int? _leadingYear(String title) {
+    final match = _leadingYearPattern.firstMatch(title);
+    return match == null ? null : int.parse(match.group(1)!);
+  }
+
+  // Con año cercano primero (menor diferencia); sin año después; lejanos fuera.
+  PhotoCandidateEntity? _bestReference(
+    Iterable<PhotoCandidateEntity> candidates,
+    int year,
+  ) {
+    final dated = <PhotoCandidateEntity, int>{};
+    final undated = <PhotoCandidateEntity>[];
+    for (final candidate in candidates) {
+      final leadingYear = _leadingYear(_titleOf(candidate));
+      if (leadingYear == null) {
+        undated.add(candidate);
+        continue;
+      }
+      final difference = (leadingYear - year).abs();
+      if (difference <= PhotosConfig.maxReferenceYearDifference) {
+        dated[candidate] = difference;
+      }
+    }
+    if (dated.isEmpty) return _bestRanked(undated);
+    return dated.keys.reduce((a, b) {
+      final byDifference = dated[b]!.compareTo(dated[a]!);
+      if (byDifference != 0) return byDifference < 0 ? b : a;
+      return b.rank < a.rank ? b : a;
+    });
   }
 
   // Primera palabra del modelo limpio, normalizada.
@@ -60,7 +98,8 @@ class PhotoCandidateSelector {
     final isExcluded = PhotosConfig.excludedTitleWords.any(
       (word) => lowerTitle.contains(word.toLowerCase()),
     );
-    return !isExcluded &&
+    return candidate.licenseName.isNotEmpty &&
+        !isExcluded &&
         normalized.contains(brandKey) &&
         normalized.contains(modelKey);
   }

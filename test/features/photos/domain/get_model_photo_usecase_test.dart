@@ -102,4 +102,25 @@ void main() {
     );
     expect(repository.terms, hasLength(1));
   });
+  test('aplica el alias de F150 solo en el término de búsqueda', () async {
+    final repository = _FakePhotosRepository([[], []]);
+    await _useCase(repository)(
+      brand: 'Ford',
+      modelName: 'F150 Pickup 2WD',
+      year: 2020,
+    );
+    expect(repository.terms, ['Ford F-150 Pickup 2020', 'Ford F-150 Pickup']);
+  });
+
+  test('el selector encuentra el título con guion usando el alias', () async {
+    final repository = _FakePhotosRepository([
+      [_candidate('File:2020 Ford F-150 XLT.jpg', 1)],
+    ]);
+    final photo = await _useCase(repository)(
+      brand: 'Ford',
+      modelName: 'F150 Pickup 2WD',
+      year: 2020,
+    );
+    expect(photo?.isReference, isFalse);
+  });
 }
