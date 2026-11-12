@@ -32,7 +32,7 @@ void main() {
     expect(find.byType(AppLoader), findsNothing);
   });
 
-  testWidgets('visible muestra el loader recortado en círculo y con tamaño', (
+  testWidgets('visible cubre toda el área con el color de fondo', (
     tester,
   ) async {
     await tester.pumpWidget(host(visible: true));
@@ -41,11 +41,24 @@ void main() {
         milliseconds: AnimationConfig.sectionLoaderFadeMilliseconds,
       ),
     );
-    expect(find.byType(AppLoader), findsOneWidget);
-    expect(find.byType(ClipOval), findsOneWidget);
+    final layer = find.descendant(
+      of: find.byType(SectionLoaderOverlay),
+      matching: find.byType(ColoredBox),
+    );
+    expect(tester.widget<ColoredBox>(layer).color, AppColors.background);
+    expect(tester.getSize(layer), tester.getSize(find.byType(Scaffold)));
+    expect(find.byType(ClipOval), findsNothing);
+    final loaderBox = find.ancestor(
+      of: find.byType(AppLoader),
+      matching: find.byType(SizedBox),
+    );
     expect(
-      tester.getSize(find.byType(ClipOval)),
+      tester.getSize(loaderBox.first),
       const Size.square(UiConfig.sectionLoaderSize),
+    );
+    expect(
+      tester.getCenter(find.byType(AppLoader)),
+      tester.getCenter(find.byType(Scaffold)),
     );
   });
 
@@ -84,14 +97,20 @@ void main() {
     expect(find.byType(AppLoader), findsNothing);
   });
 
-  testWidgets('no recibe toques: pasan al contenido de abajo', (tester) async {
+  testWidgets('visible absorbe los toques sobre el contenido', (tester) async {
     await tester.pumpWidget(host(visible: true));
     await tester.pump(
       const Duration(
         milliseconds: AnimationConfig.sectionLoaderFadeMilliseconds,
       ),
     );
-    await tester.tap(find.byType(ClipOval), warnIfMissed: false);
+    await tester.tapAt(tester.getCenter(find.byType(Scaffold)));
+    expect(taps, isEmpty);
+  });
+
+  testWidgets('oculto deja pasar los toques al contenido', (tester) async {
+    await tester.pumpWidget(host(visible: false));
+    await tester.tapAt(tester.getCenter(find.byType(Scaffold)));
     expect(taps, hasLength(1));
   });
 }

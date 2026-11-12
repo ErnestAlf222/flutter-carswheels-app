@@ -79,7 +79,7 @@ class HomePage extends StatelessWidget {
     if (current is! ModelsLoaded) return false;
     if (current.isRefreshing || current.refreshFailure != null) return false;
     return previous is! ModelsLoaded ||
-        !identical(previous.models, current.models) ||
+        !identical(previous.groups, current.groups) ||
         previous.visibleCount != current.visibleCount ||
         previous.isRefreshing ||
         previous.year != current.year ||
@@ -91,8 +91,8 @@ class HomePage extends StatelessWidget {
     if (state is! ModelsLoaded) return;
     final photos = context.read<PhotosCubit>();
     final requests = <PhotoRequest>[
-      for (final model in state.models.take(state.visibleCount))
-        PhotoRequest(brand: state.brand, model: model.name, year: state.year),
+      for (final group in state.groups.take(state.visibleCount))
+        PhotoRequest(brand: state.brand, model: group.name, year: state.year),
     ];
     final missing = requests.where((request) {
       final slot = photos.state.slots[photos.keyFor(request)];
@@ -127,7 +127,7 @@ class HomePage extends StatelessWidget {
     }
     final cubit = context.read<ModelsCubit>();
     final state = cubit.state;
-    if (state is ModelsLoaded && state.visibleCount < state.models.length) {
+    if (state is ModelsLoaded && state.visibleCount < state.groups.length) {
       cubit.loadMore();
     }
   }

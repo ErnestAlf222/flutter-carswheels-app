@@ -35,7 +35,7 @@ class ModelsSectionWidget extends StatelessWidget {
             ),
             if (current is ModelsLoaded)
               Text(
-                AppTexts.modelsCountLabel(current.models.length),
+                AppTexts.modelsCountLabel(current.groups.length),
                 style: AppTextStyles.caption,
               ),
           ],
@@ -54,7 +54,7 @@ class ModelsSectionWidget extends StatelessWidget {
       key: const ValueKey('error'),
       onRetry: context.read<ModelsCubit>().retry,
     ),
-    ModelsLoaded(:final models) when models.isEmpty => const EmptyStateWidget(
+    ModelsLoaded(:final groups) when groups.isEmpty => const EmptyStateWidget(
       key: ValueKey('empty'),
     ),
     ModelsLoaded() => _LoadedList(
@@ -129,7 +129,7 @@ class _LoadedList extends StatelessWidget {
               for (int index = 0; index < state.visibleCount; index++) ...[
                 if (index > 0) const SizedBox(height: AppSpacing.s),
                 ModelCardWidget(
-                  name: state.models[index].name,
+                  group: state.groups[index],
                   brand: state.brand,
                   year: state.year,
                   index: index,

@@ -30,17 +30,19 @@ class _FakeCatalogRepository implements CatalogRepository {
 }
 
 ModelsCubit _cubit(_FakeCatalogRepository repository) => ModelsCubit(
-  getModels: GetModelsUseCase(
+  getModelGroups: GetModelGroupsUseCase(
     repository: repository,
-    sortStrategy: const AdaptiveSortStrategy<ModelEntity>(
-      smallListStrategy: BubbleSortStrategy<ModelEntity>(),
-      largeListStrategy: ShellSortStrategy<ModelEntity>(),
+    grouper: const ModelGrouper(
+      sortStrategy: AdaptiveSortStrategy<ModelGroupEntity>(
+        smallListStrategy: BubbleSortStrategy<ModelGroupEntity>(),
+        largeListStrategy: ShellSortStrategy<ModelGroupEntity>(),
+      ),
     ),
   ),
 );
 
 Matcher _loaded(int total, int visible) => isA<ModelsLoaded>()
-    .having((s) => s.models.length, 'total', total)
+    .having((s) => s.groups.length, 'total', total)
     .having((s) => s.visibleCount, 'visibleCount', visible);
 
 void main() {
@@ -154,7 +156,7 @@ void main() {
     repository.error = const NetworkFailure('sin red');
     await cubit.load(2021, 'Honda');
     final loaded = cubit.state as ModelsLoaded;
-    expect(loaded.models.length, 3);
+    expect(loaded.groups.length, 3);
     expect(loaded.isRefreshing, isFalse);
     expect(loaded.refreshFailure, const NetworkFailure('sin red'));
     expect(loaded.year, 2020);

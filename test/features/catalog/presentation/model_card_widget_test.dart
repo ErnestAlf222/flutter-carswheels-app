@@ -1,5 +1,6 @@
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
+import 'package:cars_wheels_app/features/catalog/domain/domain.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/widgets/widgets.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:flutter/material.dart';
@@ -15,27 +16,36 @@ void main() {
     GoogleFonts.config.allowRuntimeFetching = false;
   });
 
-  Widget card(String name, {double width = 300}) => MaterialApp(
-    home: MultiBlocProvider(
-      providers: [
-        BlocProvider<PhotosCubit>.value(value: buildMockPhotosCubit()),
-        BlocProvider<BrandLogosCubit>.value(value: buildMockBrandLogosCubit()),
-      ],
-      child: Scaffold(
-        body: Center(
-          child: SizedBox(
-            width: width,
-            child: ModelCardWidget(
-              name: name,
-              brand: 'Honda',
-              year: 2020,
-              index: 0,
+  Widget card(String name, {double width = 300, int versions = 1}) =>
+      MaterialApp(
+        home: MultiBlocProvider(
+          providers: [
+            BlocProvider<PhotosCubit>.value(value: buildMockPhotosCubit()),
+            BlocProvider<BrandLogosCubit>.value(
+              value: buildMockBrandLogosCubit(),
+            ),
+          ],
+          child: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: width,
+                child: ModelCardWidget(
+                  group: ModelGroupEntity(
+                    name: name,
+                    variants: [
+                      for (int i = 0; i < versions; i++)
+                        ModelEntity(name: '$name $i'),
+                    ],
+                  ),
+                  brand: 'Honda',
+                  year: 2020,
+                  index: 0,
+                ),
+              ),
             ),
           ),
         ),
-      ),
-    ),
-  );
+      );
 
   testWidgets('muestra el nombre y expone su etiqueta semántica', (
     tester,
@@ -57,6 +67,25 @@ void main() {
     final text = tester.widget<Text>(find.byType(Text));
     expect(text.maxLines, 2);
     expect(text.overflow, TextOverflow.ellipsis);
+  });
+
+  testWidgets('con varias versiones muestra el conteo bajo el nombre', (
+    tester,
+  ) async {
+    await tester.pumpWidget(card('Camry', versions: 9));
+    await tester.pumpAndSettle();
+    expect(find.text(AppTexts.versionsCountLabel(9)), findsOneWidget);
+    final nameRect = tester.getRect(find.text('Camry'));
+    final versionsRect = tester.getRect(find.text('9 versiones'));
+    expect(versionsRect.top, greaterThanOrEqualTo(nameRect.bottom));
+  });
+
+  testWidgets('con una sola versión no muestra la línea de versiones', (
+    tester,
+  ) async {
+    await tester.pumpWidget(card('Civic'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('versi'), findsNothing);
   });
 
   testWidgets('la foto mide 104 por 72', (tester) async {

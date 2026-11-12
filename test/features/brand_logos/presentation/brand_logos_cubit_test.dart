@@ -111,12 +111,18 @@ void main() {
   });
 
   test(
-    'la lista de configuración parte vacía y no afecta a ninguna marca',
+    'la lista de configuración incluye Avatr y no afecta a otras marcas',
     () async {
-      expect(LogosConfig.brandsWithoutUsableLogo, isEmpty);
-      final cubit = BrandLogosCubit(_FakeBrandLogosRepository(urls: _urls));
+      expect(LogosConfig.brandsWithoutUsableLogo, contains('Avatr'));
+      final cubit = BrandLogosCubit(
+        _FakeBrandLogosRepository(
+          urls: const {..._urls, 'avatr': 'https://logos/avatr.svg'},
+        ),
+      );
       await cubit.loadLogos();
-      expect(cubit.urlFor('McLaren'), _urls['mclaren']);
+      expect(cubit.urlFor('Avatr'), isNull);
+      expect(cubit.urlFor('AVATR'), isNull);
+      expect(cubit.urlFor('Gmc'), _urls['gmc']);
       await cubit.close();
     },
   );
@@ -125,5 +131,48 @@ void main() {
     final cubit = BrandLogosCubit(_FakeBrandLogosRepository(urls: _urls));
     expect(cubit.urlFor('McLaren'), isNull);
     await cubit.close();
+  });
+
+  group('alias de la auditoría de cobertura', () {
+    const urls = {
+      'bugatti': 'https://logos/bugatti.svg',
+      'alpina': 'https://logos/alpina.svg',
+      'ineos': 'https://logos/ineos.svg',
+      'ruf': 'https://logos/ruf.svg',
+      'saleen': 'https://logos/saleen.svg',
+      'tvr': 'https://logos/tvr.svg',
+    };
+    late BrandLogosCubit cubit;
+
+    setUp(() async {
+      cubit = BrandLogosCubit(_FakeBrandLogosRepository(urls: urls));
+      await cubit.loadLogos();
+    });
+
+    tearDown(() => cubit.close());
+
+    test('Bugatti Rimac -> Bugatti', () {
+      expect(cubit.urlFor('Bugatti Rimac'), urls['bugatti']);
+    });
+
+    test('BMW Alpina -> Alpina', () {
+      expect(cubit.urlFor('BMW Alpina'), urls['alpina']);
+    });
+
+    test('INEOS Automotive -> INEOS', () {
+      expect(cubit.urlFor('INEOS Automotive'), urls['ineos']);
+    });
+
+    test('Ruf Automobile Gmbh -> RUF', () {
+      expect(cubit.urlFor('Ruf Automobile Gmbh'), urls['ruf']);
+    });
+
+    test('Saleen Performance -> Saleen', () {
+      expect(cubit.urlFor('Saleen Performance'), urls['saleen']);
+    });
+
+    test('TVR Engineering Ltd -> TVR', () {
+      expect(cubit.urlFor('TVR Engineering Ltd'), urls['tvr']);
+    });
   });
 }

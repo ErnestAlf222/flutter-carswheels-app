@@ -15,8 +15,12 @@ import '../../../support/photos_test_support.dart';
 
 class _MockModelsCubit extends MockCubit<ModelsState> implements ModelsCubit {}
 
-List<ModelEntity> _models(int count) => [
-  for (int index = 0; index < count; index++) ModelEntity(name: 'Modelo$index'),
+List<ModelGroupEntity> _models(int count) => [
+  for (int index = 0; index < count; index++)
+    ModelGroupEntity(
+      name: 'Modelo$index',
+      variants: [ModelEntity(name: 'Modelo$index')],
+    ),
 ];
 
 void main() {
@@ -75,7 +79,7 @@ void main() {
     bool isRefreshing = false,
     AppFailure? failure,
   }) => ModelsLoaded(
-    models: _models(total),
+    groups: _models(total),
     visibleCount: total,
     year: year,
     brand: brand,
@@ -130,7 +134,7 @@ void main() {
     await tester.pumpWidget(
       section(
         ModelsLoaded(
-          models: _models(page + 3),
+          groups: _models(page + 3),
           visibleCount: page + 3,
           year: 2026,
           brand: 'Honda',
@@ -165,7 +169,7 @@ void main() {
     await tester.pumpWidget(
       section(
         const ModelsLoaded(
-          models: [],
+          groups: [],
           visibleCount: 0,
           year: 2026,
           brand: 'Honda',
@@ -180,7 +184,7 @@ void main() {
     await tester.pumpWidget(
       section(
         ModelsLoaded(
-          models: _models(1),
+          groups: _models(1),
           visibleCount: 1,
           year: 2026,
           brand: 'Honda',
@@ -198,7 +202,7 @@ void main() {
     await tester.pumpWidget(
       section(
         ModelsLoaded(
-          models: _models(51),
+          groups: _models(51),
           visibleCount: 10,
           year: 2026,
           brand: 'Honda',

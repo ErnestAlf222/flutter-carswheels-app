@@ -12,7 +12,7 @@ class AppDependencies {
     required this.catalogRepository,
     required this.getAvailableYearsUseCase,
     required this.getBrandsUseCase,
-    required this.getModelsUseCase,
+    required this.getModelGroupsUseCase,
     required this.brandLogosRepository,
     required this.getModelPhotoUseCase,
     required this.resolveModelPhotoUseCase,
@@ -77,9 +77,9 @@ class AppDependencies {
       smallListStrategy: BubbleSortStrategy<BrandEntity>(),
       largeListStrategy: ShellSortStrategy<BrandEntity>(),
     );
-    const modelSortStrategy = AdaptiveSortStrategy<ModelEntity>(
-      smallListStrategy: BubbleSortStrategy<ModelEntity>(),
-      largeListStrategy: ShellSortStrategy<ModelEntity>(),
+    const groupSortStrategy = AdaptiveSortStrategy<ModelGroupEntity>(
+      smallListStrategy: BubbleSortStrategy<ModelGroupEntity>(),
+      largeListStrategy: ShellSortStrategy<ModelGroupEntity>(),
     );
     final getAvailableYears = GetAvailableYearsUseCase(repository);
     final commonsQueue = RateLimitedQueue(
@@ -104,9 +104,9 @@ class AppDependencies {
         repository: repository,
         sortStrategy: sortStrategy,
       ),
-      getModelsUseCase: GetModelsUseCase(
+      getModelGroupsUseCase: GetModelGroupsUseCase(
         repository: repository,
-        sortStrategy: modelSortStrategy,
+        grouper: const ModelGrouper(sortStrategy: groupSortStrategy),
       ),
       brandLogosRepository: BrandLogosRepositoryImpl(
         BrandLogosCdnDatasource(logosDio),
@@ -128,7 +128,7 @@ class AppDependencies {
   final CatalogRepository catalogRepository;
   final GetAvailableYearsUseCase getAvailableYearsUseCase;
   final GetBrandsUseCase getBrandsUseCase;
-  final GetModelsUseCase getModelsUseCase;
+  final GetModelGroupsUseCase getModelGroupsUseCase;
   final BrandLogosRepository brandLogosRepository;
   final GetModelPhotoUseCase getModelPhotoUseCase;
   final ResolveModelPhotoUseCase resolveModelPhotoUseCase;

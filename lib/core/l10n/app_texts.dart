@@ -28,5 +28,8 @@ class AppTexts {
   static String modelsCountLabel(int count) =>
       count == 1 ? '1 modelo' : '$count modelos';
 
+  static String versionsCountLabel(int count) =>
+      count == 1 ? '1 versión' : '$count versiones';
+
   static String brandTileLabel(String name) => 'Marca $name';
 }

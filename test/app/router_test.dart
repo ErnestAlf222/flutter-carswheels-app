@@ -7,6 +7,7 @@ import 'package:cars_wheels_app/features/navigation/navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mocktail/mocktail.dart';
@@ -131,6 +132,33 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(loaderVisible(tester), isFalse);
+    });
+
+    testWidgets('la capa cubre el contenido y el menú sigue encima y tocable', (
+      tester,
+    ) async {
+      final router = buildAppRouter();
+      addTearDown(router.dispose);
+      await tester.pumpWidget(_app(router));
+      await tester.pump();
+      router.go(RoutesConfig.search);
+      await tester.pump();
+      await tester.pump();
+      final layer = find.descendant(
+        of: find.byType(SectionLoaderOverlay),
+        matching: find.byType(ColoredBox),
+      );
+      expect(tester.widget<ColoredBox>(layer).color, AppColors.background);
+      expect(
+        tester.getSize(layer),
+        tester.getSize(find.byType(Scaffold).first),
+      );
+      final nav = find.byType(FloatingNavBar);
+      expect(nav, findsOneWidget);
+      await tester.tap(find.byIcon(Symbols.home));
+      await tester.pump();
+      await tester.pump();
+      expect(router.state.uri.toString(), RoutesConfig.home);
     });
   });
 }

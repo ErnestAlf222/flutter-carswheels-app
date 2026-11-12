@@ -21,8 +21,8 @@ class LogosConfig {
 
   // Marcas cuyo logo sigue en blanco tras sanear; sale de la auditoría de render
   // (nonWhiteRatio < 0.02 con SvgSanitizer) y se regenera al subir logosVersion.
-  // Vacía: la auditoría del 2026-11-12 no marcó ninguno de los 184 logos.
-  static const List<String> brandsWithoutUsableLogo = [];
+  // Avatr se agregó a mano: su logo se dibuja incompleto, solo la palabra.
+  static const List<String> brandsWithoutUsableLogo = ['Avatr'];
 
   // Nombres de FuelEconomy que difieren del nombre del manifiesto.
   static const Map<String, String> brandAliases = {
@@ -34,5 +34,12 @@ class LogosConfig {
     'Baic': 'BAIC',
     'Seat': 'SEAT',
     'Volkswagen Comerciales': 'Volkswagen',
+    // Auditoría de cobertura del 2026-11-12 contra FuelEconomy 1984-2027.
+    'Bugatti Rimac': 'Bugatti',
+    'BMW Alpina': 'Alpina',
+    'INEOS Automotive': 'INEOS',
+    'Ruf Automobile Gmbh': 'RUF',
+    'Saleen Performance': 'Saleen',
+    'TVR Engineering Ltd': 'TVR',
   };
 }

@@ -22,7 +22,7 @@ class UiConfig {
   // Opacidad del contenido mientras se actualiza.
   static const double dimmedOpacity = 0.55;
   static const int skeletonCardCount = 3;
-  static const double sectionLoaderSize = 72.0;
+  static const double sectionLoaderSize = 120.0;
   // Barras del esqueleto de tarjeta: alto y ancho relativo al espacio libre.
   static const double skeletonBarHeight = 14.0;
   static const double skeletonLongBarFraction = 0.7;

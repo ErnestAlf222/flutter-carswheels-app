@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/catalog/domain/domain.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 
-/// Tarjeta de un modelo con su foto y su nombre.
+/// Tarjeta de un grupo de modelo con su foto, su nombre y sus versiones.
 class ModelCardWidget extends StatelessWidget {
   const ModelCardWidget({
     super.key,
-    required this.name,
+    required this.group,
     required this.brand,
     required this.year,
     required this.index,
     this.animateEntry = true,
   });
 
-  final String name;
+  final ModelGroupEntity group;
   final String brand;
   final int year;
 
@@ -25,6 +26,8 @@ class ModelCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final name = group.name;
+    final versions = group.variants.length;
     final card = Semantics(
       label: name,
       excludeSemantics: true,
@@ -52,11 +55,22 @@ class ModelCardWidget extends StatelessWidget {
             ),
             const SizedBox(width: UiConfig.modelCardGap),
             Expanded(
-              child: Text(
-                name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.cardTitle,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.cardTitle,
+                  ),
+                  if (versions > 1)
+                    Text(
+                      AppTexts.versionsCountLabel(versions),
+                      style: AppTextStyles.caption,
+                    ),
+                ],
               ),
             ),
           ],

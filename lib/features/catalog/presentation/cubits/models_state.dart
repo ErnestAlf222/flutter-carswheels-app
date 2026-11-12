@@ -32,7 +32,7 @@ class ModelsRequest extends Equatable {
 
 class ModelsLoaded extends ModelsState {
   const ModelsLoaded({
-    required this.models,
+    required this.groups,
     required this.visibleCount,
     required this.year,
     required this.brand,
@@ -41,10 +41,10 @@ class ModelsLoaded extends ModelsState {
     this.failedRequest,
   });
 
-  /// Lista completa de modelos.
-  final List<ModelEntity> models;
+  /// Lista completa de grupos de modelo.
+  final List<ModelGroupEntity> groups;
 
-  /// Cantidad de modelos visibles hasta ahora.
+  /// Cantidad de grupos visibles hasta ahora.
   final int visibleCount;
 
   /// Año de la lista que se está mostrando.
@@ -63,7 +63,7 @@ class ModelsLoaded extends ModelsState {
   final ModelsRequest? failedRequest;
 
   ModelsLoaded copyWith({int? visibleCount}) => ModelsLoaded(
-    models: models,
+    groups: groups,
     visibleCount: visibleCount ?? this.visibleCount,
     year: year,
     brand: brand,
@@ -74,7 +74,7 @@ class ModelsLoaded extends ModelsState {
 
   /// Mismo contenido, refrescando y sin el fallo anterior.
   ModelsLoaded refreshing() => ModelsLoaded(
-    models: models,
+    groups: groups,
     visibleCount: visibleCount,
     year: year,
     brand: brand,
@@ -84,7 +84,7 @@ class ModelsLoaded extends ModelsState {
   /// Mismo contenido y año visibles, con el fallo de la consulta pedida.
   ModelsLoaded failedRefresh(ModelsRequest request, AppFailure failure) =>
       ModelsLoaded(
-        models: models,
+        groups: groups,
         visibleCount: visibleCount,
         year: year,
         brand: brand,
@@ -94,7 +94,7 @@ class ModelsLoaded extends ModelsState {
 
   @override
   List<Object?> get props => [
-    models,
+    groups,
     visibleCount,
     year,
     brand,

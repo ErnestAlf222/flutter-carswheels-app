@@ -8,6 +8,7 @@ export 'carousel_config.dart';
 export 'catalog_config.dart';
 export 'fuel_economy_config.dart';
 export 'logos_config.dart';
+export 'model_grouping_config.dart';
 export 'nav_config.dart';
 export 'network_config.dart';
 export 'photos_config.dart';

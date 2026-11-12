@@ -43,8 +43,12 @@ CatalogLoaded _loaded({
 const _failedRequest = ModelsRequest(year: 2025, brand: 'Marca0');
 
 ModelsLoaded _models(int total, int visible) => ModelsLoaded(
-  models: [
-    for (int index = 0; index < total; index++) ModelEntity(name: 'M$index'),
+  groups: [
+    for (int index = 0; index < total; index++)
+      ModelGroupEntity(
+        name: 'M$index',
+        variants: [ModelEntity(name: 'M$index')],
+      ),
   ],
   visibleCount: visible,
   year: 2026,
@@ -343,7 +347,12 @@ void main() {
       await tester.pump();
       modelsEvents.add(
         const ModelsLoaded(
-          models: [ModelEntity(name: 'M0')],
+          groups: [
+            ModelGroupEntity(
+              name: 'M0',
+              variants: [ModelEntity(name: 'M0')],
+            ),
+          ],
           visibleCount: 1,
           year: 2026,
           brand: 'Marca2',
@@ -451,7 +460,7 @@ void main() {
         tester,
         catalog: _loaded(),
         models: const ModelsLoaded(
-          models: [],
+          groups: [],
           visibleCount: 0,
           year: 2026,
           brand: 'Honda',

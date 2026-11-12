@@ -45,8 +45,8 @@ class _AppState extends State<App> {
         RepositoryProvider<GetBrandsUseCase>.value(
           value: _dependencies.getBrandsUseCase,
         ),
-        RepositoryProvider<GetModelsUseCase>.value(
-          value: _dependencies.getModelsUseCase,
+        RepositoryProvider<GetModelGroupsUseCase>.value(
+          value: _dependencies.getModelGroupsUseCase,
         ),
         RepositoryProvider<BrandLogosRepository>.value(
           value: _dependencies.brandLogosRepository,
@@ -66,8 +66,9 @@ class _AppState extends State<App> {
             )..loadBrands(),
           ),
           BlocProvider<ModelsCubit>(
-            create: (context) =>
-                ModelsCubit(getModels: context.read<GetModelsUseCase>()),
+            create: (context) => ModelsCubit(
+              getModelGroups: context.read<GetModelGroupsUseCase>(),
+            ),
           ),
           BlocProvider<PhotosCubit>(
             create: (_) => PhotosCubit(

@@ -6,17 +6,17 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/catalog/domain/domain.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/cubits/models_state.dart';
 
-/// Carga los modelos de una marca y los muestra por páginas.
+/// Carga los modelos de una marca agrupados y los muestra por páginas.
 class ModelsCubit extends Cubit<ModelsState> {
-  ModelsCubit({required this.getModels}) : super(const ModelsInitial());
+  ModelsCubit({required this.getModelGroups}) : super(const ModelsInitial());
 
-  final GetModelsUseCase getModels;
+  final GetModelGroupsUseCase getModelGroups;
 
-  /// Indica si quedan modelos por mostrar.
+  /// Indica si quedan grupos por mostrar.
   bool get hasMore {
     final current = state;
     return current is ModelsLoaded &&
-        current.visibleCount < current.models.length;
+        current.visibleCount < current.groups.length;
   }
 
   /// Carga los modelos; con la misma marca ya cargada refresca en el lugar.
@@ -27,11 +27,11 @@ class ModelsCubit extends Cubit<ModelsState> {
         : null;
     emit(base == null ? const ModelsLoading() : base.refreshing());
     try {
-      final models = await getModels(year, brand);
+      final groups = await getModelGroups(year, brand);
       emit(
         ModelsLoaded(
-          models: models,
-          visibleCount: math.min(CatalogConfig.defaultPageSize, models.length),
+          groups: groups,
+          visibleCount: math.min(CatalogConfig.defaultPageSize, groups.length),
           year: year,
           brand: brand,
         ),
@@ -79,7 +79,7 @@ class ModelsCubit extends Cubit<ModelsState> {
       current.copyWith(
         visibleCount: math.min(
           current.visibleCount + CatalogConfig.defaultPageSize,
-          current.models.length,
+          current.groups.length,
         ),
       ),
     );
