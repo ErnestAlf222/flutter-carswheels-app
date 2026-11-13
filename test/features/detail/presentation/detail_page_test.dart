@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:animate_do/animate_do.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
@@ -41,6 +42,9 @@ GroupDetailsEntity _details({int count = 2, int defaultIndex = 0}) =>
       defaultIndex: defaultIndex,
     );
 
+// La foto cargando pulsa sin fin: se avanza un tiempo fijo en vez de esperar.
+const Duration _settle = Duration(seconds: 1);
+
 void main() {
   late _MockLoad load;
   late MockResolveModelGalleryUseCase gallery;
@@ -66,6 +70,7 @@ void main() {
     WidgetTester tester, {
     PhotoEntity? photo,
     bool withPhoto = true,
+    bool disableAnimations = true,
   }) async {
     final args = testArgs(photo: withPhoto ? (photo ?? testPhoto()) : null);
     router = GoRouter(
@@ -109,7 +114,8 @@ void main() {
           child: MaterialApp.router(
             routerConfig: router,
             builder: (context, child) => MediaQuery(
-              data: MediaQuery.of(context).copyWith(disableAnimations: true),
+              data: MediaQuery.of(context)
+                  .copyWith(disableAnimations: disableAnimations),
               child: child!,
             ),
           ),
@@ -200,6 +206,10 @@ void main() {
   });
 
   testWidgets('el error ofrece reintentar y vuelve a cargar', (tester) async {
+    // El encabezado es más alto: la pantalla de prueba crece para que el botón no quede tras la barra.
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(800, 1400);
+    addTearDown(tester.view.reset);
     final calls = <int>[];
     when(() => load(any())).thenAnswer((_) async {
       calls.add(1);
@@ -214,6 +224,55 @@ void main() {
     await tester.pumpAndSettle();
     expect(calls, hasLength(2));
     expect(find.byType(ErrorStateWidget), findsNothing);
+    expect(find.text('14.6'), findsOneWidget);
+  });
+
+  testWidgets('las secciones entran escalonadas solo en la primera carga', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(800, 1400);
+    addTearDown(tester.view.reset);
+    when(() => load(any())).thenAnswer((_) async => _details());
+    await pumpPage(tester, disableAnimations: false);
+    await tester.pump(_settle);
+    final entries = tester.widgetList<FadeInUp>(find.byType(FadeInUp)).toList();
+    final delays = entries.map((entry) => entry.delay.inMilliseconds).toSet();
+    // Título, versión, cifras y filas con el paso de config.
+    expect(
+      delays,
+      containsAll([
+        0,
+        UiConfig.detailEntryStepMilliseconds,
+        2 * UiConfig.detailEntryStepMilliseconds,
+        3 * UiConfig.detailEntryStepMilliseconds,
+      ]),
+    );
+    final before = [
+      for (final element in find.byType(FadeInUp).evaluate())
+        (element as StatefulElement).state,
+    ];
+    await tester.tap(find.byType(VersionSelectorButtonWidget));
+    await tester.pump(_settle);
+    await tester.tap(find.text('Corolla LE'));
+    await tester.pump(_settle);
+    final after = [
+      for (final element in find.byType(FadeInUp).evaluate())
+        (element as StatefulElement).state,
+    ];
+    // Al cambiar de versión las mismas entradas siguen montadas: no se repiten.
+    expect(after, before);
+    expect(find.text('12.3'), findsOneWidget);
+    expect(find.byType(AppLoader), findsNothing);
+  });
+
+  testWidgets('con disableAnimations las secciones aparecen sin entrada', (
+    tester,
+  ) async {
+    when(() => load(any())).thenAnswer((_) async => _details());
+    await pumpPage(tester);
+    await tester.pumpAndSettle();
+    expect(find.byType(FadeInUp), findsNothing);
     expect(find.text('14.6'), findsOneWidget);
   });
 

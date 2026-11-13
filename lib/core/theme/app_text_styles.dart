@@ -52,6 +52,16 @@ class AppTextStyles {
     fontSize: 12,
     color: AppColors.subtle,
   );
+  static final TextStyle photoChipLabel = GoogleFonts.inter(
+    fontWeight: FontWeight.w600,
+    fontSize: 11,
+    color: AppColors.onGradient,
+  );
+  static final TextStyle photoViewerCredit = GoogleFonts.inter(
+    fontWeight: FontWeight.w500,
+    fontSize: 12,
+    color: AppColors.photoViewerCreditText,
+  );
   static final TextStyle detailTitle = GoogleFonts.outfit(
     fontWeight: FontWeight.w700,
     fontSize: 32,

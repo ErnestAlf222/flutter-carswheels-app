@@ -8,6 +8,7 @@ class PhotoEntity extends Equatable {
     required this.licenseName,
     required this.sourceUrl,
     required this.isReference,
+    this.aspectRatio,
   });
 
   final String thumbnailUrl;
@@ -18,6 +19,9 @@ class PhotoEntity extends Equatable {
   /// Verdadero si la foto no es del año pedido.
   final bool isReference;
 
+  /// Ancho entre alto de la miniatura; nulo si no se conoce.
+  final double? aspectRatio;
+
   @override
   List<Object?> get props => [
     thumbnailUrl,
@@ -25,5 +29,6 @@ class PhotoEntity extends Equatable {
     licenseName,
     sourceUrl,
     isReference,
+    aspectRatio,
   ];
 }

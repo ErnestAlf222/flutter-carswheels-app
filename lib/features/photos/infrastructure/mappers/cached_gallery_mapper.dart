@@ -36,12 +36,13 @@ class CachedGalleryMapper {
     );
   }
 
-  static Map<String, Object> _toJson(PhotoEntity photo) => {
+  static Map<String, Object?> _toJson(PhotoEntity photo) => {
     PhotosConfig.galleryPayloadThumbnailKey: photo.thumbnailUrl,
     PhotosConfig.galleryPayloadAuthorKey: photo.authorName,
     PhotosConfig.galleryPayloadLicenseKey: photo.licenseName,
     PhotosConfig.galleryPayloadSourceKey: photo.sourceUrl,
     PhotosConfig.galleryPayloadReferenceKey: photo.isReference,
+    PhotosConfig.galleryPayloadAspectRatioKey: photo.aspectRatio,
   };
 
   static PhotoEntity _photoFromJson(Map<String, dynamic> json) => PhotoEntity(
@@ -50,5 +51,7 @@ class CachedGalleryMapper {
     licenseName: json[PhotosConfig.galleryPayloadLicenseKey] as String,
     sourceUrl: json[PhotosConfig.galleryPayloadSourceKey] as String,
     isReference: json[PhotosConfig.galleryPayloadReferenceKey] as bool,
+    aspectRatio: (json[PhotosConfig.galleryPayloadAspectRatioKey] as num?)
+        ?.toDouble(),
   );
 }

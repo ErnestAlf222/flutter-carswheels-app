@@ -23,6 +23,7 @@ class CommonsCandidateMapper {
       licenseName: _readMetadataValue(metadata, PhotosConfig.licenseKey),
       sourceUrl: _readString(info, PhotosConfig.descriptionUrlKey),
       rank: _readRank(page),
+      aspectRatio: _readAspectRatio(info),
     );
   }
 
@@ -50,6 +51,14 @@ class CommonsCandidateMapper {
     final value = map[key];
     if (value is String) return value;
     throw ParsingFailure('Falta el texto $key en la respuesta de Commons');
+  }
+
+  // Ancho entre alto de la miniatura; nulo si falta alguno o el alto es 0.
+  static double? _readAspectRatio(Map<String, dynamic> info) {
+    final width = info[PhotosConfig.thumbnailWidthKey];
+    final height = info[PhotosConfig.thumbnailHeightKey];
+    if (width is! num || height is! num || height <= 0) return null;
+    return width / height;
   }
 
   static int _readRank(Map<String, dynamic> page) {

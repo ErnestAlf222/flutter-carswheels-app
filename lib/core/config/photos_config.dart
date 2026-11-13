@@ -56,6 +56,8 @@ class PhotosConfig {
   static const String rankKey = 'index';
   static const String imageInfoKey = 'imageinfo';
   static const String thumbnailUrlKey = 'thumburl';
+  static const String thumbnailWidthKey = 'thumbwidth';
+  static const String thumbnailHeightKey = 'thumbheight';
   static const String descriptionUrlKey = 'descriptionurl';
   static const String extMetadataKey = 'extmetadata';
   static const String artistKey = 'Artist';
@@ -115,7 +117,7 @@ class PhotosConfig {
   // Cualquier año de cuatro dígitos dentro de unos paréntesis.
   static const String parenthesizedYearPattern = r'\([^)]*?\b(\d{4})\b[^)]*\)';
   // Invalida las fotos guardadas con el selector anterior.
-  static const String photoCacheKeyVersion = 'v2';
+  static const String photoCacheKeyVersion = 'v3';
 
   // Tabla de excepciones que crece con los casos reales.
   static const Map<String, String> photoSearchTermAliases = {
@@ -127,7 +129,7 @@ class PhotosConfig {
   // Galería de Detalle: tamaño, segunda búsqueda y versión de la caché.
   static const int galleryMaxPhotos = 6;
   static const int galleryMinPhotosBeforeSecondSearch = 3;
-  static const String galleryCacheKeyVersion = 'v1';
+  static const String galleryCacheKeyVersion = 'v2';
   static const String galleryCacheKeyTag = 'gallery';
   // Claves del JSON de cada foto guardada en la caché de la galería.
   static const String galleryPayloadThumbnailKey = 'thumbnailUrl';
@@ -135,4 +137,5 @@ class PhotosConfig {
   static const String galleryPayloadLicenseKey = 'licenseName';
   static const String galleryPayloadSourceKey = 'sourceUrl';
   static const String galleryPayloadReferenceKey = 'isReference';
+  static const String galleryPayloadAspectRatioKey = 'aspectRatio';
 }

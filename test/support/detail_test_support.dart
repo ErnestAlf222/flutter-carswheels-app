@@ -41,12 +41,14 @@ PhotoEntity testPhoto({
   String author = 'Autora',
   String license = 'CC BY 4.0',
   bool isReference = false,
+  double? aspectRatio,
 }) => PhotoEntity(
   thumbnailUrl: url,
   authorName: author,
   licenseName: license,
   sourceUrl: source,
   isReference: isReference,
+  aspectRatio: aspectRatio,
 );
 
 /// Detalle de una versión; solo los campos que cambian entre pruebas.

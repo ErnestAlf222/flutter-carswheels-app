@@ -8,4 +8,5 @@ class RoutesConfig {
   static const String favorites = '/favorites';
   static const String settings = '/settings';
   static const String detail = '/detail';
+  static const String photoViewer = '/photo-viewer';
 }

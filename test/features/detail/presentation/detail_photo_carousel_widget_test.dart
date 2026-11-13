@@ -6,9 +6,14 @@ import 'package:cars_wheels_app/features/detail/presentation/widgets/widgets.dar
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../support/detail_test_support.dart';
+
+/// Router falso para comprobar la navegación al visor.
+class MockGoRouter extends Mock implements GoRouter {}
 
 /// Anota las precargas en vez de ir a la red.
 class _RecordingPrefetcher extends PhotoPrefetcher {
@@ -22,13 +27,18 @@ class _RecordingPrefetcher extends PhotoPrefetcher {
   }
 }
 
-PhotoEntity _photo(int index, {bool isReference = false, String? author}) =>
-    testPhoto(
-      url: 'https://upload.test/x/y/960px-foto$index.jpg',
-      source: 'fuente-$index',
-      author: author ?? 'Autor $index',
-      isReference: isReference,
-    );
+PhotoEntity _photo(
+  int index, {
+  bool isReference = false,
+  String? author,
+  double? aspectRatio,
+}) => testPhoto(
+  url: 'https://upload.test/x/y/960px-foto$index.jpg',
+  source: 'fuente-$index',
+  author: author ?? 'Autor $index',
+  isReference: isReference,
+  aspectRatio: aspectRatio,
+);
 
 void main() {
   setUpAll(() {
@@ -62,11 +72,21 @@ void main() {
 
   Finder dots() => find.byType(AnimatedContainer);
 
-  testWidgets('sin fotos muestra el logo de respaldo y ni puntos ni crédito', (
+  Finder chipBox() => find
+      .ancestor(
+        of: find.text(AppTexts.referencePhotoLabel),
+        matching: find.byType(DecoratedBox),
+      )
+      .first;
+
+  testWidgets('sin fotos y cargando muestra el placeholder de carga', (
     tester,
   ) async {
     await tester.pumpWidget(carousel(const GalleryState(isLoading: true)));
-    expect(find.byType(BrandLogoWidget), findsOneWidget);
+    final placeholder = tester.widget<PhotoPlaceholderWidget>(
+      find.byType(PhotoPlaceholderWidget),
+    );
+    expect(placeholder.kind, PhotoPlaceholderKind.loading);
     expect(find.byType(PageView), findsNothing);
     expect(find.byType(CachedNetworkImage), findsNothing);
     expect(find.byType(Hero), findsNothing);
@@ -74,7 +94,23 @@ void main() {
     expect(find.textContaining('Foto:'), findsNothing);
   });
 
-  testWidgets('la tarjeta es blanca, de 150, esquinas de 32 y sombra suave', (
+  testWidgets('sin fotos y sin cargar muestra el placeholder vacío con logo', (
+    tester,
+  ) async {
+    await tester.pumpWidget(carousel(const GalleryState()));
+    final placeholder = tester.widget<PhotoPlaceholderWidget>(
+      find.byType(PhotoPlaceholderWidget),
+    );
+    expect(placeholder.kind, PhotoPlaceholderKind.empty);
+    final logo = tester.widget<BrandLogoWidget>(find.byType(BrandLogoWidget));
+    expect(logo.brandName, 'Toyota');
+    expect(logo.size, UiConfig.photoEmptyLogoSize);
+    expect(find.text(AppTexts.noPhotoTitle), findsOneWidget);
+    expect(find.textContaining('Foto:'), findsNothing);
+    expect(dots(), findsNothing);
+  });
+
+  testWidgets('la tarjeta es blanca, de 220, esquinas de 32 y sombra suave', (
     tester,
   ) async {
     await tester.pumpWidget(carousel(GalleryState(photos: [_photo(1)])));
@@ -84,7 +120,32 @@ void main() {
     expect(decoration.borderRadius, BorderRadius.circular(32));
     expect(decoration.boxShadow, AppShadows.soft);
     expect(container.clipBehavior, Clip.antiAlias);
-    expect(tester.getSize(cardFinder()).height, UiConfig.detailPhotoHeight);
+    expect(tester.getSize(cardFinder()).height, 220);
+    expect(UiConfig.detailPhotoHeight, 220);
+  });
+
+  testWidgets('en el encabezado la tarjeta queda a 20 del borde', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      detailHost(
+        const DetailHeroHeaderWidget(
+          args: DetailArgsEntity(
+            brand: 'Toyota',
+            groupName: 'Corolla',
+            year: 2020,
+            variantNames: ['Corolla'],
+            photo: null,
+            heroTag: 'tag',
+          ),
+        ),
+        galleryCubit: buildMockGalleryCubit(GalleryState(photos: [_photo(1)])),
+      ),
+    );
+    final card = tester.getRect(cardFinder());
+    expect(card.left, 20);
+    expect(UiConfig.detailPhotoSideMargin, 20);
+    expect(card.top, UiConfig.detailPhotoTop);
   });
 
   testWidgets('una foto: sin puntos, con Hero en la página 0 y crédito', (
@@ -95,7 +156,7 @@ void main() {
     expect(dots(), findsNothing);
     expect(tester.widget<Hero>(find.byType(Hero)).tag, 'tag');
     expect(find.text('Foto: Autor 1 · CC BY 4.0'), findsOneWidget);
-    expect(find.byType(ImageFiltered), findsOneWidget);
+    expect(find.byType(ImageFiltered), findsNothing);
   });
 
   testWidgets('sin heroTag no hay Hero', (tester) async {
@@ -131,6 +192,19 @@ void main() {
     }
   });
 
+  testWidgets('los puntos usan el fondo oscuro de la galería', (tester) async {
+    await tester.pumpWidget(
+      carousel(GalleryState(photos: [_photo(1), _photo(2)])),
+    );
+    final pill = tester.widget<Container>(
+      find.ancestor(of: dots().first, matching: find.byType(Container)).first,
+    );
+    expect(
+      (pill.decoration! as BoxDecoration).color,
+      AppColors.galleryDotsBackground,
+    );
+  });
+
   testWidgets('los puntos quedan centrados y a 8 del borde inferior', (
     tester,
   ) async {
@@ -164,10 +238,7 @@ void main() {
         (dot.decoration! as BoxDecoration).color,
     ];
     expect(colors.last, AppColors.galleryDotActive);
-    expect(
-      find.text('${AppTexts.referencePhotoLabel} · Foto: Segunda · CC BY 4.0'),
-      findsOneWidget,
-    );
+    expect(find.text('Foto: Segunda · CC BY 4.0'), findsOneWidget);
     expect(find.textContaining('Autor 1'), findsNothing);
   });
 
@@ -181,6 +252,42 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('el crédito admite hasta 2 líneas y va centrado', (tester) async {
+    await tester.pumpWidget(
+      carousel(GalleryState(photos: [_photo(1, author: 'Autor ' * 20)])),
+    );
+    final text = tester.widget<Text>(find.textContaining('Foto: Autor'));
+    expect(text.maxLines, UiConfig.photoCreditMaxLines);
+    expect(text.maxLines, 2);
+    expect(text.textAlign, TextAlign.center);
+  });
+
+  testWidgets('la cápsula de referencia solo aparece con isReference', (
+    tester,
+  ) async {
+    await tester.pumpWidget(carousel(GalleryState(photos: [_photo(1)])));
+    expect(find.text(AppTexts.referencePhotoLabel), findsNothing);
+    await tester.pumpWidget(
+      carousel(GalleryState(photos: [_photo(1, isReference: true)])),
+    );
+    expect(find.text(AppTexts.referencePhotoLabel), findsOneWidget);
+    expect(find.byIcon(Symbols.info), findsOneWidget);
+    final decoration = tester.widget<DecoratedBox>(chipBox()).decoration;
+    expect(
+      decoration,
+      BoxDecoration(
+        color: AppColors.photoChipBackground,
+        borderRadius: BorderRadius.circular(UiConfig.photoChipRadius),
+      ),
+    );
+    final card = tester.getRect(cardFinder());
+    final chip = tester.getRect(chipBox());
+    expect(chip.left - card.left, UiConfig.photoChipInset);
+    expect(chip.top - card.top, UiConfig.photoChipInset);
+    // El crédito ya no lleva la etiqueta de referencia.
+    expect(find.text('Foto: Autor 1 · CC BY 4.0'), findsOneWidget);
   });
 
   testWidgets('solo la página 0 lleva el Hero', (tester) async {
@@ -233,17 +340,15 @@ void main() {
     final images = tester
         .widgetList<CachedNetworkImage>(find.byType(CachedNetworkImage))
         .toList();
-    final large = images.where((image) => image.fit == BoxFit.contain);
+    expect(images.every((image) => image.fit == BoxFit.cover), isTrue);
     expect(
-      large.map((image) => image.imageUrl),
+      images.map((image) => image.imageUrl),
       contains(_photo(1).thumbnailUrl),
     );
     final placeholder = images.where(
-      (image) =>
-          image.fit == BoxFit.contain &&
-          image.imageUrl.contains(
-            '/${PhotosConfig.listThumbnailWidthPixels}px-',
-          ),
+      (image) => image.imageUrl.contains(
+        '/${PhotosConfig.listThumbnailWidthPixels}px-',
+      ),
     );
     expect(placeholder, hasLength(1));
     expect(
@@ -251,9 +356,39 @@ void main() {
       'https://upload.test/x/y/${PhotosConfig.listThumbnailWidthPixels}px-foto1.jpg',
     );
     expect(placeholder.single.httpHeaders, PhotosConfig.requestHeaders);
-    // El fondo difuminado también usa la pequeña, cubriendo la tarjeta.
-    final blurred = images.where((image) => image.fit == BoxFit.cover);
-    expect(blurred.single.imageUrl, placeholder.single.imageUrl);
+    expect(placeholder.single.alignment, Alignment.center);
+  });
+
+  testWidgets('proporción 1.5: cover llena la tarjeta sin fondo difuminado', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      carousel(GalleryState(photos: [_photo(1, aspectRatio: 1.5)])),
+    );
+    expect(find.byType(ImageFiltered), findsNothing);
+    final large = tester
+        .widgetList<CachedNetworkImage>(find.byType(CachedNetworkImage))
+        .firstWhere((image) => image.imageUrl.contains('960px'));
+    expect(large.fit, BoxFit.cover);
+    expect(large.alignment, Alignment.center);
+  });
+
+  testWidgets('proporción 3.0: contain con el fondo difuminado', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      carousel(GalleryState(photos: [_photo(1, aspectRatio: 3.0)])),
+    );
+    expect(find.byType(ImageFiltered), findsOneWidget);
+    final images = tester
+        .widgetList<CachedNetworkImage>(find.byType(CachedNetworkImage))
+        .toList();
+    final large = images.firstWhere((i) => i.imageUrl.contains('960px'));
+    expect(large.fit, BoxFit.contain);
+    final blurred = images.where(
+      (i) => i.fit == BoxFit.cover && i.imageUrl.contains('330px'),
+    );
+    expect(blurred, hasLength(1));
   });
 
   testWidgets(
@@ -277,4 +412,67 @@ void main() {
       expect(still.fadeOutDuration, Duration.zero);
     },
   );
+
+  group('visor', () {
+    testWidgets('tocar la foto abre el visor con las fotos y el índice', (
+      tester,
+    ) async {
+      final router = MockGoRouter();
+      when(() => router.push<int>(any(), extra: any(named: 'extra')))
+          .thenAnswer((_) async => null);
+      final photos = [_photo(1), _photo(2)];
+      await tester.pumpWidget(
+        InheritedGoRouter(
+          goRouter: router,
+          child: carousel(GalleryState(photos: photos, currentIndex: 1)),
+        ),
+      );
+      await tester.tap(find.byType(PageView));
+      await tester.pump();
+      final captured =
+          verify(
+                () => router.push<int>(
+                  RoutesConfig.photoViewer,
+                  extra: captureAny(named: 'extra'),
+                ),
+              ).captured.single
+              as PhotoViewerArgsEntity;
+      expect(captured.photos, photos);
+      expect(captured.initialIndex, 1);
+    });
+
+    testWidgets('el índice devuelto mueve el carrusel y llama a selectPage', (
+      tester,
+    ) async {
+      final router = MockGoRouter();
+      when(() => router.push<int>(any(), extra: any(named: 'extra')))
+          .thenAnswer((_) async => 1);
+      final cubit = buildMockGalleryCubit(
+        GalleryState(photos: [_photo(1), _photo(2)]),
+      );
+      await tester.pumpWidget(
+        InheritedGoRouter(
+          goRouter: router,
+          child: carousel(const GalleryState(), cubit: cubit),
+        ),
+      );
+      await tester.tap(find.byType(PageView));
+      await tester.pumpAndSettle();
+      verify(() => cubit.selectPage(1)).called(greaterThanOrEqualTo(1));
+      final controller = tester
+          .widget<PageView>(find.byType(PageView))
+          .controller;
+      expect(controller!.page, 1);
+    });
+
+    testWidgets('la foto tiene semántica de botón para ver en grande', (
+      tester,
+    ) async {
+      await tester.pumpWidget(carousel(GalleryState(photos: [_photo(1)])));
+      expect(
+        find.bySemanticsLabel(AppTexts.expandPhotoSemanticLabel),
+        findsOneWidget,
+      );
+    });
+  });
 }

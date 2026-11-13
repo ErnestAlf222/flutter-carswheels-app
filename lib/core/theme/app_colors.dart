@@ -19,4 +19,8 @@ class AppColors {
   static const Color shadow = Color(0x141A1A22);
   static const Color galleryDotInactive = Color(0x99FFFFFF);
   static const Color galleryDotActive = gradientStart;
+  static const Color galleryDotsBackground = Color(0x66000000);
+  static const Color photoChipBackground = Color(0x73000000);
+  static const Color photoViewerBackground = Color(0xFF0E0E12);
+  static const Color photoViewerCreditText = Color(0xD9FFFFFF);
 }

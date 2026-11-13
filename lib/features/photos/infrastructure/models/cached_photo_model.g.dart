@@ -17,35 +17,40 @@ const CachedPhotoModelSchema = CollectionSchema(
   name: r'CachedPhotoModel',
   id: -3815901699830975315,
   properties: {
-    r'authorName': PropertySchema(
+    r'aspectRatio': PropertySchema(
       id: 0,
+      name: r'aspectRatio',
+      type: IsarType.double,
+    ),
+    r'authorName': PropertySchema(
+      id: 1,
       name: r'authorName',
       type: IsarType.string,
     ),
-    r'found': PropertySchema(id: 1, name: r'found', type: IsarType.bool),
+    r'found': PropertySchema(id: 2, name: r'found', type: IsarType.bool),
     r'isReference': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'isReference',
       type: IsarType.bool,
     ),
-    r'key': PropertySchema(id: 3, name: r'key', type: IsarType.string),
+    r'key': PropertySchema(id: 4, name: r'key', type: IsarType.string),
     r'licenseName': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'licenseName',
       type: IsarType.string,
     ),
     r'savedAtMillis': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'savedAtMillis',
       type: IsarType.long,
     ),
     r'sourceUrl': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'sourceUrl',
       type: IsarType.string,
     ),
     r'thumbnailUrl': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'thumbnailUrl',
       type: IsarType.string,
     ),
@@ -100,14 +105,15 @@ void _cachedPhotoModelSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.authorName);
-  writer.writeBool(offsets[1], object.found);
-  writer.writeBool(offsets[2], object.isReference);
-  writer.writeString(offsets[3], object.key);
-  writer.writeString(offsets[4], object.licenseName);
-  writer.writeLong(offsets[5], object.savedAtMillis);
-  writer.writeString(offsets[6], object.sourceUrl);
-  writer.writeString(offsets[7], object.thumbnailUrl);
+  writer.writeDouble(offsets[0], object.aspectRatio);
+  writer.writeString(offsets[1], object.authorName);
+  writer.writeBool(offsets[2], object.found);
+  writer.writeBool(offsets[3], object.isReference);
+  writer.writeString(offsets[4], object.key);
+  writer.writeString(offsets[5], object.licenseName);
+  writer.writeLong(offsets[6], object.savedAtMillis);
+  writer.writeString(offsets[7], object.sourceUrl);
+  writer.writeString(offsets[8], object.thumbnailUrl);
 }
 
 CachedPhotoModel _cachedPhotoModelDeserialize(
@@ -117,15 +123,16 @@ CachedPhotoModel _cachedPhotoModelDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = CachedPhotoModel(
-    authorName: reader.readString(offsets[0]),
-    found: reader.readBool(offsets[1]),
+    aspectRatio: reader.readDoubleOrNull(offsets[0]),
+    authorName: reader.readString(offsets[1]),
+    found: reader.readBool(offsets[2]),
     id: id,
-    isReference: reader.readBool(offsets[2]),
-    key: reader.readString(offsets[3]),
-    licenseName: reader.readString(offsets[4]),
-    savedAtMillis: reader.readLong(offsets[5]),
-    sourceUrl: reader.readString(offsets[6]),
-    thumbnailUrl: reader.readString(offsets[7]),
+    isReference: reader.readBool(offsets[3]),
+    key: reader.readString(offsets[4]),
+    licenseName: reader.readString(offsets[5]),
+    savedAtMillis: reader.readLong(offsets[6]),
+    sourceUrl: reader.readString(offsets[7]),
+    thumbnailUrl: reader.readString(offsets[8]),
   );
   return object;
 }
@@ -138,20 +145,22 @@ P _cachedPhotoModelDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readString(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 1:
-      return (reader.readBool(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 2:
       return (reader.readBool(offset)) as P;
     case 3:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 4:
       return (reader.readString(offset)) as P;
     case 5:
-      return (reader.readLong(offset)) as P;
-    case 6:
       return (reader.readString(offset)) as P;
+    case 6:
+      return (reader.readLong(offset)) as P;
     case 7:
+      return (reader.readString(offset)) as P;
+    case 8:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -362,6 +371,99 @@ extension CachedPhotoModelQueryWhere
 
 extension CachedPhotoModelQueryFilter
     on QueryBuilder<CachedPhotoModel, CachedPhotoModel, QFilterCondition> {
+  QueryBuilder<CachedPhotoModel, CachedPhotoModel, QAfterFilterCondition>
+  aspectRatioIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'aspectRatio'),
+      );
+    });
+  }
+
+  QueryBuilder<CachedPhotoModel, CachedPhotoModel, QAfterFilterCondition>
+  aspectRatioIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'aspectRatio'),
+      );
+    });
+  }
+
+  QueryBuilder<CachedPhotoModel, CachedPhotoModel, QAfterFilterCondition>
+  aspectRatioEqualTo(double? value, {double epsilon = Query.epsilon}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'aspectRatio',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedPhotoModel, CachedPhotoModel, QAfterFilterCondition>
+  aspectRatioGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'aspectRatio',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedPhotoModel, CachedPhotoModel, QAfterFilterCondition>
+  aspectRatioLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'aspectRatio',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedPhotoModel, CachedPhotoModel, QAfterFilterCondition>
+  aspectRatioBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'aspectRatio',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
   QueryBuilder<CachedPhotoModel, CachedPhotoModel, QAfterFilterCondition>
   authorNameEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1201,6 +1303,20 @@ extension CachedPhotoModelQueryLinks
 extension CachedPhotoModelQuerySortBy
     on QueryBuilder<CachedPhotoModel, CachedPhotoModel, QSortBy> {
   QueryBuilder<CachedPhotoModel, CachedPhotoModel, QAfterSortBy>
+  sortByAspectRatio() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'aspectRatio', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedPhotoModel, CachedPhotoModel, QAfterSortBy>
+  sortByAspectRatioDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'aspectRatio', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedPhotoModel, CachedPhotoModel, QAfterSortBy>
   sortByAuthorName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'authorName', Sort.asc);
@@ -1313,6 +1429,20 @@ extension CachedPhotoModelQuerySortBy
 
 extension CachedPhotoModelQuerySortThenBy
     on QueryBuilder<CachedPhotoModel, CachedPhotoModel, QSortThenBy> {
+  QueryBuilder<CachedPhotoModel, CachedPhotoModel, QAfterSortBy>
+  thenByAspectRatio() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'aspectRatio', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedPhotoModel, CachedPhotoModel, QAfterSortBy>
+  thenByAspectRatioDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'aspectRatio', Sort.desc);
+    });
+  }
+
   QueryBuilder<CachedPhotoModel, CachedPhotoModel, QAfterSortBy>
   thenByAuthorName() {
     return QueryBuilder.apply(this, (query) {
@@ -1440,6 +1570,13 @@ extension CachedPhotoModelQuerySortThenBy
 extension CachedPhotoModelQueryWhereDistinct
     on QueryBuilder<CachedPhotoModel, CachedPhotoModel, QDistinct> {
   QueryBuilder<CachedPhotoModel, CachedPhotoModel, QDistinct>
+  distinctByAspectRatio() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'aspectRatio');
+    });
+  }
+
+  QueryBuilder<CachedPhotoModel, CachedPhotoModel, QDistinct>
   distinctByAuthorName({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'authorName', caseSensitive: caseSensitive);
@@ -1502,6 +1639,13 @@ extension CachedPhotoModelQueryProperty
   QueryBuilder<CachedPhotoModel, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<CachedPhotoModel, double?, QQueryOperations>
+  aspectRatioProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'aspectRatio');
     });
   }
 

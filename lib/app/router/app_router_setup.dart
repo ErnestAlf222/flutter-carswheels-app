@@ -7,6 +7,7 @@ import 'package:cars_wheels_app/features/compare/compare.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/favorites/favorites.dart';
 import 'package:cars_wheels_app/features/navigation/navigation.dart';
+import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/search/search.dart';
 import 'package:cars_wheels_app/features/settings/settings.dart';
 
@@ -65,5 +66,18 @@ GoRouter buildAppRouter() => GoRouter(
       pageBuilder: (context, state) =>
           _flowPage(state, DetailPage(args: state.extra! as DetailArgsEntity)),
     ),
+    GoRoute(
+      path: RoutesConfig.photoViewer,
+      redirect: (context, state) =>
+          _hasViewerArgs(state.extra) ? null : RoutesConfig.home,
+      pageBuilder: (context, state) => _page(
+        state,
+        PhotoViewerPage(args: state.extra! as PhotoViewerArgsEntity),
+      ),
+    ),
   ],
 );
+
+// El visor necesita al menos una foto que mostrar.
+bool _hasViewerArgs(Object? extra) =>
+    extra is PhotoViewerArgsEntity && extra.photos.isNotEmpty;

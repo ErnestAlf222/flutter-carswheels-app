@@ -40,15 +40,34 @@ class UiConfig {
   static const double headerCompactHeight = 72.0;
   static const double headerCompactLogoSize = 40.0;
   // Medidas de la maqueta de Detalle.
-  static const double detailHeroHeight = 280.0;
+  // Foto grande de Detalle.
+  static const double detailHeroHeight = 336.0;
   static const double detailBlobCanvasWidth = 390.0;
   static const double detailBlobCanvasHeight = 320.0;
-  static const double detailGhostTop = 84.0;
+  static const double detailGhostTop = 56.0;
   static const double detailCircleButtonSize = 48.0;
   static const double detailCircleButtonInset = 20.0;
-  static const double detailPhotoTop = 104.0;
-  static const double detailPhotoHeight = 150.0;
-  static const double detailPhotoSideMargin = 36.0;
+  static const double detailPhotoTop = 84.0;
+  static const double detailPhotoHeight = 220.0;
+  static const double detailPhotoSideMargin = 20.0;
+  // Foto grande de Detalle.
+  static const double photoCoverMinAspect = 1.2;
+  static const double photoCoverMaxAspect = 2.4;
+  static const int photoCreditMaxLines = 2;
+  static const double photoLoadingIconSize = 40.0;
+  static const double photoEmptyLogoSize = 56.0;
+  static const double photoChipHorizontalPadding = 10.0;
+  static const double photoChipVerticalPadding = 5.0;
+  static const double photoChipRadius = 12.0;
+  static const double photoChipInset = 12.0;
+  static const double photoChipIconSize = 14.0;
+  static const double photoLoadingIconOpacity = 0.6;
+  static const double photoViewerCloseSize = 48.0;
+  static const double photoViewerMaxScale = 4.0;
+  static const double photoViewerDotBottomInset = 24.0;
+  static const double rowPhotoLoadingLogoOpacity = 0.4;
+  static const double rowNoPhotoBadgeSize = 14.0;
+  static const int detailEntryStepMilliseconds = 70;
   static const double detailPhotoBlurSigma = 18.0;
   static const double detailCreditGap = 4.0;
   static const double galleryDotSize = 6.0;

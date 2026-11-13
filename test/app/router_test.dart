@@ -211,6 +211,67 @@ void main() {
     });
   });
 
+  group('visor de fotos', () {
+    testWidgets('con extra válido muestra el visor sin menú flotante', (
+      tester,
+    ) async {
+      final router = buildAppRouter();
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(disableAnimations: true),
+          child: _app(router),
+        ),
+      );
+      await tester.pump();
+      unawaited(
+        router.push<int>(
+          RoutesConfig.photoViewer,
+          extra: PhotoViewerArgsEntity([testPhoto()]),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byType(PhotoViewerPage), findsOneWidget);
+      expect(find.byType(FloatingNavBar).hitTestable(), findsNothing);
+    });
+
+    testWidgets('con un extra inválido redirige a inicio', (tester) async {
+      final router = buildAppRouter();
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(disableAnimations: true),
+          child: _app(router),
+        ),
+      );
+      await tester.pump();
+      router.go(RoutesConfig.photoViewer, extra: 'no soy argumentos');
+      await tester.pumpAndSettle();
+      expect(find.byType(PhotoViewerPage), findsNothing);
+      expect(router.state.uri.path, RoutesConfig.home);
+    });
+
+    testWidgets('con cero fotos también redirige a inicio', (tester) async {
+      final router = buildAppRouter();
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(disableAnimations: true),
+          child: _app(router),
+        ),
+      );
+      await tester.pump();
+      router.go(
+        RoutesConfig.photoViewer,
+        extra: const PhotoViewerArgsEntity([]),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(PhotoViewerPage), findsNothing);
+      expect(router.state.uri.path, RoutesConfig.home);
+    });
+  });
+
   group('pantalla Detalle', () {
     testWidgets('con DetailArgsEntity muestra Detalle y no el menú flotante', (
       tester,

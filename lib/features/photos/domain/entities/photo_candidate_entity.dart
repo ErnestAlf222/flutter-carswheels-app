@@ -9,6 +9,7 @@ class PhotoCandidateEntity extends Equatable {
     required this.licenseName,
     required this.sourceUrl,
     required this.rank,
+    this.aspectRatio,
   });
 
   final String title;
@@ -18,6 +19,9 @@ class PhotoCandidateEntity extends Equatable {
   final String sourceUrl;
   final int rank;
 
+  /// Ancho entre alto de la miniatura; nulo si no se conoce.
+  final double? aspectRatio;
+
   @override
   List<Object?> get props => [
     title,
@@ -26,5 +30,6 @@ class PhotoCandidateEntity extends Equatable {
     licenseName,
     sourceUrl,
     rank,
+    aspectRatio,
   ];
 }

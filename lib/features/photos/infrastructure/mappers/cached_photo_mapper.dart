@@ -14,6 +14,7 @@ class CachedPhotoMapper {
             licenseName: model.licenseName,
             sourceUrl: model.sourceUrl,
             isReference: model.isReference,
+            aspectRatio: model.aspectRatio,
           )
         : null;
     return CachedPhotoEntity(
@@ -33,6 +34,7 @@ class CachedPhotoMapper {
       licenseName: photo?.licenseName ?? '',
       sourceUrl: photo?.sourceUrl ?? '',
       isReference: photo?.isReference ?? false,
+      aspectRatio: photo?.aspectRatio,
       savedAtMillis: entity.savedAt.millisecondsSinceEpoch,
     );
   }

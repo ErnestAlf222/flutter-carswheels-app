@@ -14,6 +14,7 @@ class CachedPhotoModel {
     required this.sourceUrl,
     required this.isReference,
     required this.savedAtMillis,
+    this.aspectRatio,
     this.id = Isar.autoIncrement,
   });
 
@@ -30,5 +31,8 @@ class CachedPhotoModel {
   final String licenseName;
   final String sourceUrl;
   final bool isReference;
+
+  /// Nulo si no se conoce la proporción de la miniatura.
+  final double? aspectRatio;
   final int savedAtMillis;
 }

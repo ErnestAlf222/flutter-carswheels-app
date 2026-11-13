@@ -28,8 +28,10 @@ void main() {
     VoidCallback? onTap,
   }) => MaterialApp(
     builder: (context, child) => MediaQuery(
-      data: MediaQuery.of(context)
-          .copyWith(textScaler: TextScaler.linear(textScale)),
+      data: MediaQuery.of(context).copyWith(
+        textScaler: TextScaler.linear(textScale),
+        disableAnimations: true,
+      ),
       child: child!,
     ),
     home: withClassTranslator(

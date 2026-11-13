@@ -1,3 +1,4 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
@@ -59,40 +60,89 @@ void main() {
     ),
   );
 
-  void expectFallback(WidgetTester tester) {
+  void expectBoxSize(WidgetTester tester) {
     expect(find.byType(CachedNetworkImage), findsNothing);
-    expect(find.byIcon(Symbols.directions_car), findsOneWidget);
-    final box = tester.widget<Container>(
-      find.ancestor(
-        of: find.byIcon(Symbols.directions_car),
-        matching: find.byType(Container),
-      ),
-    );
-    expect(box.color, AppColors.tint);
     expect(
       tester.getSize(find.byType(ModelPhotoWidget)),
       const Size(UiConfig.modelPhotoWidth, UiConfig.modelPhotoHeight),
     );
   }
 
-  testWidgets('sin slot muestra el recuadro de respaldo', (tester) async {
+  void expectLoading(WidgetTester tester) {
+    expectBoxSize(tester);
+    expect(find.byIcon(Symbols.directions_car), findsOneWidget);
+    final opacity = tester.widget<Opacity>(find.byType(Opacity));
+    expect(opacity.opacity, UiConfig.rowPhotoLoadingLogoOpacity);
+    expect(find.byType(Pulse), findsOneWidget);
+    expect(find.bySemanticsLabel(AppTexts.noPhotoSemanticLabel), findsNothing);
+    final box = tester.widget<ColoredBox>(
+      find
+          .ancestor(of: find.byType(Opacity), matching: find.byType(ColoredBox))
+          .first,
+    );
+    expect(box.color, AppColors.tint);
+  }
+
+  void expectNoPhoto(WidgetTester tester) {
+    expectBoxSize(tester);
+    expect(find.byIcon(Symbols.directions_car), findsOneWidget);
+    expect(find.byType(Opacity), findsNothing);
+    expect(find.byType(Pulse), findsNothing);
+    final badge = tester.widget<Icon>(find.byIcon(Symbols.no_photography));
+    expect(badge.size, UiConfig.rowNoPhotoBadgeSize);
+    expect(
+      find.bySemanticsLabel(AppTexts.noPhotoSemanticLabel),
+      findsOneWidget,
+    );
+    final circle = tester.widget<DecoratedBox>(
+      find
+          .ancestor(
+            of: find.byIcon(Symbols.no_photography),
+            matching: find.byType(DecoratedBox),
+          )
+          .first,
+    );
+    expect((circle.decoration as BoxDecoration).color, AppColors.card);
+    final photoBox = tester.getRect(find.byType(ModelPhotoWidget));
+    final badgeBox = tester.getRect(
+      find
+          .ancestor(
+            of: find.byIcon(Symbols.no_photography),
+            matching: find.byType(DecoratedBox),
+          )
+          .first,
+    );
+    expect(badgeBox.bottomRight, photoBox.bottomRight);
+  }
+
+  testWidgets('sin slot muestra el estado cargando', (tester) async {
     await tester.pumpWidget(host({}));
-    expectFallback(tester);
+    expectLoading(tester);
   });
 
-  testWidgets('Loading muestra el recuadro de respaldo', (tester) async {
+  testWidgets('Loading muestra el estado cargando', (tester) async {
     await tester.pumpWidget(host({key: const PhotoLoading()}));
-    expectFallback(tester);
+    expectLoading(tester);
   });
 
-  testWidgets('Missing muestra el recuadro de respaldo', (tester) async {
+  testWidgets('cargando con disableAnimations no pulsa', (tester) async {
+    await tester.pumpWidget(host({}, disableAnimations: true));
+    expect(find.byType(Pulse), findsNothing);
+    expect(find.byType(Opacity), findsOneWidget);
+  });
+
+  testWidgets('Missing muestra el logo completo y la insignia sin foto', (
+    tester,
+  ) async {
     await tester.pumpWidget(host({key: const PhotoMissing()}));
-    expectFallback(tester);
+    expectNoPhoto(tester);
   });
 
-  testWidgets('Failed muestra el recuadro de respaldo', (tester) async {
+  testWidgets('Failed muestra el logo completo y la insignia sin foto', (
+    tester,
+  ) async {
     await tester.pumpWidget(host({key: const PhotoFailed()}));
-    expectFallback(tester);
+    expectNoPhoto(tester);
   });
 
   testWidgets('Found configura la imagen con miniatura, encabezados y radio', (
@@ -156,7 +206,32 @@ void main() {
         ),
       ),
     );
-    expect(find.byIcon(Symbols.directions_car), findsOneWidget);
+    expect(find.byIcon(Symbols.no_photography), findsOneWidget);
+    expect(
+      find.bySemanticsLabel(AppTexts.noPhotoSemanticLabel),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('mientras baja la imagen se ve el estado cargando', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host({key: PhotoFound(_photo())}));
+    final image = tester.widget<CachedNetworkImage>(
+      find.byType(CachedNetworkImage),
+    );
+    final context = tester.element(find.byType(CachedNetworkImage));
+    final loading = image.placeholder!(context, _url);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BlocProvider<BrandLogosCubit>.value(
+          value: buildMockBrandLogosCubit(),
+          child: Scaffold(body: loading),
+        ),
+      ),
+    );
+    expect(find.byType(Pulse), findsOneWidget);
+    expect(find.byType(Opacity), findsOneWidget);
   });
 
   testWidgets('con logo de marca el respaldo muestra el logo y no el icono', (
@@ -167,15 +242,5 @@ void main() {
     final logo = tester.widget<BrandLogoWidget>(find.byType(BrandLogoWidget));
     expect(logo.brandName, 'Honda');
     expect(logo.size, UiConfig.brandFallbackLogoSize);
-    final box = tester.widget<Container>(
-      find
-          .ancestor(
-            of: find.byType(BrandLogoWidget),
-            matching: find.byType(Container),
-          )
-          .first,
-    );
-    expect(box.color, AppColors.tint);
-    expect(box.alignment, Alignment.center);
   });
 }

@@ -9,9 +9,13 @@ class AnimatedEntryWidget extends StatelessWidget {
     super.key,
     required this.index,
     required this.child,
+    this.stepMilliseconds = AnimationConfig.entryDelayStepMilliseconds,
   });
 
   final int index;
+
+  /// Retardo entre un índice y el siguiente.
+  final int stepMilliseconds;
   final Widget child;
 
   @override
@@ -23,9 +27,7 @@ class AnimatedEntryWidget extends StatelessWidget {
       duration: const Duration(
         milliseconds: AnimationConfig.fadeDurationMilliseconds,
       ),
-      delay: Duration(
-        milliseconds: index * AnimationConfig.entryDelayStepMilliseconds,
-      ),
+      delay: Duration(milliseconds: index * stepMilliseconds),
       child: child,
     );
   }

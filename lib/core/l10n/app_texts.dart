@@ -9,6 +9,11 @@ class AppTexts {
   static const String retryButtonLabel = 'Reintentar';
   static const String refreshFailedLabel = 'No se pudo actualizar';
   static const String referencePhotoLabel = 'Foto de referencia';
+  static const String photoLoadingLabel = 'Cargando foto…';
+  static const String noPhotoTitle = 'Aún no hay foto de este modelo';
+  static const String noPhotoSemanticLabel = 'Sin foto';
+  static const String expandPhotoSemanticLabel = 'Ver foto en grande';
+  static const String photoViewerCloseLabel = 'Cerrar';
   static const String homePageTitle = 'Pantalla Inicio';
   static const String searchPageTitle = 'Pantalla Buscar';
   static const String comparePageTitle = 'Pantalla Comparar';

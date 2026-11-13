@@ -54,6 +54,13 @@ class DetailPage extends StatelessWidget {
   }
 }
 
+// Entrada escalonada de una sección; solo anima al montarse por primera vez.
+Widget _entry(int index, Widget child) => AnimatedEntryWidget(
+  index: index,
+  stepMilliseconds: UiConfig.detailEntryStepMilliseconds,
+  child: child,
+);
+
 /// Fila de título y contenido según el estado de la carga.
 class _DetailBody extends StatelessWidget {
   const _DetailBody({required this.args});
@@ -76,11 +83,14 @@ class _DetailBody extends StatelessWidget {
               );
         return Column(
           children: [
-            DetailTitleRowWidget(
-              brand: args.brand,
-              year: args.year,
-              groupName: args.groupName,
-              classLabel: classLabel,
+            _entry(
+              0,
+              DetailTitleRowWidget(
+                brand: args.brand,
+                year: args.year,
+                groupName: args.groupName,
+                classLabel: classLabel,
+              ),
             ),
             _FadeSwitcher(child: _content(context, state)),
             const SizedBox(height: UiConfig.detailBottomClearance),
@@ -127,24 +137,36 @@ class _LoadedContent extends StatelessWidget {
     );
     return Column(
       children: [
-        VersionSelectorButtonWidget(
-          versionCount: versions.length,
-          descriptor: descriptor.isEmpty ? version.variantName : descriptor,
-          enabled: versions.length > 1,
-          onTap: () => showVersionSheet(
-            context,
-            versions: versions,
-            selectedIndex: state.selectedIndex,
-            onSelected: context.read<DetailCubit>().select,
+        _entry(
+          1,
+          VersionSelectorButtonWidget(
+            versionCount: versions.length,
+            descriptor: descriptor.isEmpty ? version.variantName : descriptor,
+            enabled: versions.length > 1,
+            onTap: () => showVersionSheet(
+              context,
+              versions: versions,
+              selectedIndex: state.selectedIndex,
+              onSelected: context.read<DetailCubit>().select,
+            ),
           ),
         ),
-        // El cambio de versión desvanece solo las cifras y las filas.
-        _FadeSwitcher(
-          child: Column(
-            key: ValueKey(state.selectedIndex),
-            children: [
-              DetailStatsCardWidget(detail: detail),
-              DetailInfoRowsWidget(
+        // El cambio de versión solo desvanece; la entrada no se repite.
+        _entry(
+          2,
+          _FadeSwitcher(
+            child: KeyedSubtree(
+              key: ValueKey(state.selectedIndex),
+              child: DetailStatsCardWidget(detail: detail),
+            ),
+          ),
+        ),
+        _entry(
+          3,
+          _FadeSwitcher(
+            child: KeyedSubtree(
+              key: ValueKey(state.selectedIndex),
+              child: DetailInfoRowsWidget(
                 classLabel: context.read<VehicleClassTranslator>().labelFor(
                   detail.vehicleClass,
                 ),
@@ -153,7 +175,7 @@ class _LoadedContent extends StatelessWidget {
                 ),
                 driveLabel: context.read<DriveLabeler>().labelFor(detail.drive),
               ),
-            ],
+            ),
           ),
         ),
       ],

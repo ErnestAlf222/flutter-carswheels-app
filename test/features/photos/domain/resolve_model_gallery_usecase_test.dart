@@ -91,7 +91,7 @@ void main() {
   }
 
   test('la clave lleva versión, etiqueta y la clave completa de la foto', () {
-    expect(key, startsWith('v1|gallery|v2|honda|civic|2020'));
+    expect(key, startsWith('v2|gallery|v3|honda|civic|2020'));
     expect(
       useCase.keyFor(brand: 'Honda', modelName: 'Civic 4Dr', year: 2020),
       key,

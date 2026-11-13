@@ -1,3 +1,4 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -66,7 +67,9 @@ class ModelPhotoWidget extends StatelessWidget {
                       ),
                     ),
                   )
-                : _FallbackBox(brand: brand),
+                : slot is PhotoMissing || slot is PhotoFailed
+                ? _NoPhotoBox(brand: brand)
+                : _LoadingBox(brand: brand),
           ),
         );
       },
@@ -116,8 +119,8 @@ class _PhotoContent extends StatelessWidget {
           memCacheWidth: (width * media.devicePixelRatio).ceil(),
           fadeInDuration: fade,
           fadeOutDuration: fade,
-          placeholder: (context, _) => _FallbackBox(brand: brand),
-          errorWidget: (context, _, _) => _FallbackBox(brand: brand),
+          placeholder: (context, _) => _LoadingBox(brand: brand),
+          errorWidget: (context, _, _) => _NoPhotoBox(brand: brand),
         ),
         if (photo.isReference)
           const Align(
@@ -152,9 +155,9 @@ class _ReferenceBadge extends StatelessWidget {
   }
 }
 
-/// Recuadro de respaldo con el logo de la marca o, sin logo, un icono de auto.
-class _FallbackBox extends StatelessWidget {
-  const _FallbackBox({required this.brand});
+/// Logo de la marca o, sin logo, un icono de auto.
+class _BrandMark extends StatelessWidget {
+  const _BrandMark({required this.brand});
 
   final String brand;
 
@@ -163,19 +166,89 @@ class _FallbackBox extends StatelessWidget {
     final hasLogo = context.select<BrandLogosCubit, bool>(
       (cubit) => cubit.urlFor(brand) != null,
     );
-    return Container(
-      alignment: Alignment.center,
+    return hasLogo
+        ? BrandLogoWidget(
+            brandName: brand,
+            size: UiConfig.brandFallbackLogoSize,
+          )
+        : const Icon(
+            Symbols.directions_car,
+            size: UiConfig.iconSize,
+            color: AppColors.tintText,
+          );
+  }
+}
+
+/// Cargando: el logo tenue con un pulso suave sobre el fondo de color.
+class _LoadingBox extends StatelessWidget {
+  const _LoadingBox({required this.brand});
+
+  final String brand;
+
+  @override
+  Widget build(BuildContext context) {
+    final mark = Opacity(
+      opacity: UiConfig.rowPhotoLoadingLogoOpacity,
+      child: _BrandMark(brand: brand),
+    );
+    return ColoredBox(
       color: AppColors.tint,
-      child: hasLogo
-          ? BrandLogoWidget(
-              brandName: brand,
-              size: UiConfig.brandFallbackLogoSize,
-            )
-          : const Icon(
-              Symbols.directions_car,
-              size: UiConfig.iconSize,
-              color: AppColors.tintText,
-            ),
+      child: Center(
+        child: MediaQuery.of(context).disableAnimations
+            ? mark
+            : Pulse(
+                infinite: true,
+                to: UiConfig.skeletonPulseScale,
+                duration: const Duration(
+                  milliseconds: AnimationConfig.skeletonPulseMilliseconds,
+                ),
+                child: mark,
+              ),
+      ),
+    );
+  }
+}
+
+/// Sin foto: el logo completo y una insignia en la esquina inferior derecha.
+class _NoPhotoBox extends StatelessWidget {
+  const _NoPhotoBox({required this.brand});
+
+  final String brand;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        ColoredBox(
+          color: AppColors.tint,
+          child: Center(child: _BrandMark(brand: brand)),
+        ),
+        const Align(alignment: Alignment.bottomRight, child: _NoPhotoBadge()),
+      ],
+    );
+  }
+}
+
+/// Insignia pequeña que explica que este modelo no tiene foto.
+class _NoPhotoBadge extends StatelessWidget {
+  const _NoPhotoBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: AppTexts.noPhotoSemanticLabel,
+      child: const DecoratedBox(
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          Symbols.no_photography,
+          size: UiConfig.rowNoPhotoBadgeSize,
+          color: AppColors.tintText,
+        ),
+      ),
     );
   }
 }

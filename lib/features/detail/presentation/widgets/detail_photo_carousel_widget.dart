@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
@@ -45,13 +47,16 @@ class DetailPhotoCarouselWidget extends StatelessWidget {
                       brandName: brandName,
                       heroTag: heroTag,
                     )
-                  : _FallbackBox(brandName: brandName),
+                  : _EmptyOrLoading(
+                      isLoading: state.isLoading,
+                      brandName: brandName,
+                    ),
             ),
             if (hasPhotos) ...[
               const SizedBox(height: UiConfig.detailCreditGap),
               Text(
                 _creditText(state.photos[state.currentIndex]),
-                maxLines: 1,
+                maxLines: UiConfig.photoCreditMaxLines,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 style: AppTextStyles.caption,
@@ -63,18 +68,38 @@ class DetailPhotoCarouselWidget extends StatelessWidget {
     );
   }
 
-  // Autor y licencia; la foto de referencia lo indica antes.
+  // Autor y licencia; la cápsula de la tarjeta avisa si es de referencia.
   static String _creditText(PhotoEntity photo) {
     final author = photo.authorName.trim().isEmpty
         ? AppTexts.authorMissingLabel
         : photo.authorName;
-    final credit = AppTexts.photoCreditLabel(author, photo.licenseName);
-    if (!photo.isReference) return credit;
-    return '${AppTexts.referencePhotoLabel}${AppTexts.creditSeparator}$credit';
+    return AppTexts.photoCreditLabel(author, photo.licenseName);
   }
 }
 
-/// Páginas de fotos con los puntos indicadores encima.
+/// Tarjeta sin fotos: cargando o, si ya terminó, el aviso de sin foto.
+class _EmptyOrLoading extends StatelessWidget {
+  const _EmptyOrLoading({required this.isLoading, required this.brandName});
+
+  final bool isLoading;
+  final String brandName;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return const PhotoPlaceholderWidget(kind: PhotoPlaceholderKind.loading);
+    }
+    return PhotoPlaceholderWidget(
+      kind: PhotoPlaceholderKind.empty,
+      logo: BrandLogoWidget(
+        brandName: brandName,
+        size: UiConfig.photoEmptyLogoSize,
+      ),
+    );
+  }
+}
+
+/// Páginas de fotos con la cápsula y los puntos indicadores encima.
 class _PhotoPages extends StatefulWidget {
   const _PhotoPages({
     required this.state,
@@ -105,19 +130,34 @@ class _PhotoPagesState extends State<_PhotoPages> {
   @override
   Widget build(BuildContext context) {
     final photos = widget.state.photos;
+    final current = photos[widget.state.currentIndex];
     return Stack(
       fit: StackFit.expand,
       children: [
-        PageView.builder(
-          controller: _controller,
-          itemCount: photos.length,
-          onPageChanged: (index) => _onPageChanged(context, index),
-          itemBuilder: (context, index) => _PhotoPage(
-            photo: photos[index],
-            brandName: widget.brandName,
-            heroTag: index == 0 ? widget.heroTag : null,
+        Semantics(
+          button: true,
+          label: AppTexts.expandPhotoSemanticLabel,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => _openViewer(context),
+            child: PageView.builder(
+              controller: _controller,
+              itemCount: photos.length,
+              onPageChanged: (index) => _onPageChanged(context, index),
+              itemBuilder: (context, index) => _PhotoPage(
+                photo: photos[index],
+                brandName: widget.brandName,
+                heroTag: index == 0 ? widget.heroTag : null,
+              ),
+            ),
           ),
         ),
+        if (current.isReference)
+          const Positioned(
+            top: UiConfig.photoChipInset,
+            left: UiConfig.photoChipInset,
+            child: _ReferenceChip(),
+          ),
         if (photos.length > 1)
           Positioned(
             left: 0,
@@ -134,6 +174,23 @@ class _PhotoPagesState extends State<_PhotoPages> {
     );
   }
 
+  // Abre el visor y, si devuelve un índice, mueve el carrusel a esa foto.
+  Future<void> _openViewer(BuildContext context) async {
+    final cubit = context.read<DetailGalleryCubit>();
+    final result = await context.push<int>(
+      RoutesConfig.photoViewer,
+      extra: PhotoViewerArgsEntity(
+        widget.state.photos,
+        initialIndex: widget.state.currentIndex,
+      ),
+    );
+    if (result == null || !mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_controller.hasClients) _controller.jumpToPage(result);
+    });
+    cubit.selectPage(result);
+  }
+
   // Avisa al cubit y precarga la foto siguiente para que ya esté al llegar.
   void _onPageChanged(BuildContext context, int index) {
     context.read<DetailGalleryCubit>().selectPage(index);
@@ -143,7 +200,7 @@ class _PhotoPagesState extends State<_PhotoPages> {
   }
 }
 
-/// Una foto: la pequeña difuminada de fondo y la nítida encima.
+/// Una foto: llena la tarjeta o va completa sobre su propio fondo difuminado.
 class _PhotoPage extends StatelessWidget {
   const _PhotoPage({
     required this.photo,
@@ -166,24 +223,38 @@ class _PhotoPage extends StatelessWidget {
       photo.thumbnailUrl,
       PhotosConfig.listThumbnailWidthPixels,
     );
+    final mode = const PhotoFitResolver().resolve(photo.aspectRatio);
+    final fit = mode == PhotoFitMode.cover ? BoxFit.cover : BoxFit.contain;
+    const loading = PhotoPlaceholderWidget(kind: PhotoPlaceholderKind.loading);
     final sharp = CachedNetworkImage(
       imageUrl: photo.thumbnailUrl,
       httpHeaders: PhotosConfig.requestHeaders,
-      fit: BoxFit.contain,
+      fit: fit,
+      alignment: Alignment.center,
       fadeInDuration: fade,
       fadeOutDuration: fade,
       placeholder: (context, _) => CachedNetworkImage(
         imageUrl: smallUrl,
         httpHeaders: PhotosConfig.requestHeaders,
-        fit: BoxFit.contain,
+        fit: fit,
+        alignment: Alignment.center,
         fadeInDuration: Duration.zero,
         fadeOutDuration: Duration.zero,
-        placeholder: (context, _) => const SizedBox.shrink(),
-        errorWidget: (context, _, _) => const SizedBox.shrink(),
+        placeholder: (context, _) => loading,
+        errorWidget: (context, _, _) => loading,
       ),
-      errorWidget: (context, _, _) => _FallbackBox(brandName: brandName),
+      errorWidget: (context, _, _) =>
+          _EmptyOrLoading(isLoading: false, brandName: brandName),
     );
     final tag = heroTag;
+    final image = tag == null
+        ? sharp
+        : Hero(
+            tag: tag,
+            flightShuttleBuilder: PhotoHeroShuttle.builder,
+            child: sharp,
+          );
+    if (mode == PhotoFitMode.cover) return image;
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -204,15 +275,44 @@ class _PhotoPage extends StatelessWidget {
                 const ColoredBox(color: AppColors.tint),
           ),
         ),
-        if (tag == null)
-          sharp
-        else
-          Hero(
-            tag: tag,
-            flightShuttleBuilder: PhotoHeroShuttle.builder,
-            child: sharp,
-          ),
+        image,
       ],
+    );
+  }
+}
+
+/// Cápsula que avisa que la foto no es del año pedido.
+class _ReferenceChip extends StatelessWidget {
+  const _ReferenceChip();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.photoChipBackground,
+        borderRadius: BorderRadius.circular(UiConfig.photoChipRadius),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: UiConfig.photoChipHorizontalPadding,
+          vertical: UiConfig.photoChipVerticalPadding,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          spacing: AppSpacing.xs / 2,
+          children: [
+            const Icon(
+              Symbols.info,
+              size: UiConfig.photoChipIconSize,
+              color: AppColors.onGradient,
+            ),
+            Text(
+              AppTexts.referencePhotoLabel,
+              style: AppTextStyles.photoChipLabel,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -234,7 +334,7 @@ class _GalleryDots extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(UiConfig.galleryDotsPadding),
       decoration: BoxDecoration(
-        color: AppColors.shadow,
+        color: AppColors.galleryDotsBackground,
         borderRadius: BorderRadius.circular(AppRadii.pill),
       ),
       child: Row(
@@ -258,25 +358,6 @@ class _GalleryDots extends StatelessWidget {
               ),
             ),
         ],
-      ),
-    );
-  }
-}
-
-/// Recuadro de respaldo con el logo de la marca.
-class _FallbackBox extends StatelessWidget {
-  const _FallbackBox({required this.brandName});
-
-  final String brandName;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      alignment: Alignment.center,
-      color: AppColors.tint,
-      child: BrandLogoWidget(
-        brandName: brandName,
-        size: UiConfig.brandFallbackLogoSize,
       ),
     );
   }

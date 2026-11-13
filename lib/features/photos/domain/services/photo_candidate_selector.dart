@@ -213,6 +213,7 @@ class PhotoCandidateSelector {
       licenseName: candidate.licenseName,
       sourceUrl: candidate.sourceUrl,
       isReference: isReference,
+      aspectRatio: candidate.aspectRatio,
     );
   }
 }
