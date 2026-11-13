@@ -17,38 +17,45 @@ class _MemoryCache implements SummaryCacheDatasource {
 }
 
 class _FakeRepository implements VehicleSpecsRepository {
-  ModelSummaryEntity? summary;
+  GroupSummaryEntity? summary;
   AppFailure? error;
-  final List<String> requestedNames = [];
+  final List<List<String>> requestedNames = [];
   final List<int> cancels = [0];
 
   @override
   Future<void> cancelPendingRequests() async => cancels[0]++;
 
   @override
-  Future<ModelSummaryEntity?> getSummary(
+  Future<GroupSummaryEntity?> getSummary(
     int year,
     String brand,
-    String modelName,
+    List<String> variantNames,
   ) async {
-    requestedNames.add(modelName);
+    requestedNames.add(variantNames);
     final failure = error;
     if (failure != null) throw failure;
     return summary;
   }
 }
 
-const ModelSummaryEntity _fresh = ModelSummaryEntity(
+const GroupSummaryEntity _fresh = GroupSummaryEntity(
   vehicleClass: 'Compact Cars',
-  powertrain: Powertrain.combustion,
-  combinedKmPerLiter: 14.5,
+  minKmPerLiter: 12.5,
+  maxKmPerLiter: 14.5,
+  hasElectric: false,
+  hasPluginHybrid: false,
+  variantCount: 2,
 );
-const ModelSummaryEntity _old = ModelSummaryEntity(
+const GroupSummaryEntity _old = GroupSummaryEntity(
   vehicleClass: 'Midsize Cars',
-  powertrain: Powertrain.electric,
-  combinedKmPerLiter: null,
+  minKmPerLiter: null,
+  maxKmPerLiter: null,
+  hasElectric: true,
+  hasPluginHybrid: false,
+  variantCount: 1,
 );
-const String _key = 'honda|civic|2020';
+const String _key =
+    '${VehicleSpecsConfig.summaryCacheKeyVersion}|honda|civic|2020';
 const List<String> _variants = ['Civic Si', 'Civic'];
 
 void main() {
@@ -58,32 +65,43 @@ void main() {
   );
   late _MemoryCache cache;
   late _FakeRepository repository;
-  late ResolveModelSummaryUseCase resolve;
+  late ResolveGroupSummaryUseCase resolve;
 
   setUp(() {
     cache = _MemoryCache();
     repository = _FakeRepository()..summary = _fresh;
-    resolve = ResolveModelSummaryUseCase(
+    resolve = ResolveGroupSummaryUseCase(
       cache: cache,
-      getModelSummary: GetModelSummaryUseCase(
-        repository: repository,
-        selector: const RepresentativeVariantSelector(),
-      ),
+      getGroupSummary: GetGroupSummaryUseCase(repository),
       keyBuilder: const SummaryKeyBuilder(),
       clock: () => now,
     );
   });
 
-  Future<ModelSummaryEntity?> run() => resolve(
+  Future<GroupSummaryEntity?> run() => resolve(
     year: 2020,
     brand: 'Honda',
     groupName: 'Civic',
     variantNames: _variants,
   );
 
-  test('GetModelSummaryUseCase pide la variante más corta', () async {
+  test('GetGroupSummaryUseCase pide todas las variantes del grupo', () async {
     await run();
-    expect(repository.requestedNames, ['Civic']);
+    expect(repository.requestedNames, [_variants]);
+  });
+
+  test('la clave de caché lleva la versión', () async {
+    await run();
+    expect(cache.entries.keys.single, startsWith('v2|'));
+    expect(VehicleSpecsConfig.summaryCacheKeyVersion, 'v2');
+  });
+
+  test('una entrada con otra versión de clave se ignora', () async {
+    cache.entries['honda|civic|2020'] = CachedSummaryEntity(
+      summary: _old,
+      savedAt: now,
+    );
+    expect(await run(), _fresh);
   });
 
   test('CancelPendingSummariesUseCase cancela en el repositorio', () async {

@@ -19,8 +19,8 @@ class AppDependencies {
     required this.resolveModelPhotoUseCase,
     required this.cancelPendingPhotosUseCase,
     required this.photoKeyBuilder,
-    required this.getModelSummaryUseCase,
-    required this.resolveModelSummaryUseCase,
+    required this.getGroupSummaryUseCase,
+    required this.resolveGroupSummaryUseCase,
     required this.cancelPendingSummariesUseCase,
     required this.commonsQueue,
     required this.fuelEconomyQueue,
@@ -116,10 +116,7 @@ class AppDependencies {
       ),
       queue: fuelEconomyQueue,
     );
-    final getModelSummary = GetModelSummaryUseCase(
-      repository: vehicleSpecsRepository,
-      selector: const RepresentativeVariantSelector(),
-    );
+    final getGroupSummary = GetGroupSummaryUseCase(vehicleSpecsRepository);
     return AppDependencies._(
       catalogRepository: repository,
       getAvailableYearsUseCase: getAvailableYears,
@@ -143,10 +140,10 @@ class AppDependencies {
       ),
       cancelPendingPhotosUseCase: CancelPendingPhotosUseCase(photosRepository),
       photoKeyBuilder: photoKeyBuilder,
-      getModelSummaryUseCase: getModelSummary,
-      resolveModelSummaryUseCase: ResolveModelSummaryUseCase(
+      getGroupSummaryUseCase: getGroupSummary,
+      resolveGroupSummaryUseCase: ResolveGroupSummaryUseCase(
         cache: summaryCache,
-        getModelSummary: getModelSummary,
+        getGroupSummary: getGroupSummary,
         keyBuilder: const SummaryKeyBuilder(),
         clock: DateTime.now,
       ),
@@ -168,8 +165,8 @@ class AppDependencies {
   final ResolveModelPhotoUseCase resolveModelPhotoUseCase;
   final CancelPendingPhotosUseCase cancelPendingPhotosUseCase;
   final PhotoKeyBuilder photoKeyBuilder;
-  final GetModelSummaryUseCase getModelSummaryUseCase;
-  final ResolveModelSummaryUseCase resolveModelSummaryUseCase;
+  final GetGroupSummaryUseCase getGroupSummaryUseCase;
+  final ResolveGroupSummaryUseCase resolveGroupSummaryUseCase;
   final CancelPendingSummariesUseCase cancelPendingSummariesUseCase;
   final RateLimitedQueue commonsQueue;
   final ConcurrencyLimitedQueue fuelEconomyQueue;

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 import 'package:dio/dio.dart';
@@ -7,23 +9,42 @@ import 'package:mocktail/mocktail.dart';
 class _MockDio extends Mock implements Dio {}
 
 class _FakeDatasource implements VehicleSpecsDatasource {
-  List<int> ids = [];
-  VehicleRecordEntity? record;
+  /// Ids por nombre de variante; sin entrada = sin opciones.
+  final Map<String, List<int>> idsByVariant = {};
+
+  /// Registro por id.
+  final Map<int, VehicleRecordEntity?> recordsById = {};
+
+  /// Fallos por nombre de variante.
+  final Map<String, AppFailure> failuresByVariant = {};
+
+  /// Si no es nulo, fetchOptionIds espera a este completer.
+  Completer<void>? gate;
+  final List<String> startedVariants = [];
   final List<int> fetchedIds = [];
 
   @override
-  Future<List<int>> fetchOptionIds(
-    int year,
-    String brand,
-    String model,
-  ) async => ids;
+  Future<List<int>> fetchOptionIds(int year, String brand, String model) async {
+    startedVariants.add(model);
+    await gate?.future;
+    final failure = failuresByVariant[model];
+    if (failure != null) throw failure;
+    return idsByVariant[model] ?? [];
+  }
 
   @override
   Future<VehicleRecordEntity?> fetchVehicle(int id) async {
     fetchedIds.add(id);
-    return record;
+    return recordsById[id];
   }
 }
+
+VehicleRecordEntity _record(double mpg, {String atvType = ''}) =>
+    VehicleRecordEntity(
+      vehicleClass: 'Compact Cars',
+      atvType: atvType,
+      combinedMpg: mpg,
+    );
 
 Response<Object?> _response(Object? data) => Response<Object?>(
   data: data,
@@ -151,28 +172,117 @@ void main() {
       );
     });
 
-    test('sin opciones devuelve nulo y no pide registro', () async {
-      expect(await repository.getSummary(2020, 'Honda', 'Civic'), isNull);
+    test('todas las variantes aportan al resumen', () async {
+      datasource
+        ..idsByVariant['A'] = [1]
+        ..idsByVariant['B'] = [2]
+        ..recordsById[1] = _record(20)
+        ..recordsById[2] = _record(40);
+      final summary = await repository.getSummary(2020, 'Honda', ['A', 'B']);
+      expect(summary?.variantCount, 2);
+      expect(
+        summary?.minKmPerLiter,
+        closeTo(20 * UnitsConfig.milesPerGallonToKilometersPerLiter, 1e-9),
+      );
+      expect(
+        summary?.maxKmPerLiter,
+        closeTo(40 * UnitsConfig.milesPerGallonToKilometersPerLiter, 1e-9),
+      );
+    });
+
+    test('una variante sin opciones se omite', () async {
+      datasource
+        ..idsByVariant['A'] = [1]
+        ..recordsById[1] = _record(30);
+      final summary = await repository.getSummary(2020, 'Honda', ['A', 'B']);
+      expect(summary?.variantCount, 1);
+    });
+
+    test('una falla de servidor se omite y las demás cuentan', () async {
+      datasource
+        ..failuresByVariant['A'] = const ServerFailure('500')
+        ..idsByVariant['B'] = [2]
+        ..recordsById[2] = _record(30);
+      final summary = await repository.getSummary(2020, 'Honda', ['A', 'B']);
+      expect(summary?.variantCount, 1);
+    });
+
+    test('un fallo de red con otra variante leída no relanza', () async {
+      datasource
+        ..failuresByVariant['A'] = const NetworkFailure('sin red')
+        ..idsByVariant['B'] = [2]
+        ..recordsById[2] = _record(30);
+      final summary = await repository.getSummary(2020, 'Honda', ['A', 'B']);
+      expect(summary?.variantCount, 1);
+    });
+
+    test('si todas fallan por red relanza NetworkFailure', () async {
+      datasource
+        ..failuresByVariant['A'] = const NetworkFailure('sin red')
+        ..failuresByVariant['B'] = const NetworkFailure('sin red');
+      await expectLater(
+        repository.getSummary(2020, 'Honda', ['A', 'B']),
+        throwsA(isA<NetworkFailure>()),
+      );
+    });
+
+    test('red caída en una y servidor en otra relanza la de red', () async {
+      datasource
+        ..failuresByVariant['A'] = const ServerFailure('500')
+        ..failuresByVariant['B'] = const NetworkFailure('sin red');
+      await expectLater(
+        repository.getSummary(2020, 'Honda', ['A', 'B']),
+        throwsA(isA<NetworkFailure>()),
+      );
+    });
+
+    test('si solo hay fallas de servidor devuelve nulo', () async {
+      datasource.failuresByVariant['A'] = const ServerFailure('500');
+      expect(await repository.getSummary(2020, 'Honda', ['A']), isNull);
+    });
+
+    test('sin opciones en ninguna variante devuelve nulo', () async {
+      expect(await repository.getSummary(2020, 'Honda', ['A', 'B']), isNull);
       expect(datasource.fetchedIds, isEmpty);
     });
 
-    test('toma la primera opción en el orden de la API', () async {
-      datasource
-        ..ids = [41213, 41214]
-        ..record = const VehicleRecordEntity(
-          vehicleClass: 'Compact Cars',
-          atvType: '',
-          combinedMpg: 34,
-        );
-      final summary = await repository.getSummary(2020, 'Honda', 'Civic');
-      expect(datasource.fetchedIds, [41213]);
-      expect(summary?.powertrain, Powertrain.combustion);
-      expect(summary?.vehicleClass, 'Compact Cars');
+    test('un registro nulo cuenta como variante omitida', () async {
+      datasource.idsByVariant['A'] = [1];
+      expect(await repository.getSummary(2020, 'Honda', ['A']), isNull);
     });
 
-    test('un registro nulo devuelve nulo', () async {
-      datasource.ids = [1];
-      expect(await repository.getSummary(2020, 'Honda', 'Civic'), isNull);
+    test('toma la primera opción de cada variante', () async {
+      datasource
+        ..idsByVariant['A'] = [10, 11]
+        ..idsByVariant['B'] = [20, 21]
+        ..recordsById[10] = _record(30)
+        ..recordsById[20] = _record(30);
+      await repository.getSummary(2020, 'Honda', ['A', 'B']);
+      expect(datasource.fetchedIds, unorderedEquals([10, 20]));
+    });
+
+    test('una cancelación se relanza de inmediato', () async {
+      datasource
+        ..failuresByVariant['A'] = const CancelledFailure('cancelada')
+        ..idsByVariant['B'] = [2]
+        ..recordsById[2] = _record(30);
+      await expectLater(
+        repository.getSummary(2020, 'Honda', ['A', 'B']),
+        throwsA(isA<CancelledFailure>()),
+      );
+    });
+
+    test('lanza todas las consultas antes de que la primera termine', () async {
+      final gate = Completer<void>();
+      datasource
+        ..gate = gate
+        ..idsByVariant['A'] = [1]
+        ..recordsById[1] = _record(30);
+      final future = repository.getSummary(2020, 'Honda', ['A', 'B', 'C']);
+      await Future<void>.delayed(Duration.zero);
+      expect(datasource.startedVariants, ['A', 'B', 'C']);
+      gate.complete();
+      expect((await future)?.variantCount, 1);
     });
 
     test('cancelPendingRequests cancela lo pendiente en la cola', () async {

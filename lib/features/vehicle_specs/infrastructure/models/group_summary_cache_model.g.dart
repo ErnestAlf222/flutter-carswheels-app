@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'model_summary_cache_model.dart';
+part of 'group_summary_cache_model.dart';
 
 // **************************************************************************
 // IsarCollectionGenerator
@@ -9,42 +9,57 @@ part of 'model_summary_cache_model.dart';
 // coverage:ignore-file
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
 
-extension GetModelSummaryCacheModelCollection on Isar {
-  IsarCollection<ModelSummaryCacheModel> get modelSummaryCacheModels =>
+extension GetGroupSummaryCacheModelCollection on Isar {
+  IsarCollection<GroupSummaryCacheModel> get groupSummaryCacheModels =>
       this.collection();
 }
 
-const ModelSummaryCacheModelSchema = CollectionSchema(
-  name: r'ModelSummaryCacheModel',
-  id: 8307758813119630361,
+const GroupSummaryCacheModelSchema = CollectionSchema(
+  name: r'GroupSummaryCacheModel',
+  id: -808507630003371402,
   properties: {
-    r'combinedKmPerLiter': PropertySchema(
+    r'hasElectric': PropertySchema(
       id: 0,
-      name: r'combinedKmPerLiter',
+      name: r'hasElectric',
+      type: IsarType.bool,
+    ),
+    r'hasPluginHybrid': PropertySchema(
+      id: 1,
+      name: r'hasPluginHybrid',
+      type: IsarType.bool,
+    ),
+    r'key': PropertySchema(id: 2, name: r'key', type: IsarType.string),
+    r'maxKmPerLiter': PropertySchema(
+      id: 3,
+      name: r'maxKmPerLiter',
       type: IsarType.double,
     ),
-    r'key': PropertySchema(id: 1, name: r'key', type: IsarType.string),
-    r'powertrain': PropertySchema(
-      id: 2,
-      name: r'powertrain',
-      type: IsarType.string,
+    r'minKmPerLiter': PropertySchema(
+      id: 4,
+      name: r'minKmPerLiter',
+      type: IsarType.double,
     ),
     r'savedAtMillis': PropertySchema(
-      id: 3,
+      id: 5,
       name: r'savedAtMillis',
       type: IsarType.long,
     ),
+    r'variantCount': PropertySchema(
+      id: 6,
+      name: r'variantCount',
+      type: IsarType.long,
+    ),
     r'vehicleClass': PropertySchema(
-      id: 4,
+      id: 7,
       name: r'vehicleClass',
       type: IsarType.string,
     ),
   },
 
-  estimateSize: _modelSummaryCacheModelEstimateSize,
-  serialize: _modelSummaryCacheModelSerialize,
-  deserialize: _modelSummaryCacheModelDeserialize,
-  deserializeProp: _modelSummaryCacheModelDeserializeProp,
+  estimateSize: _groupSummaryCacheModelEstimateSize,
+  serialize: _groupSummaryCacheModelSerialize,
+  deserialize: _groupSummaryCacheModelDeserialize,
+  deserializeProp: _groupSummaryCacheModelDeserializeProp,
   idName: r'id',
   indexes: {
     r'key': IndexSchema(
@@ -64,20 +79,19 @@ const ModelSummaryCacheModelSchema = CollectionSchema(
   links: {},
   embeddedSchemas: {},
 
-  getId: _modelSummaryCacheModelGetId,
-  getLinks: _modelSummaryCacheModelGetLinks,
-  attach: _modelSummaryCacheModelAttach,
+  getId: _groupSummaryCacheModelGetId,
+  getLinks: _groupSummaryCacheModelGetLinks,
+  attach: _groupSummaryCacheModelAttach,
   version: '3.4.1',
 );
 
-int _modelSummaryCacheModelEstimateSize(
-  ModelSummaryCacheModel object,
+int _groupSummaryCacheModelEstimateSize(
+  GroupSummaryCacheModel object,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
   bytesCount += 3 + object.key.length * 3;
-  bytesCount += 3 + object.powertrain.length * 3;
   {
     final value = object.vehicleClass;
     if (value != null) {
@@ -87,37 +101,43 @@ int _modelSummaryCacheModelEstimateSize(
   return bytesCount;
 }
 
-void _modelSummaryCacheModelSerialize(
-  ModelSummaryCacheModel object,
+void _groupSummaryCacheModelSerialize(
+  GroupSummaryCacheModel object,
   IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeDouble(offsets[0], object.combinedKmPerLiter);
-  writer.writeString(offsets[1], object.key);
-  writer.writeString(offsets[2], object.powertrain);
-  writer.writeLong(offsets[3], object.savedAtMillis);
-  writer.writeString(offsets[4], object.vehicleClass);
+  writer.writeBool(offsets[0], object.hasElectric);
+  writer.writeBool(offsets[1], object.hasPluginHybrid);
+  writer.writeString(offsets[2], object.key);
+  writer.writeDouble(offsets[3], object.maxKmPerLiter);
+  writer.writeDouble(offsets[4], object.minKmPerLiter);
+  writer.writeLong(offsets[5], object.savedAtMillis);
+  writer.writeLong(offsets[6], object.variantCount);
+  writer.writeString(offsets[7], object.vehicleClass);
 }
 
-ModelSummaryCacheModel _modelSummaryCacheModelDeserialize(
+GroupSummaryCacheModel _groupSummaryCacheModelDeserialize(
   Id id,
   IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = ModelSummaryCacheModel(
-    combinedKmPerLiter: reader.readDoubleOrNull(offsets[0]),
+  final object = GroupSummaryCacheModel(
+    hasElectric: reader.readBool(offsets[0]),
+    hasPluginHybrid: reader.readBool(offsets[1]),
     id: id,
-    key: reader.readString(offsets[1]),
-    powertrain: reader.readString(offsets[2]),
-    savedAtMillis: reader.readLong(offsets[3]),
-    vehicleClass: reader.readStringOrNull(offsets[4]),
+    key: reader.readString(offsets[2]),
+    maxKmPerLiter: reader.readDoubleOrNull(offsets[3]),
+    minKmPerLiter: reader.readDoubleOrNull(offsets[4]),
+    savedAtMillis: reader.readLong(offsets[5]),
+    variantCount: reader.readLong(offsets[6]),
+    vehicleClass: reader.readStringOrNull(offsets[7]),
   );
   return object;
 }
 
-P _modelSummaryCacheModelDeserializeProp<P>(
+P _groupSummaryCacheModelDeserializeProp<P>(
   IsarReader reader,
   int propertyId,
   int offset,
@@ -125,43 +145,49 @@ P _modelSummaryCacheModelDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 1:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 2:
       return (reader.readString(offset)) as P;
     case 3:
-      return (reader.readLong(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 4:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 5:
+      return (reader.readLong(offset)) as P;
+    case 6:
+      return (reader.readLong(offset)) as P;
+    case 7:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
 
-Id _modelSummaryCacheModelGetId(ModelSummaryCacheModel object) {
+Id _groupSummaryCacheModelGetId(GroupSummaryCacheModel object) {
   return object.id;
 }
 
-List<IsarLinkBase<dynamic>> _modelSummaryCacheModelGetLinks(
-  ModelSummaryCacheModel object,
+List<IsarLinkBase<dynamic>> _groupSummaryCacheModelGetLinks(
+  GroupSummaryCacheModel object,
 ) {
   return [];
 }
 
-void _modelSummaryCacheModelAttach(
+void _groupSummaryCacheModelAttach(
   IsarCollection<dynamic> col,
   Id id,
-  ModelSummaryCacheModel object,
+  GroupSummaryCacheModel object,
 ) {}
 
-extension ModelSummaryCacheModelByIndex
-    on IsarCollection<ModelSummaryCacheModel> {
-  Future<ModelSummaryCacheModel?> getByKey(String key) {
+extension GroupSummaryCacheModelByIndex
+    on IsarCollection<GroupSummaryCacheModel> {
+  Future<GroupSummaryCacheModel?> getByKey(String key) {
     return getByIndex(r'key', [key]);
   }
 
-  ModelSummaryCacheModel? getByKeySync(String key) {
+  GroupSummaryCacheModel? getByKeySync(String key) {
     return getByIndexSync(r'key', [key]);
   }
 
@@ -173,12 +199,12 @@ extension ModelSummaryCacheModelByIndex
     return deleteByIndexSync(r'key', [key]);
   }
 
-  Future<List<ModelSummaryCacheModel?>> getAllByKey(List<String> keyValues) {
+  Future<List<GroupSummaryCacheModel?>> getAllByKey(List<String> keyValues) {
     final values = keyValues.map((e) => [e]).toList();
     return getAllByIndex(r'key', values);
   }
 
-  List<ModelSummaryCacheModel?> getAllByKeySync(List<String> keyValues) {
+  List<GroupSummaryCacheModel?> getAllByKeySync(List<String> keyValues) {
     final values = keyValues.map((e) => [e]).toList();
     return getAllByIndexSync(r'key', values);
   }
@@ -193,29 +219,29 @@ extension ModelSummaryCacheModelByIndex
     return deleteAllByIndexSync(r'key', values);
   }
 
-  Future<Id> putByKey(ModelSummaryCacheModel object) {
+  Future<Id> putByKey(GroupSummaryCacheModel object) {
     return putByIndex(r'key', object);
   }
 
-  Id putByKeySync(ModelSummaryCacheModel object, {bool saveLinks = true}) {
+  Id putByKeySync(GroupSummaryCacheModel object, {bool saveLinks = true}) {
     return putByIndexSync(r'key', object, saveLinks: saveLinks);
   }
 
-  Future<List<Id>> putAllByKey(List<ModelSummaryCacheModel> objects) {
+  Future<List<Id>> putAllByKey(List<GroupSummaryCacheModel> objects) {
     return putAllByIndex(r'key', objects);
   }
 
   List<Id> putAllByKeySync(
-    List<ModelSummaryCacheModel> objects, {
+    List<GroupSummaryCacheModel> objects, {
     bool saveLinks = true,
   }) {
     return putAllByIndexSync(r'key', objects, saveLinks: saveLinks);
   }
 }
 
-extension ModelSummaryCacheModelQueryWhereSort
-    on QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QWhere> {
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterWhere>
+extension GroupSummaryCacheModelQueryWhereSort
+    on QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QWhere> {
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterWhere>
   anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
@@ -223,16 +249,16 @@ extension ModelSummaryCacheModelQueryWhereSort
   }
 }
 
-extension ModelSummaryCacheModelQueryWhere
+extension GroupSummaryCacheModelQueryWhere
     on
         QueryBuilder<
-          ModelSummaryCacheModel,
-          ModelSummaryCacheModel,
+          GroupSummaryCacheModel,
+          GroupSummaryCacheModel,
           QWhereClause
         > {
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterWhereClause
   >
   idEqualTo(Id id) {
@@ -242,8 +268,8 @@ extension ModelSummaryCacheModelQueryWhere
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterWhereClause
   >
   idNotEqualTo(Id id) {
@@ -269,8 +295,8 @@ extension ModelSummaryCacheModelQueryWhere
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterWhereClause
   >
   idGreaterThan(Id id, {bool include = false}) {
@@ -282,8 +308,8 @@ extension ModelSummaryCacheModelQueryWhere
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterWhereClause
   >
   idLessThan(Id id, {bool include = false}) {
@@ -295,8 +321,8 @@ extension ModelSummaryCacheModelQueryWhere
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterWhereClause
   >
   idBetween(
@@ -318,8 +344,8 @@ extension ModelSummaryCacheModelQueryWhere
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterWhereClause
   >
   keyEqualTo(String key) {
@@ -331,8 +357,8 @@ extension ModelSummaryCacheModelQueryWhere
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterWhereClause
   >
   keyNotEqualTo(String key) {
@@ -378,133 +404,42 @@ extension ModelSummaryCacheModelQueryWhere
   }
 }
 
-extension ModelSummaryCacheModelQueryFilter
+extension GroupSummaryCacheModelQueryFilter
     on
         QueryBuilder<
-          ModelSummaryCacheModel,
-          ModelSummaryCacheModel,
+          GroupSummaryCacheModel,
+          GroupSummaryCacheModel,
           QFilterCondition
         > {
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
-  combinedKmPerLiterIsNull() {
+  hasElectricEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        const FilterCondition.isNull(property: r'combinedKmPerLiter'),
+        FilterCondition.equalTo(property: r'hasElectric', value: value),
       );
     });
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
-  combinedKmPerLiterIsNotNull() {
+  hasPluginHybridEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        const FilterCondition.isNotNull(property: r'combinedKmPerLiter'),
+        FilterCondition.equalTo(property: r'hasPluginHybrid', value: value),
       );
     });
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
-    QAfterFilterCondition
-  >
-  combinedKmPerLiterEqualTo(double? value, {double epsilon = Query.epsilon}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'combinedKmPerLiter',
-          value: value,
-
-          epsilon: epsilon,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
-    QAfterFilterCondition
-  >
-  combinedKmPerLiterGreaterThan(
-    double? value, {
-    bool include = false,
-    double epsilon = Query.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'combinedKmPerLiter',
-          value: value,
-
-          epsilon: epsilon,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
-    QAfterFilterCondition
-  >
-  combinedKmPerLiterLessThan(
-    double? value, {
-    bool include = false,
-    double epsilon = Query.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'combinedKmPerLiter',
-          value: value,
-
-          epsilon: epsilon,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
-    QAfterFilterCondition
-  >
-  combinedKmPerLiterBetween(
-    double? lower,
-    double? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    double epsilon = Query.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'combinedKmPerLiter',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-
-          epsilon: epsilon,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   idEqualTo(Id value) {
@@ -516,8 +451,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   idGreaterThan(Id value, {bool include = false}) {
@@ -533,8 +468,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   idLessThan(Id value, {bool include = false}) {
@@ -550,8 +485,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   idBetween(
@@ -574,8 +509,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   keyEqualTo(String value, {bool caseSensitive = true}) {
@@ -591,8 +526,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   keyGreaterThan(
@@ -613,8 +548,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   keyLessThan(String value, {bool include = false, bool caseSensitive = true}) {
@@ -631,8 +566,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   keyBetween(
@@ -657,8 +592,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   keyStartsWith(String value, {bool caseSensitive = true}) {
@@ -674,8 +609,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   keyEndsWith(String value, {bool caseSensitive = true}) {
@@ -691,8 +626,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   keyContains(String value, {bool caseSensitive = true}) {
@@ -708,8 +643,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   keyMatches(String pattern, {bool caseSensitive = true}) {
@@ -725,8 +660,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   keyIsEmpty() {
@@ -738,8 +673,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   keyIsNotEmpty() {
@@ -751,189 +686,242 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
-  powertrainEqualTo(String value, {bool caseSensitive = true}) {
+  maxKmPerLiterIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'maxKmPerLiter'),
+      );
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  maxKmPerLiterIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'maxKmPerLiter'),
+      );
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  maxKmPerLiterEqualTo(double? value, {double epsilon = Query.epsilon}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(
-          property: r'powertrain',
+          property: r'maxKmPerLiter',
           value: value,
-          caseSensitive: caseSensitive,
+
+          epsilon: epsilon,
         ),
       );
     });
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
-  powertrainGreaterThan(
-    String value, {
+  maxKmPerLiterGreaterThan(
+    double? value, {
     bool include = false,
-    bool caseSensitive = true,
+    double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(
           include: include,
-          property: r'powertrain',
+          property: r'maxKmPerLiter',
           value: value,
-          caseSensitive: caseSensitive,
+
+          epsilon: epsilon,
         ),
       );
     });
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
-  powertrainLessThan(
-    String value, {
+  maxKmPerLiterLessThan(
+    double? value, {
     bool include = false,
-    bool caseSensitive = true,
+    double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.lessThan(
           include: include,
-          property: r'powertrain',
+          property: r'maxKmPerLiter',
           value: value,
-          caseSensitive: caseSensitive,
+
+          epsilon: epsilon,
         ),
       );
     });
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
-  powertrainBetween(
-    String lower,
-    String upper, {
+  maxKmPerLiterBetween(
+    double? lower,
+    double? upper, {
     bool includeLower = true,
     bool includeUpper = true,
-    bool caseSensitive = true,
+    double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.between(
-          property: r'powertrain',
+          property: r'maxKmPerLiter',
           lower: lower,
           includeLower: includeLower,
           upper: upper,
           includeUpper: includeUpper,
-          caseSensitive: caseSensitive,
+
+          epsilon: epsilon,
         ),
       );
     });
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
-  powertrainStartsWith(String value, {bool caseSensitive = true}) {
+  minKmPerLiterIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.startsWith(
-          property: r'powertrain',
+        const FilterCondition.isNull(property: r'minKmPerLiter'),
+      );
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  minKmPerLiterIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'minKmPerLiter'),
+      );
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  minKmPerLiterEqualTo(double? value, {double epsilon = Query.epsilon}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'minKmPerLiter',
           value: value,
-          caseSensitive: caseSensitive,
+
+          epsilon: epsilon,
         ),
       );
     });
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
-  powertrainEndsWith(String value, {bool caseSensitive = true}) {
+  minKmPerLiterGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.endsWith(
-          property: r'powertrain',
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'minKmPerLiter',
           value: value,
-          caseSensitive: caseSensitive,
+
+          epsilon: epsilon,
         ),
       );
     });
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
-  powertrainContains(String value, {bool caseSensitive = true}) {
+  minKmPerLiterLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.contains(
-          property: r'powertrain',
+        FilterCondition.lessThan(
+          include: include,
+          property: r'minKmPerLiter',
           value: value,
-          caseSensitive: caseSensitive,
+
+          epsilon: epsilon,
         ),
       );
     });
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
-  powertrainMatches(String pattern, {bool caseSensitive = true}) {
+  minKmPerLiterBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.matches(
-          property: r'powertrain',
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
+        FilterCondition.between(
+          property: r'minKmPerLiter',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+
+          epsilon: epsilon,
         ),
       );
     });
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
-    QAfterFilterCondition
-  >
-  powertrainIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'powertrain', value: ''),
-      );
-    });
-  }
-
-  QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
-    QAfterFilterCondition
-  >
-  powertrainIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(property: r'powertrain', value: ''),
-      );
-    });
-  }
-
-  QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   savedAtMillisEqualTo(int value) {
@@ -945,8 +933,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   savedAtMillisGreaterThan(int value, {bool include = false}) {
@@ -962,8 +950,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   savedAtMillisLessThan(int value, {bool include = false}) {
@@ -979,8 +967,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   savedAtMillisBetween(
@@ -1003,8 +991,79 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  variantCountEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'variantCount', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  variantCountGreaterThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'variantCount',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  variantCountLessThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'variantCount',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  variantCountBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'variantCount',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   vehicleClassIsNull() {
@@ -1016,8 +1075,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   vehicleClassIsNotNull() {
@@ -1029,8 +1088,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   vehicleClassEqualTo(String? value, {bool caseSensitive = true}) {
@@ -1046,8 +1105,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   vehicleClassGreaterThan(
@@ -1068,8 +1127,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   vehicleClassLessThan(
@@ -1090,8 +1149,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   vehicleClassBetween(
@@ -1116,8 +1175,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   vehicleClassStartsWith(String value, {bool caseSensitive = true}) {
@@ -1133,8 +1192,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   vehicleClassEndsWith(String value, {bool caseSensitive = true}) {
@@ -1150,8 +1209,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   vehicleClassContains(String value, {bool caseSensitive = true}) {
@@ -1167,8 +1226,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   vehicleClassMatches(String pattern, {bool caseSensitive = true}) {
@@ -1184,8 +1243,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   vehicleClassIsEmpty() {
@@ -1197,8 +1256,8 @@ extension ModelSummaryCacheModelQueryFilter
   }
 
   QueryBuilder<
-    ModelSummaryCacheModel,
-    ModelSummaryCacheModel,
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
     QAfterFilterCondition
   >
   vehicleClassIsNotEmpty() {
@@ -1210,88 +1269,130 @@ extension ModelSummaryCacheModelQueryFilter
   }
 }
 
-extension ModelSummaryCacheModelQueryObject
+extension GroupSummaryCacheModelQueryObject
     on
         QueryBuilder<
-          ModelSummaryCacheModel,
-          ModelSummaryCacheModel,
+          GroupSummaryCacheModel,
+          GroupSummaryCacheModel,
           QFilterCondition
         > {}
 
-extension ModelSummaryCacheModelQueryLinks
+extension GroupSummaryCacheModelQueryLinks
     on
         QueryBuilder<
-          ModelSummaryCacheModel,
-          ModelSummaryCacheModel,
+          GroupSummaryCacheModel,
+          GroupSummaryCacheModel,
           QFilterCondition
         > {}
 
-extension ModelSummaryCacheModelQuerySortBy
-    on QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QSortBy> {
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterSortBy>
-  sortByCombinedKmPerLiter() {
+extension GroupSummaryCacheModelQuerySortBy
+    on QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QSortBy> {
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  sortByHasElectric() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'combinedKmPerLiter', Sort.asc);
+      return query.addSortBy(r'hasElectric', Sort.asc);
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterSortBy>
-  sortByCombinedKmPerLiterDesc() {
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  sortByHasElectricDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'combinedKmPerLiter', Sort.desc);
+      return query.addSortBy(r'hasElectric', Sort.desc);
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterSortBy>
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  sortByHasPluginHybrid() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasPluginHybrid', Sort.asc);
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  sortByHasPluginHybridDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasPluginHybrid', Sort.desc);
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
   sortByKey() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'key', Sort.asc);
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterSortBy>
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
   sortByKeyDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'key', Sort.desc);
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterSortBy>
-  sortByPowertrain() {
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  sortByMaxKmPerLiter() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'powertrain', Sort.asc);
+      return query.addSortBy(r'maxKmPerLiter', Sort.asc);
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterSortBy>
-  sortByPowertrainDesc() {
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  sortByMaxKmPerLiterDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'powertrain', Sort.desc);
+      return query.addSortBy(r'maxKmPerLiter', Sort.desc);
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterSortBy>
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  sortByMinKmPerLiter() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'minKmPerLiter', Sort.asc);
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  sortByMinKmPerLiterDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'minKmPerLiter', Sort.desc);
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
   sortBySavedAtMillis() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'savedAtMillis', Sort.asc);
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterSortBy>
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
   sortBySavedAtMillisDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'savedAtMillis', Sort.desc);
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterSortBy>
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  sortByVariantCount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'variantCount', Sort.asc);
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  sortByVariantCountDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'variantCount', Sort.desc);
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
   sortByVehicleClass() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'vehicleClass', Sort.asc);
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterSortBy>
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
   sortByVehicleClassDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'vehicleClass', Sort.desc);
@@ -1299,91 +1400,133 @@ extension ModelSummaryCacheModelQuerySortBy
   }
 }
 
-extension ModelSummaryCacheModelQuerySortThenBy
+extension GroupSummaryCacheModelQuerySortThenBy
     on
         QueryBuilder<
-          ModelSummaryCacheModel,
-          ModelSummaryCacheModel,
+          GroupSummaryCacheModel,
+          GroupSummaryCacheModel,
           QSortThenBy
         > {
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterSortBy>
-  thenByCombinedKmPerLiter() {
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  thenByHasElectric() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'combinedKmPerLiter', Sort.asc);
+      return query.addSortBy(r'hasElectric', Sort.asc);
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterSortBy>
-  thenByCombinedKmPerLiterDesc() {
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  thenByHasElectricDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'combinedKmPerLiter', Sort.desc);
+      return query.addSortBy(r'hasElectric', Sort.desc);
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterSortBy>
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  thenByHasPluginHybrid() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasPluginHybrid', Sort.asc);
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  thenByHasPluginHybridDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasPluginHybrid', Sort.desc);
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
   thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterSortBy>
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
   thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterSortBy>
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
   thenByKey() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'key', Sort.asc);
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterSortBy>
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
   thenByKeyDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'key', Sort.desc);
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterSortBy>
-  thenByPowertrain() {
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  thenByMaxKmPerLiter() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'powertrain', Sort.asc);
+      return query.addSortBy(r'maxKmPerLiter', Sort.asc);
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterSortBy>
-  thenByPowertrainDesc() {
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  thenByMaxKmPerLiterDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'powertrain', Sort.desc);
+      return query.addSortBy(r'maxKmPerLiter', Sort.desc);
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterSortBy>
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  thenByMinKmPerLiter() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'minKmPerLiter', Sort.asc);
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  thenByMinKmPerLiterDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'minKmPerLiter', Sort.desc);
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
   thenBySavedAtMillis() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'savedAtMillis', Sort.asc);
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterSortBy>
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
   thenBySavedAtMillisDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'savedAtMillis', Sort.desc);
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterSortBy>
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  thenByVariantCount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'variantCount', Sort.asc);
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  thenByVariantCountDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'variantCount', Sort.desc);
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
   thenByVehicleClass() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'vehicleClass', Sort.asc);
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QAfterSortBy>
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
   thenByVehicleClassDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'vehicleClass', Sort.desc);
@@ -1391,37 +1534,58 @@ extension ModelSummaryCacheModelQuerySortThenBy
   }
 }
 
-extension ModelSummaryCacheModelQueryWhereDistinct
-    on QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QDistinct> {
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QDistinct>
-  distinctByCombinedKmPerLiter() {
+extension GroupSummaryCacheModelQueryWhereDistinct
+    on QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QDistinct> {
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QDistinct>
+  distinctByHasElectric() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'combinedKmPerLiter');
+      return query.addDistinctBy(r'hasElectric');
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QDistinct>
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QDistinct>
+  distinctByHasPluginHybrid() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'hasPluginHybrid');
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QDistinct>
   distinctByKey({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'key', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QDistinct>
-  distinctByPowertrain({bool caseSensitive = true}) {
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QDistinct>
+  distinctByMaxKmPerLiter() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'powertrain', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'maxKmPerLiter');
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QDistinct>
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QDistinct>
+  distinctByMinKmPerLiter() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'minKmPerLiter');
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QDistinct>
   distinctBySavedAtMillis() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'savedAtMillis');
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, ModelSummaryCacheModel, QDistinct>
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QDistinct>
+  distinctByVariantCount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'variantCount');
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QDistinct>
   distinctByVehicleClass({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'vehicleClass', caseSensitive: caseSensitive);
@@ -1429,47 +1593,68 @@ extension ModelSummaryCacheModelQueryWhereDistinct
   }
 }
 
-extension ModelSummaryCacheModelQueryProperty
+extension GroupSummaryCacheModelQueryProperty
     on
         QueryBuilder<
-          ModelSummaryCacheModel,
-          ModelSummaryCacheModel,
+          GroupSummaryCacheModel,
+          GroupSummaryCacheModel,
           QQueryProperty
         > {
-  QueryBuilder<ModelSummaryCacheModel, int, QQueryOperations> idProperty() {
+  QueryBuilder<GroupSummaryCacheModel, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, double?, QQueryOperations>
-  combinedKmPerLiterProperty() {
+  QueryBuilder<GroupSummaryCacheModel, bool, QQueryOperations>
+  hasElectricProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'combinedKmPerLiter');
+      return query.addPropertyName(r'hasElectric');
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, String, QQueryOperations> keyProperty() {
+  QueryBuilder<GroupSummaryCacheModel, bool, QQueryOperations>
+  hasPluginHybridProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'hasPluginHybrid');
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, String, QQueryOperations> keyProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'key');
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, String, QQueryOperations>
-  powertrainProperty() {
+  QueryBuilder<GroupSummaryCacheModel, double?, QQueryOperations>
+  maxKmPerLiterProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'powertrain');
+      return query.addPropertyName(r'maxKmPerLiter');
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, int, QQueryOperations>
+  QueryBuilder<GroupSummaryCacheModel, double?, QQueryOperations>
+  minKmPerLiterProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'minKmPerLiter');
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, int, QQueryOperations>
   savedAtMillisProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'savedAtMillis');
     });
   }
 
-  QueryBuilder<ModelSummaryCacheModel, String?, QQueryOperations>
+  QueryBuilder<GroupSummaryCacheModel, int, QQueryOperations>
+  variantCountProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'variantCount');
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, String?, QQueryOperations>
   vehicleClassProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'vehicleClass');

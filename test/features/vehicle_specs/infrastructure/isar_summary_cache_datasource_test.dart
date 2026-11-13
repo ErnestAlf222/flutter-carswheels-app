@@ -19,7 +19,7 @@ void main() {
     if (IsarTestSupport.skipIfUnavailable()) return;
     directory = await Directory.systemTemp.createTemp('isar_summary_cache');
     isar = await Isar.open(
-      [ModelSummaryCacheModelSchema],
+      [GroupSummaryCacheModelSchema],
       directory: directory.path,
       name: 'prueba',
       inspector: false,
@@ -33,12 +33,16 @@ void main() {
     await directory.delete(recursive: true);
   });
 
+  const summary = GroupSummaryEntity(
+    vehicleClass: 'Compact Cars',
+    minKmPerLiter: 12.5,
+    maxKmPerLiter: 16.25,
+    hasElectric: true,
+    hasPluginHybrid: true,
+    variantCount: 4,
+  );
   final entry = CachedSummaryEntity(
-    summary: const ModelSummaryEntity(
-      vehicleClass: 'Compact Cars',
-      powertrain: Powertrain.combustion,
-      combinedKmPerLiter: 14.5,
-    ),
+    summary: summary,
     savedAt: DateTime.fromMillisecondsSinceEpoch(1700000000000),
   );
 
@@ -47,7 +51,7 @@ void main() {
     expect(await datasource.read('nada'), isNull);
   });
 
-  test('escribe y lee una entrada', () async {
+  test('ida y vuelta con todos los campos', () async {
     if (IsarTestSupport.skipIfUnavailable()) return;
     await datasource.write('clave', entry);
     expect(await datasource.read('clave'), entry);
@@ -55,31 +59,37 @@ void main() {
 
   test('conserva los campos nulos', () async {
     if (IsarTestSupport.skipIfUnavailable()) return;
-    final electric = CachedSummaryEntity(
-      summary: const ModelSummaryEntity(
+    final empty = CachedSummaryEntity(
+      summary: const GroupSummaryEntity(
         vehicleClass: null,
-        powertrain: Powertrain.electric,
-        combinedKmPerLiter: null,
+        minKmPerLiter: null,
+        maxKmPerLiter: null,
+        hasElectric: false,
+        hasPluginHybrid: false,
+        variantCount: 1,
       ),
       savedAt: entry.savedAt,
     );
-    await datasource.write('ev', electric);
-    expect(await datasource.read('ev'), electric);
+    await datasource.write('ev', empty);
+    expect(await datasource.read('ev'), empty);
   });
 
   test('escribir una clave existente la reemplaza', () async {
     if (IsarTestSupport.skipIfUnavailable()) return;
     await datasource.write('clave', entry);
     final other = CachedSummaryEntity(
-      summary: const ModelSummaryEntity(
+      summary: const GroupSummaryEntity(
         vehicleClass: 'Large Cars',
-        powertrain: Powertrain.other,
-        combinedKmPerLiter: null,
+        minKmPerLiter: null,
+        maxKmPerLiter: null,
+        hasElectric: true,
+        hasPluginHybrid: false,
+        variantCount: 2,
       ),
       savedAt: entry.savedAt,
     );
     await datasource.write('clave', other);
     expect(await datasource.read('clave'), other);
-    expect(await isar.modelSummaryCacheModels.count(), 1);
+    expect(await isar.groupSummaryCacheModels.count(), 1);
   });
 }

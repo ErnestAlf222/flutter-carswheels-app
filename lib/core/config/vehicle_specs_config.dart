@@ -42,7 +42,16 @@ class VehicleSpecsConfig {
     'Standard Sport Utility Vehicle 4WD': 'SUV estándar 4WD',
     'Small Pickup Trucks 2WD': 'Pickup pequeña 2WD',
     'Small Pickup Trucks 4WD': 'Pickup pequeña 4WD',
+    'Standard Pickup Trucks 2WD': 'Pickup estándar 2WD',
+    'Standard Pickup Trucks 4WD': 'Pickup estándar 4WD',
+    'Two Seaters': 'Dos plazas',
+    'Midsize Station Wagons': 'Familiar mediana',
+    'Minivan - 2WD': 'Minivan 2WD',
+    'Minivan - 4WD': 'Minivan 4WD',
   };
+
+  // Versión de la clave del resumen; 'v2' invalida las entradas de una sola variante.
+  static const String summaryCacheKeyVersion = 'v2';
 
   // Provisional: días de vigencia del resumen guardado.
   static const int summaryCacheTimeToLiveDays = 30;

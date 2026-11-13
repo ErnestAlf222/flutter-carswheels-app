@@ -20,4 +20,19 @@ void main() {
       expect(label, isNotEmpty);
     }
   });
+
+  test('las pickups estándar tienen traducción', () {
+    expect(
+      VehicleSpecsConfig.vehicleClassLabels['Standard Pickup Trucks 2WD'],
+      'Pickup estándar 2WD',
+    );
+    expect(
+      VehicleSpecsConfig.vehicleClassLabels['Standard Pickup Trucks 4WD'],
+      'Pickup estándar 4WD',
+    );
+  });
+
+  test('la versión de la clave del resumen es v2', () {
+    expect(VehicleSpecsConfig.summaryCacheKeyVersion, 'v2');
+  });
 }

@@ -37,6 +37,8 @@ class ModelGroupingConfig {
     'audi': ['TFSI', 'Sport', 'Performance'],
     // BMW 2020: 'X1 xDrive28i', 'M2 Competition'.
     'bmw': ['xDrive', 'sDrive', 'Competition'],
+    // Tesla 2020: 'Model 3 Long Range', 'Model 3 Mid Range', 'Model 3 Standard Range'.
+    'tesla': ['Long Range', 'Mid Range', 'Standard Range'],
   };
 
   // Patrones (sin distinguir mayúsculas) de UNA palabra final; clave = marca normalizada.

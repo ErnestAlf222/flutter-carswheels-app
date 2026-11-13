@@ -12,7 +12,7 @@ Future<void> main() async {
   GoogleFonts.config.allowRuntimeFetching = false;
   final isar = await IsarDatabase.open([
     CachedPhotoModelSchema,
-    ModelSummaryCacheModelSchema,
+    GroupSummaryCacheModelSchema,
   ]);
   runApp(App(dependencies: AppDependencies.withIsar(isar)));
 }

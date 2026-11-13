@@ -122,10 +122,13 @@ void main() {
 
   group('CachedSummaryMapper', () {
     final entity = CachedSummaryEntity(
-      summary: const ModelSummaryEntity(
+      summary: const GroupSummaryEntity(
         vehicleClass: 'Compact Cars',
-        powertrain: Powertrain.pluginHybrid,
-        combinedKmPerLiter: null,
+        minKmPerLiter: 12.5,
+        maxKmPerLiter: 16.25,
+        hasElectric: true,
+        hasPluginHybrid: true,
+        variantCount: 4,
       ),
       savedAt: DateTime.fromMillisecondsSinceEpoch(1700000000000),
     );
@@ -133,21 +136,27 @@ void main() {
     test('ida y vuelta conserva la entidad', () {
       final model = CachedSummaryMapper.toModel('clave', entity);
       expect(model.key, 'clave');
-      expect(model.powertrain, 'pluginHybrid');
+      expect(model.variantCount, 4);
+      expect(model.savedAtMillis, 1700000000000);
       expect(CachedSummaryMapper.toEntity(model), entity);
     });
 
-    test('una motorización desconocida se lee como other', () {
-      final model = ModelSummaryCacheModel(
-        key: 'k',
-        vehicleClass: null,
-        powertrain: 'inventado',
-        combinedKmPerLiter: 12.5,
-        savedAtMillis: 0,
+    test('conserva los campos nulos', () {
+      final empty = CachedSummaryEntity(
+        summary: const GroupSummaryEntity(
+          vehicleClass: null,
+          minKmPerLiter: null,
+          maxKmPerLiter: null,
+          hasElectric: false,
+          hasPluginHybrid: false,
+          variantCount: 1,
+        ),
+        savedAt: entity.savedAt,
       );
-      final restored = CachedSummaryMapper.toEntity(model);
-      expect(restored.summary.powertrain, Powertrain.other);
-      expect(restored.summary.combinedKmPerLiter, 12.5);
+      expect(
+        CachedSummaryMapper.toEntity(CachedSummaryMapper.toModel('k', empty)),
+        empty,
+      );
     });
   });
 }

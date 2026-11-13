@@ -1,35 +1,38 @@
 import 'package:cars_wheels_app/features/vehicle_specs/domain/entities/cached_summary_entity.dart';
-import 'package:cars_wheels_app/features/vehicle_specs/domain/entities/model_summary_entity.dart';
-import 'package:cars_wheels_app/features/vehicle_specs/domain/entities/powertrain.dart';
-import 'package:cars_wheels_app/features/vehicle_specs/infrastructure/models/model_summary_cache_model.dart';
+import 'package:cars_wheels_app/features/vehicle_specs/domain/entities/group_summary_entity.dart';
+import 'package:cars_wheels_app/features/vehicle_specs/infrastructure/models/group_summary_cache_model.dart';
 
 /// Convierte entre la entrada guardada en Isar y la entidad de caché.
 class CachedSummaryMapper {
   const CachedSummaryMapper._();
 
-  static CachedSummaryEntity toEntity(ModelSummaryCacheModel model) {
+  static CachedSummaryEntity toEntity(GroupSummaryCacheModel model) {
     return CachedSummaryEntity(
-      summary: ModelSummaryEntity(
+      summary: GroupSummaryEntity(
         vehicleClass: model.vehicleClass,
-        powertrain: Powertrain.values.firstWhere(
-          (powertrain) => powertrain.name == model.powertrain,
-          orElse: () => Powertrain.other,
-        ),
-        combinedKmPerLiter: model.combinedKmPerLiter,
+        minKmPerLiter: model.minKmPerLiter,
+        maxKmPerLiter: model.maxKmPerLiter,
+        hasElectric: model.hasElectric,
+        hasPluginHybrid: model.hasPluginHybrid,
+        variantCount: model.variantCount,
       ),
       savedAt: DateTime.fromMillisecondsSinceEpoch(model.savedAtMillis),
     );
   }
 
-  static ModelSummaryCacheModel toModel(
+  static GroupSummaryCacheModel toModel(
     String key,
     CachedSummaryEntity entity,
   ) {
-    return ModelSummaryCacheModel(
+    final summary = entity.summary;
+    return GroupSummaryCacheModel(
       key: key,
-      vehicleClass: entity.summary.vehicleClass,
-      powertrain: entity.summary.powertrain.name,
-      combinedKmPerLiter: entity.summary.combinedKmPerLiter,
+      vehicleClass: summary.vehicleClass,
+      minKmPerLiter: summary.minKmPerLiter,
+      maxKmPerLiter: summary.maxKmPerLiter,
+      hasElectric: summary.hasElectric,
+      hasPluginHybrid: summary.hasPluginHybrid,
+      variantCount: summary.variantCount,
       savedAtMillis: entity.savedAt.millisecondsSinceEpoch,
     );
   }

@@ -283,4 +283,14 @@ void main() {
       expect(_find(groups, 'Atlas Cross Sport').variants.length, 2);
     });
   });
+
+  test('Tesla 2020: las variantes de rango forman un solo grupo Model 3', () {
+    final groups = _group('Tesla', [
+      'Model 3 Long Range',
+      'Model 3 Mid Range',
+      'Model 3 Standard Range',
+    ]);
+    expect(groups.map((g) => g.name), ['Model 3']);
+    expect(groups.single.variants.length, 3);
+  });
 }
