@@ -2,9 +2,16 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/photos/domain/entities/photo_candidate_entity.dart';
 import 'package:cars_wheels_app/features/photos/domain/entities/photo_entity.dart';
 
-// Año de cuatro dígitos al inicio, sin dígitos pegados detrás.
-final RegExp _leadingYearPattern = RegExp(
-  '^(\\d{${PhotosConfig.yearDigitCount}})(?!\\d)',
+final RegExp _titleTokenPattern = RegExp(
+  PhotosConfig.titleTokenPattern,
+  unicode: true,
+);
+final RegExp _leadingYearPattern = RegExp(PhotosConfig.leadingYearPattern);
+final RegExp _parenthesizedYearPattern = RegExp(
+  PhotosConfig.parenthesizedYearPattern,
+);
+final RegExp _suffixLettersPattern = RegExp(
+  PhotosConfig.modelKeySuffixLettersPattern,
 );
 
 /// Elige la mejor foto de una lista de candidatas.
@@ -35,19 +42,25 @@ class PhotoCandidateSelector {
     final valid = candidates
         .where((candidate) => _isValid(candidate, brandKey, modelKey))
         .toList();
-    final sameYear = valid.where((c) => _matchesYear(_titleOf(c), year));
+    final sameYear = valid.where((c) => _titleYears(c).contains(year));
     final fromYear = _bestRanked(sameYear);
     if (fromYear != null) return _toPhoto(fromYear, isReference: false);
-    final others = valid.where((c) => !_matchesYear(_titleOf(c), year));
+    final others = valid.where((c) => !_titleYears(c).contains(year));
     final fallback = _bestReference(others, year);
     if (fallback != null) return _toPhoto(fallback, isReference: true);
     return null;
   }
 
-  // Año de cuatro dígitos al inicio del título, o null si no lo trae.
-  int? _leadingYear(String title) {
-    final match = _leadingYearPattern.firstMatch(title);
-    return match == null ? null : int.parse(match.group(1)!);
+  // Años reconocidos del título: el inicial con espacio y los de paréntesis.
+  List<int> _titleYears(PhotoCandidateEntity candidate) {
+    final title = _titleOf(candidate);
+    final years = <int>[];
+    final leading = _leadingYearPattern.firstMatch(title);
+    if (leading != null) years.add(int.parse(leading.group(1)!));
+    for (final match in _parenthesizedYearPattern.allMatches(title)) {
+      years.add(int.parse(match.group(1)!));
+    }
+    return years;
   }
 
   // Con año cercano primero (menor diferencia); sin año después; lejanos fuera.
@@ -58,12 +71,14 @@ class PhotoCandidateSelector {
     final dated = <PhotoCandidateEntity, int>{};
     final undated = <PhotoCandidateEntity>[];
     for (final candidate in candidates) {
-      final leadingYear = _leadingYear(_titleOf(candidate));
-      if (leadingYear == null) {
+      final years = _titleYears(candidate);
+      if (years.isEmpty) {
         undated.add(candidate);
         continue;
       }
-      final difference = (leadingYear - year).abs();
+      final difference = years
+          .map((titleYear) => (titleYear - year).abs())
+          .reduce((a, b) => a < b ? a : b);
       if (difference <= PhotosConfig.maxReferenceYearDifference) {
         dated[candidate] = difference;
       }
@@ -93,28 +108,62 @@ class PhotoCandidateSelector {
     String modelKey,
   ) {
     final title = _titleOf(candidate);
-    final normalized = TextNormalizer.normalize(title);
     final lowerTitle = title.toLowerCase();
     final isExcluded = PhotosConfig.excludedTitleWords.any(
       (word) => lowerTitle.contains(word.toLowerCase()),
     );
     return candidate.licenseName.isNotEmpty &&
         !isExcluded &&
-        normalized.contains(brandKey) &&
-        normalized.contains(modelKey);
+        _hasModelAfterBrand(title, brandKey, modelKey);
   }
 
-  // Empieza con el año y un no dígito, o lo trae entre paréntesis.
-  bool _matchesYear(String title, int year) {
-    final yearText = '$year';
-    if (title.startsWith(yearText)) {
-      final rest = title.substring(yearText.length);
-      if (rest.isEmpty || !RegExp(r'^\d').hasMatch(rest)) return true;
+  // La marca aparece y, tras alguna aparición, el modelo está cerca.
+  bool _hasModelAfterBrand(String title, String brandKey, String modelKey) {
+    final words = title
+        .split(_titleTokenPattern)
+        .where((word) => word.isNotEmpty)
+        .toList();
+    final normalized = words.map(TextNormalizer.normalize).toList();
+    for (final start in Iterable<int>.generate(words.length)) {
+      final brandEnd = _brandEnd(normalized, start, brandKey);
+      if (brandEnd == null) continue;
+      final lastStart = brandEnd + PhotosConfig.brandModelMaxWordGap;
+      final gapSize = lastStart - brandEnd + 1;
+      for (final offset in Iterable<int>.generate(gapSize)) {
+        if (_modelStartsAt(normalized, brandEnd + offset, modelKey)) {
+          return true;
+        }
+      }
     }
-    return title.contains(
-      '${PhotosConfig.yearOpeningDelimiter}$yearText'
-      '${PhotosConfig.yearClosingDelimiter}',
-    );
+    return false;
+  }
+
+  // Fin (exclusivo) de la marca que empieza en start, o null si no coincide.
+  int? _brandEnd(List<String> normalized, int start, String brandKey) {
+    final remaining = normalized.length - start;
+    for (final span in Iterable<int>.generate(remaining, (i) => i + 1)) {
+      final joined = normalized.skip(start).take(span).join();
+      if (joined.length < brandKey.length) continue;
+      return joined == brandKey ? start + span : null;
+    }
+    return null;
+  }
+
+  // Las palabras desde index forman la clave, con letras sobrantes al final.
+  bool _modelStartsAt(List<String> normalized, int index, String modelKey) {
+    final remaining = normalized.length - index;
+    final maxSpan = remaining < PhotosConfig.modelKeyMaxTokenSpan
+        ? remaining
+        : PhotosConfig.modelKeyMaxTokenSpan;
+    for (final span in Iterable<int>.generate(maxSpan, (i) => i + 1)) {
+      final text = normalized.skip(index).take(span).join();
+      if (text == modelKey) return true;
+      if (text.startsWith(modelKey) &&
+          _suffixLettersPattern.hasMatch(text.substring(modelKey.length))) {
+        return true;
+      }
+    }
+    return false;
   }
 
   // Candidata de menor rank, o null si no hay ninguna.

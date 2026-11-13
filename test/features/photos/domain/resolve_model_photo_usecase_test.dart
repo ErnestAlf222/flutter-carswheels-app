@@ -2,6 +2,8 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../support/photos_test_support.dart';
+
 class _MemoryCache implements PhotoCacheDatasource {
   final Map<String, CachedPhotoEntity> entries = {};
   final List<int> writes = [0];
@@ -52,7 +54,7 @@ const PhotoEntity _oldPhoto = PhotoEntity(
   isReference: false,
 );
 
-const String _civicKey = 'honda|civic|2020';
+final String _civicKey = photoKeyFor('Honda', 'Civic', 2020);
 
 void main() {
   final now = DateTime(2026, 6, 1);
@@ -179,7 +181,10 @@ void main() {
     test('otro año usa otra clave', () async {
       await resolve();
       await resolve(year: 2021);
-      expect(cache.entries.keys, [_civicKey, 'honda|civic|2021']);
+      expect(cache.entries.keys, [
+        _civicKey,
+        photoKeyFor('Honda', 'Civic', 2021),
+      ]);
     });
   });
 }

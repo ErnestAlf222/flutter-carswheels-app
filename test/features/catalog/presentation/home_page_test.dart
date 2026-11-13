@@ -6,6 +6,7 @@ import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/widgets/widgets.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
+import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,6 +14,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../support/photos_test_support.dart';
+import '../../../support/summaries_test_support.dart';
 
 class _MockCatalogCubit extends MockCubit<CatalogState>
     implements CatalogCubit {}
@@ -65,6 +67,7 @@ void main() {
   late _MockCatalogCubit catalogCubit;
   late _MockModelsCubit modelsCubit;
   late MockPhotosCubit photosCubit;
+  late MockSummariesCubit summariesCubit;
   late StreamController<ModelsState> modelsEvents;
   late _MockBrandLogosCubit logosCubit;
   late StreamController<CatalogState> catalogEvents;
@@ -80,6 +83,7 @@ void main() {
     catalogCubit = _MockCatalogCubit();
     modelsCubit = _MockModelsCubit();
     photosCubit = buildMockPhotosCubit();
+    summariesCubit = buildMockSummariesCubit();
     modelsEvents = StreamController<ModelsState>.broadcast();
     logosCubit = _MockBrandLogosCubit();
     precacheCubit = _MockLogoPrecacheCubit();
@@ -122,6 +126,7 @@ void main() {
             BlocProvider<CatalogCubit>.value(value: catalogCubit),
             BlocProvider<ModelsCubit>.value(value: modelsCubit),
             BlocProvider<PhotosCubit>.value(value: photosCubit),
+            BlocProvider<SummariesCubit>.value(value: summariesCubit),
             BlocProvider<BrandLogosCubit>.value(value: logosCubit),
             BlocProvider<LogoPrecacheCubit>.value(value: precacheCubit),
           ],
@@ -392,6 +397,138 @@ void main() {
       modelsEvents.add(failed);
       await tester.pump();
       verifyNever(() => photosCubit.requestPhotos(any()));
+    });
+  });
+
+  group('resúmenes de los modelos', () {
+    List<SummaryRequest> requestsFor(
+      String brand,
+      int year,
+      Iterable<int> indexes,
+    ) => [
+      for (final index in indexes)
+        SummaryRequest(
+          brand: brand,
+          groupName: 'M$index',
+          year: year,
+          variantNames: ['M$index'],
+        ),
+    ];
+
+    testWidgets('al cargar modelos pide una vez los visibles', (tester) async {
+      await pumpHome(tester, catalog: _loaded());
+      modelsEvents.add(_models(5, 3));
+      await tester.pump();
+      verify(() => photosCubit.requestPhotos(any())).called(1);
+      verify(
+        () => summariesCubit.requestSummaries(
+          requestsFor('Marca0', 2026, [0, 1, 2]),
+        ),
+      ).called(1);
+    });
+
+    testWidgets('pide los nombres de las variantes del grupo en orden', (
+      tester,
+    ) async {
+      await pumpHome(tester, catalog: _loaded());
+      modelsEvents.add(
+        const ModelsLoaded(
+          groups: [
+            ModelGroupEntity(
+              name: 'Civic',
+              variants: [
+                ModelEntity(name: 'Civic 4Dr'),
+                ModelEntity(name: 'Civic 2Dr'),
+              ],
+            ),
+          ],
+          visibleCount: 1,
+          year: 2026,
+          brand: 'Marca0',
+        ),
+      );
+      await tester.pump();
+      verify(
+        () => summariesCubit.requestSummaries(const [
+          SummaryRequest(
+            brand: 'Marca0',
+            groupName: 'Civic',
+            year: 2026,
+            variantNames: ['Civic 4Dr', 'Civic 2Dr'],
+          ),
+        ]),
+      ).called(1);
+    });
+
+    testWidgets('al cargar más pide solo los nuevos', (tester) async {
+      final first = _models(5, 3);
+      await pumpHome(tester, catalog: _loaded(), models: first);
+      modelsEvents.add(first);
+      await tester.pump();
+      final slots = {
+        for (final index in [0, 1, 2])
+          summaryKeyFor('Marca0', 'M$index', 2026): const SummaryLoading(),
+      };
+      when(() => summariesCubit.state).thenReturn(SummariesState(slots: slots));
+      clearInteractions(summariesCubit);
+      modelsEvents.add(first.copyWith(visibleCount: 5));
+      await tester.pump();
+      verify(
+        () => summariesCubit.requestSummaries(
+          requestsFor('Marca0', 2026, [3, 4]),
+        ),
+      ).called(1);
+    });
+
+    testWidgets('al cambiar de marca cancela ambos cubits antes de pedir', (
+      tester,
+    ) async {
+      await pumpHome(tester, catalog: _loaded());
+      catalogEvents.add(_loaded(selectedIndex: 2));
+      await tester.pump();
+      modelsEvents.add(
+        const ModelsLoaded(
+          groups: [
+            ModelGroupEntity(
+              name: 'M0',
+              variants: [ModelEntity(name: 'M0')],
+            ),
+          ],
+          visibleCount: 1,
+          year: 2026,
+          brand: 'Marca2',
+        ),
+      );
+      await tester.pump();
+      verify(() => photosCubit.cancelPending()).called(1);
+      verifyInOrder([
+        () => summariesCubit.cancelPending(),
+        () => modelsCubit.load(2026, 'Marca2'),
+        () => summariesCubit.requestSummaries(requestsFor('Marca2', 2026, [0])),
+      ]);
+    });
+
+    testWidgets('al cambiar de año cancela ambos cubits', (tester) async {
+      await pumpHome(tester, catalog: _loaded());
+      catalogEvents.add(_loaded(year: 2025));
+      await tester.pump();
+      verify(() => photosCubit.cancelPending()).called(1);
+      verify(() => summariesCubit.cancelPending()).called(1);
+    });
+
+    testWidgets('un refresco fallido no pide ni cancela resúmenes', (
+      tester,
+    ) async {
+      final loaded = _models(3, 3);
+      await pumpHome(tester, catalog: _loaded(), models: loaded);
+      modelsEvents.add(loaded.refreshing());
+      await tester.pump();
+      modelsEvents.add(
+        loaded.failedRefresh(_failedRequest, const NetworkFailure('sin red')),
+      );
+      await tester.pump();
+      verifyNever(() => summariesCubit.requestSummaries(any()));
+      verifyNever(() => summariesCubit.cancelPending());
     });
   });
 

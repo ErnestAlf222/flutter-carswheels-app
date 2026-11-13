@@ -28,27 +28,27 @@ class VehicleSpecsConfig {
     'plug-in hybrid': 'pluginHybrid',
   };
 
-  // La tabla sale de la muestra real y crece con casos nuevos.
+  // Clases de FuelEconomy sin sufijo de tracción; crece con casos nuevos.
   static const Map<String, String> vehicleClassLabels = {
     'Minicompact Cars': 'Minicompacto',
     'Subcompact Cars': 'Subcompacto',
     'Compact Cars': 'Compacto',
     'Midsize Cars': 'Mediano',
     'Large Cars': 'Grande',
-    'Small Station Wagons': 'Familiar pequeña',
-    'Small Sport Utility Vehicle 2WD': 'SUV pequeña 2WD',
-    'Small Sport Utility Vehicle 4WD': 'SUV pequeña 4WD',
-    'Standard Sport Utility Vehicle 2WD': 'SUV estándar 2WD',
-    'Standard Sport Utility Vehicle 4WD': 'SUV estándar 4WD',
-    'Small Pickup Trucks 2WD': 'Pickup pequeña 2WD',
-    'Small Pickup Trucks 4WD': 'Pickup pequeña 4WD',
-    'Standard Pickup Trucks 2WD': 'Pickup estándar 2WD',
-    'Standard Pickup Trucks 4WD': 'Pickup estándar 4WD',
     'Two Seaters': 'Dos plazas',
+    'Small Station Wagons': 'Familiar pequeña',
     'Midsize Station Wagons': 'Familiar mediana',
-    'Minivan - 2WD': 'Minivan 2WD',
-    'Minivan - 4WD': 'Minivan 4WD',
+    'Small SUV': 'SUV pequeña',
+    'Standard SUV': 'SUV estándar',
+    'Small Pickup Trucks': 'Pickup pequeña',
+    'Small Pickup': 'Pickup pequeña',
+    'Standard Pickup Trucks': 'Pickup estándar',
+    'Standard Pickup': 'Pickup estándar',
+    'Minivan': 'Minivan',
   };
+
+  // Sufijo de tracción al final de la clase; se aplica sin distinguir mayúsculas.
+  static const String driveSuffixPattern = r'\s*-?\s*(2WD|4WD)$';
 
   // Versión de la clave del resumen; 'v2' invalida las entradas de una sola variante.
   static const String summaryCacheKeyVersion = 'v2';

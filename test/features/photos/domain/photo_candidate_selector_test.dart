@@ -269,4 +269,194 @@ void main() {
       expect(photo?.isReference, isTrue);
     });
   });
+
+  group('regla de posición y años', () {
+    final bmwTitles = [
+      'File:Plang nama Stasiun Bumiwaluya.jpg',
+      'File:BMW 228 xDrive Gran Coupé (F74, 2026) (55256563627).jpg',
+      'File:BMW Isetta in VEER MALL (Yekaterinburg, Russia), 2022 02.jpg',
+      'File:BMW Alpina XB7.jpg',
+      'File:BMW 535i F10 (5227267038).jpg',
+      'File:BMW 550i F10 (5226669841).jpg',
+      'File:Bmw-fahrrad-2006.jpg',
+      'File:1974 BMW E9 3.0 CSA Auto.jpg',
+      'File:2023-02-11 BMW IBU World Championships Biathlon Oberhof 2023 – Men 10 km Sprint by Sandro Halank–228.jpg',
+      'File:2023-02-14 BMW IBU World Championships Biathlon Oberhof 2023 – Men 20 km Individual by Sandro Halank–228.jpg',
+      'File:2023-02-15 BMW IBU World Championships Biathlon Oberhof 2023 – Women 15 km Individual by Sandro Halank–228.jpg',
+      'File:11-09-04-iaa-by-RalfR-228.jpg',
+      'File:2023-02-10 BMW IBU World Championships Biathlon Oberhof 2023 – Women 7.5 km Sprint by Sandro Halank–228.jpg',
+      'File:BMW M5 - Flickr - The Car Spy (18).jpg',
+      'File:Renovation Works in Bumiwaluya Station.jpg',
+      'File:BMW2022.jpeg',
+      'File:Stasiun Bumiwaluya 2020.jpg',
+      'File:KA Mutiara Selatan Bumiwaluya.jpg',
+      'File:KITLV A686 - Station Malangbong van de Staatsspoorwegen bij Garoet, KITLV 54433.tiff',
+      'File:325ix Touring.jpg',
+    ];
+    // Candidatos con rank igual a su posición (empieza en 1).
+    List<PhotoCandidateEntity> bmwCandidates() => [
+      for (final entry in bmwTitles.asMap().entries)
+        _candidate(entry.value, entry.key + 1),
+    ];
+
+    PhotoEntity? pick(String brand, String model, int year, String title) =>
+        selector.select([_candidate('File:$title', 1)], brand, model, year);
+
+    test('BMW 228 2027 elige el candidato 2 como referencia', () {
+      final photo = selector.select(bmwCandidates(), 'BMW', '228', 2027);
+      expect(photo?.sourceUrl, 'fuente-2');
+      expect(photo?.isReference, isTrue);
+    });
+
+    test('BMW 228 2026 elige el candidato 2 con año coincidente', () {
+      final photo = selector.select(bmwCandidates(), 'BMW', '228', 2026);
+      expect(photo?.sourceUrl, 'fuente-2');
+      expect(photo?.isReference, isFalse);
+    });
+
+    test('los candidatos 9, 10, 11, 12 y 13 se rechazan solos', () {
+      final candidates = bmwCandidates();
+      for (final position in [9, 10, 11, 12, 13]) {
+        final photo = selector.select(
+          [candidates[position - 1]],
+          'BMW',
+          '228',
+          2027,
+        );
+        expect(photo, isNull, reason: 'candidato $position');
+      }
+    });
+
+    test('un año con forma de fecha no es año inicial', () {
+      final photo = pick(
+        'BMW',
+        'IBU',
+        2023,
+        '2023-02-11 BMW IBU World Championships.jpg',
+      );
+      expect(photo?.isReference, isTrue);
+    });
+
+    test('Corolla LE se elige y Corolla Cross se excluye', () {
+      expect(
+        pick(
+          'Toyota',
+          'Corolla',
+          2020,
+          '2020 Toyota Corolla LE 12-13-2019.jpg',
+        )?.isReference,
+        isFalse,
+      );
+      expect(
+        pick(
+          'Toyota',
+          'Corolla',
+          2020,
+          '2020 Toyota Corolla Cross - Front.jpg',
+        ),
+        isNull,
+      );
+    });
+
+    test('BMW 330i con la clave tras tres palabras y año entre paréntesis', () {
+      final photo = pick(
+        'BMW',
+        '330i',
+        2020,
+        'BMW 3-Series (G20) 330i (2020) (52184513944).jpg',
+      );
+      expect(photo?.isReference, isFalse);
+    });
+
+    test('BMW X3 2019 es referencia para 2020', () {
+      final photo = pick('BMW', 'X3', 2020, '2019 BMW X3 xDrive30i front.jpg');
+      expect(photo?.isReference, isTrue);
+    });
+
+    test('Honda CR-V coincide con las palabras CR y V', () {
+      final photo = pick(
+        'Honda',
+        'CR-V',
+        2020,
+        '2020 Honda CR-V EX i-MMD CVT 2.0.jpg',
+      );
+      expect(photo?.isReference, isFalse);
+    });
+
+    test('Ford F150 descarta 2008 y no cuenta el 2020 del final', () {
+      final photo = pick(
+        'Ford',
+        'F150',
+        2020,
+        '2008 Ford F150, Front Left, 10-02-2020.jpg',
+      );
+      expect(photo, isNull);
+    });
+
+    test('Mercedes-Benz se reconoce como dos palabras unidas', () {
+      final photo = pick(
+        'Mercedes-Benz',
+        'C300',
+        2020,
+        '2020 Mercedes-Benz C300 AMG Line Night Edition Premium 2.0 Front.jpg',
+      );
+      expect(photo?.isReference, isFalse);
+    });
+
+    test('Aston Martin DBX sin año es referencia', () {
+      final photo = pick(
+        'Aston Martin',
+        'DBX',
+        2027,
+        'Aston Martin DBX DSC 7244.jpg',
+      );
+      expect(photo?.isReference, isTrue);
+    });
+
+    test('Kia Sportage y Toyota 86 coinciden con su año', () {
+      expect(
+        pick(
+          'Kia',
+          'Sportage',
+          2020,
+          '2020 Kia Sportage au SIAM 2020.png',
+        )?.isReference,
+        isFalse,
+      );
+      expect(
+        pick('Toyota', '86', 2020, '2020 Toyota 86 Hakone.jpg')?.isReference,
+        isFalse,
+      );
+    });
+
+    test('la clave 228 coincide con 228i pero no con 2288', () {
+      expect(pick('BMW', '228', 2027, 'BMW 228i Coupe.jpg'), isNotNull);
+      expect(pick('BMW', '228', 2027, 'BMW 2288 Coupe.jpg'), isNull);
+    });
+
+    test('el modelo antes de la marca no es válido', () {
+      expect(pick('BMW', '228', 2027, '228 BMW Coupe.jpg'), isNull);
+    });
+
+    test('el modelo a 4 palabras de la marca es válido y a 5 no', () {
+      expect(
+        pick('BMW', '228', 2027, 'BMW uno dos tres cuatro 228.jpg'),
+        isNotNull,
+      );
+      expect(
+        pick('BMW', '228', 2027, 'BMW uno dos tres cuatro cinco 228.jpg'),
+        isNull,
+      );
+    });
+
+    test('una segunda aparición de la marca puede traer el modelo', () {
+      final photo = pick(
+        'BMW',
+        '228',
+        2027,
+        'BMW uno dos tres cuatro cinco BMW 228.jpg',
+      );
+      expect(photo, isNotNull);
+    });
+  });
 }

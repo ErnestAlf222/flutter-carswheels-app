@@ -21,15 +21,35 @@ void main() {
     }
   });
 
-  test('las pickups estándar tienen traducción', () {
+  test('la tabla de clases no trae sufijos de tracción', () {
+    final suffix = RegExp(
+      VehicleSpecsConfig.driveSuffixPattern,
+      caseSensitive: false,
+    );
+    for (final key in VehicleSpecsConfig.vehicleClassLabels.keys) {
+      expect(suffix.hasMatch(key), isFalse, reason: key);
+    }
+  });
+
+  test('las pickups estándar tienen traducción sin tracción', () {
     expect(
-      VehicleSpecsConfig.vehicleClassLabels['Standard Pickup Trucks 2WD'],
-      'Pickup estándar 2WD',
+      VehicleSpecsConfig.vehicleClassLabels['Standard Pickup Trucks'],
+      'Pickup estándar',
     );
     expect(
-      VehicleSpecsConfig.vehicleClassLabels['Standard Pickup Trucks 4WD'],
-      'Pickup estándar 4WD',
+      VehicleSpecsConfig.vehicleClassLabels['Standard Pickup'],
+      'Pickup estándar',
     );
+  });
+
+  test('el patrón de tracción reconoce 2WD y 4WD con o sin guion', () {
+    final suffix = RegExp(
+      VehicleSpecsConfig.driveSuffixPattern,
+      caseSensitive: false,
+    );
+    expect(suffix.hasMatch('Minivan - 2WD'), isTrue);
+    expect(suffix.hasMatch('Small SUV 4WD'), isTrue);
+    expect(suffix.hasMatch('Compact Cars'), isFalse);
   });
 
   test('la versión de la clave del resumen es v2', () {

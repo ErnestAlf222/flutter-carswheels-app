@@ -27,6 +27,16 @@ class AppTextStyles {
     fontSize: 26,
     color: AppColors.ink,
   );
+  static final TextStyle consumptionFigure = GoogleFonts.outfit(
+    fontWeight: FontWeight.w700,
+    fontSize: 22,
+    color: AppColors.gradientStart,
+  );
+  static final TextStyle consumptionUnit = GoogleFonts.inter(
+    fontWeight: FontWeight.w500,
+    fontSize: 11,
+    color: AppColors.subtle,
+  );
   static final TextStyle body = GoogleFonts.inter(
     fontWeight: FontWeight.w400,
     fontSize: 15,

@@ -29,6 +29,12 @@ class UiConfig {
   static const double skeletonShortBarFraction = 0.45;
   // Escala máxima del pulso del esqueleto.
   static const double skeletonPulseScale = 1.02;
+  // Columna de consumo de la tarjeta de modelo y sus barras de esqueleto.
+  static const double modelConsumptionColumnWidth = 84.0;
+  static const double summarySkeletonBarHeight = 10.0;
+  static const double summarySkeletonLongBarWidth = 56.0;
+  static const double summarySkeletonShortBarWidth = 36.0;
+  static const double powertrainBadgeIconSize = 14.0;
   // Alturas provisionales del encabezado fijo; se ajustan viendo la pantalla.
   static const double headerExpandedHeight = 188.0;
   static const double headerCompactHeight = 72.0;

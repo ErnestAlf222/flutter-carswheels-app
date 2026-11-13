@@ -32,4 +32,20 @@ class AppTexts {
       count == 1 ? '1 versión' : '$count versiones';
 
   static String brandTileLabel(String name) => 'Marca $name';
+
+  static const String electricLabel = 'Eléctrico';
+  static const String pluginHybridLabel = 'Híbrido enchufable';
+  static const String electricAndPluginLabel = 'Eléctrico e híbrido enchufable';
+  static const String consumptionUnitLabel = 'km/l combinado';
+  static const String mixedPowertrainSemanticLabel =
+      'Incluye versiones eléctricas o híbridas enchufables';
+  static const String classAndVersionsSeparator = ' · ';
+
+  /// Cifra de consumo: un solo número si el rango redondea igual.
+  static String consumptionFigureLabel(int min, int max) =>
+      min == max ? '$min' : '$min–$max';
+
+  /// Etiqueta de accesibilidad de una fila de modelo.
+  static String modelSummarySemanticLabel(String name, String? consumption) =>
+      consumption == null ? name : '$name, $consumption';
 }

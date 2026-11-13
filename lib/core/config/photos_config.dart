@@ -105,6 +105,21 @@ class PhotosConfig {
   static const int missingRank = 1000000;
   static const int yearDigitCount = 4;
 
+  // Separadores de palabras del título.
+  static const String titleTokenPattern = r'[^\p{L}\p{N}]+';
+  // Máximo de palabras entre el final de la marca y el inicio del modelo.
+  static const int brandModelMaxWordGap = 4;
+  // La clave del modelo puede ocupar de 1 a 3 palabras consecutivas.
+  static const int modelKeyMaxTokenSpan = 3;
+  // Lo que puede sobrar tras la clave dentro de una palabra: solo letras.
+  static const String modelKeySuffixLettersPattern = r'^[a-z]+$';
+  // Un año al inicio solo cuenta si va seguido de un espacio.
+  static const String leadingYearPattern = r'^(\d{4})\s+';
+  // Cualquier año de cuatro dígitos dentro de unos paréntesis.
+  static const String parenthesizedYearPattern = r'\([^)]*?\b(\d{4})\b[^)]*\)';
+  // Invalida las fotos guardadas con el selector anterior.
+  static const String photoCacheKeyVersion = 'v2';
+
   // Tabla de excepciones que crece con los casos reales.
   static const Map<String, String> photoSearchTermAliases = {
     'f150': 'F-150',

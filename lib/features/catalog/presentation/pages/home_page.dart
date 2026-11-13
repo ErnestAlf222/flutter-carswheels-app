@@ -6,6 +6,7 @@ import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/cubits/cubits.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/widgets/widgets.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
+import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 
 /// Pantalla de inicio con el carrusel de marcas y sus modelos.
 class HomePage extends StatelessWidget {
@@ -21,6 +22,7 @@ class HomePage extends StatelessWidget {
             if (state is! CatalogLoaded) return;
             // Lo que no empezó con la selección anterior ya no hace falta.
             context.read<PhotosCubit>().cancelPending();
+            context.read<SummariesCubit>().cancelPending();
             context.read<ModelsCubit>().load(
               state.year,
               state.brands[state.selectedIndex].name,
@@ -33,7 +35,7 @@ class HomePage extends StatelessWidget {
         ),
         const BlocListener<ModelsCubit, ModelsState>(
           listenWhen: _shouldRequestPhotos,
-          listener: _requestPhotos,
+          listener: _requestPhotosAndSummaries,
         ),
         BlocListener<BrandLogosCubit, BrandLogosState>(
           listenWhen: (previous, current) => current is BrandLogosLoaded,
@@ -100,9 +102,18 @@ class HomePage extends StatelessWidget {
         previous.brand != current.brand;
   }
 
-  // Pide las fotos visibles que aún no se pidieron, en el orden de la lista.
-  static void _requestPhotos(BuildContext context, ModelsState state) {
+  // Pide fotos y resúmenes de los grupos visibles, en el orden de la lista.
+  static void _requestPhotosAndSummaries(
+    BuildContext context,
+    ModelsState state,
+  ) {
     if (state is! ModelsLoaded) return;
+    _requestPhotos(context, state);
+    _requestSummaries(context, state);
+  }
+
+  // Pide las fotos visibles que aún no se pidieron, en el orden de la lista.
+  static void _requestPhotos(BuildContext context, ModelsLoaded state) {
     final photos = context.read<PhotosCubit>();
     final requests = <PhotoRequest>[
       for (final group in state.groups.take(state.visibleCount))
@@ -114,6 +125,31 @@ class HomePage extends StatelessWidget {
     }).toList();
     if (missing.isEmpty) return;
     photos.requestPhotos(missing);
+  }
+
+  // Pide los resúmenes visibles que aún no se pidieron o fallaron.
+  static void _requestSummaries(BuildContext context, ModelsLoaded state) {
+    final summaries = context.read<SummariesCubit>();
+    final requests = <SummaryRequest>[
+      for (final group in state.groups.take(state.visibleCount))
+        SummaryRequest(
+          brand: state.brand,
+          groupName: group.name,
+          year: state.year,
+          variantNames: group.variants.map((variant) => variant.name).toList(),
+        ),
+    ];
+    final missing = requests.where((request) {
+      final slot =
+          summaries.state.slots[summaries.keyFor(
+            request.brand,
+            request.groupName,
+            request.year,
+          )];
+      return slot == null || slot is SummaryFailed;
+    }).toList();
+    if (missing.isEmpty) return;
+    summaries.requestSummaries(missing);
   }
 
   // Precarga los logos de las primeras marcas cuando marcas y logos están.

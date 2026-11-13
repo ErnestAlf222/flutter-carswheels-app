@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/catalog/domain/domain.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
+import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 
-/// Tarjeta de un grupo de modelo con su foto, su nombre y sus versiones.
+/// Tarjeta de un grupo de modelo con su foto, nombre, clase y consumo.
 class ModelCardWidget extends StatelessWidget {
   const ModelCardWidget({
     super.key,
@@ -28,52 +31,59 @@ class ModelCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final name = group.name;
     final versions = group.variants.length;
-    final card = Semantics(
-      label: name,
-      excludeSemantics: true,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(
-          UiConfig.modelCardLeftPadding,
-          AppSpacing.xs,
-          UiConfig.modelCardRightPadding,
-          AppSpacing.xs,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(AppRadii.card),
-          boxShadow: AppShadows.soft,
-        ),
-        child: Row(
-          children: [
-            ModelPhotoWidget(
-              brand: brand,
-              model: name,
-              year: year,
-              width: UiConfig.modelPhotoWidth,
-              height: UiConfig.modelPhotoHeight,
-              borderRadius: AppRadii.tile,
-            ),
-            const SizedBox(width: UiConfig.modelCardGap),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.cardTitle,
-                  ),
-                  if (versions > 1)
-                    Text(
-                      AppTexts.versionsCountLabel(versions),
-                      style: AppTextStyles.caption,
-                    ),
-                ],
+    final summaryKey = context.read<SummariesCubit>().keyFor(brand, name, year);
+    final card = BlocSelector<SummariesCubit, SummariesState, String?>(
+      selector: (state) => state.consumptionLabelFor(summaryKey),
+      builder: (context, consumption) => Semantics(
+        label: AppTexts.modelSummarySemanticLabel(name, consumption),
+        excludeSemantics: true,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(
+            UiConfig.modelCardLeftPadding,
+            AppSpacing.xs,
+            UiConfig.modelCardRightPadding,
+            AppSpacing.xs,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(AppRadii.card),
+            boxShadow: AppShadows.soft,
+          ),
+          child: Row(
+            children: [
+              ModelPhotoWidget(
+                brand: brand,
+                model: name,
+                year: year,
+                width: UiConfig.modelPhotoWidth,
+                height: UiConfig.modelPhotoHeight,
+                borderRadius: AppRadii.tile,
               ),
-            ),
-          ],
+              const SizedBox(width: UiConfig.modelCardGap),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.cardTitle,
+                    ),
+                    ModelClassLineWidget(
+                      brand: brand,
+                      groupName: name,
+                      year: year,
+                      versionsCount: versions,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: UiConfig.modelCardGap),
+              ModelConsumptionWidget(brand: brand, groupName: name, year: year),
+            ],
+          ),
         ),
       ),
     );

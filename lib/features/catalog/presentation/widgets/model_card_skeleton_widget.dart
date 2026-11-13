@@ -42,6 +42,18 @@ class ModelCardSkeletonWidget extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(width: UiConfig.modelCardGap),
+          const SizedBox(
+            width: UiConfig.modelConsumptionColumnWidth,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                _SummaryBar(width: UiConfig.summarySkeletonLongBarWidth),
+                SizedBox(height: AppSpacing.xs),
+                _SummaryBar(width: UiConfig.summarySkeletonShortBarWidth),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -75,6 +87,25 @@ class _SkeletonBar extends StatelessWidget {
           color: AppColors.line,
           borderRadius: BorderRadius.circular(UiConfig.skeletonBarHeight),
         ),
+      ),
+    );
+  }
+}
+
+/// Barra fija de la columna de consumo.
+class _SummaryBar extends StatelessWidget {
+  const _SummaryBar({required this.width});
+
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: UiConfig.summarySkeletonBarHeight,
+      decoration: BoxDecoration(
+        color: AppColors.line,
+        borderRadius: BorderRadius.circular(UiConfig.summarySkeletonBarHeight),
       ),
     );
   }

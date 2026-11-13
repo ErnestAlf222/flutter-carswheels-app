@@ -4,6 +4,7 @@ import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/widgets/widgets.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
+import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,6 +13,7 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../../support/brand_logos_test_support.dart';
 import '../../../support/photos_test_support.dart';
+import '../../../support/summaries_test_support.dart';
 
 class _MockModelsCubit extends MockCubit<ModelsState> implements ModelsCubit {}
 
@@ -42,6 +44,7 @@ void main() {
       providers: [
         BlocProvider<ModelsCubit>.value(value: modelsCubit),
         BlocProvider<PhotosCubit>.value(value: photosCubit),
+        BlocProvider<SummariesCubit>.value(value: buildMockSummariesCubit()),
         BlocProvider<BrandLogosCubit>.value(value: buildMockBrandLogosCubit()),
       ],
       child: Scaffold(

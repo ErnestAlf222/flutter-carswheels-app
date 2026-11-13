@@ -9,6 +9,7 @@ import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/navigation/navigation.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
+import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 
 /// Widget raíz de la app.
 class App extends StatefulWidget {
@@ -75,6 +76,14 @@ class _AppState extends State<App> {
               resolveModelPhoto: _dependencies.resolveModelPhotoUseCase,
               cancelPendingPhotos: _dependencies.cancelPendingPhotosUseCase,
               keyBuilder: _dependencies.photoKeyBuilder,
+            ),
+          ),
+          BlocProvider<SummariesCubit>(
+            create: (_) => SummariesCubit(
+              resolveGroupSummary: _dependencies.resolveGroupSummaryUseCase,
+              cancelPendingSummaries:
+                  _dependencies.cancelPendingSummariesUseCase,
+              keyBuilder: const SummaryKeyBuilder(),
             ),
           ),
           BlocProvider<LogoPrecacheCubit>(create: (_) => LogoPrecacheCubit()),
