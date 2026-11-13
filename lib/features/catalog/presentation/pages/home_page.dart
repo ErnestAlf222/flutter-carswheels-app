@@ -51,9 +51,23 @@ class HomePage extends StatelessWidget {
             bottom: false,
             child: BlocBuilder<CatalogCubit, CatalogState>(
               builder: (context, state) => switch (state) {
-                CatalogInitial() || CatalogLoading() => const AppLoader(),
-                CatalogError() => ErrorStateWidget(
-                  onRetry: context.read<CatalogCubit>().retry,
+                CatalogInitial() || CatalogLoading() => const CustomScrollView(
+                  slivers: [
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: AppLoader(),
+                    ),
+                  ],
+                ),
+                CatalogError() => CustomScrollView(
+                  slivers: [
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: ErrorStateWidget(
+                        onRetry: context.read<CatalogCubit>().retry,
+                      ),
+                    ),
+                  ],
                 ),
                 CatalogLoaded() => _LoadedContent(state: state),
               },
@@ -121,6 +135,8 @@ class HomePage extends StatelessWidget {
     BuildContext context,
     ScrollNotification notification,
   ) {
+    // El carrusel horizontal no pagina la lista.
+    if (notification.metrics.axis != Axis.vertical) return;
     if (notification.metrics.extentAfter >=
         CatalogConfig.loadMoreThresholdPixels) {
       return;
@@ -134,50 +150,102 @@ class HomePage extends StatelessWidget {
 }
 
 /// Contenido de la pantalla con las marcas cargadas.
-class _LoadedContent extends StatelessWidget {
+class _LoadedContent extends StatefulWidget {
   const _LoadedContent({required this.state});
 
   final CatalogLoaded state;
 
   @override
+  State<_LoadedContent> createState() => _LoadedContentState();
+}
+
+class _LoadedContentState extends State<_LoadedContent>
+    with SingleTickerProviderStateMixin {
+  @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.xl,
-        AppSpacing.xl,
-        AppSpacing.xl,
-        UiConfig.navClearance,
-      ),
-      children: [
-        Text(AppConfig.appName, style: AppTextStyles.cardTitle),
-        const SizedBox(height: AppSpacing.xl),
-        RefreshableContentWidget(
-          isRefreshing: state.isRefreshing,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _BrandsHeader(state: state),
-              if (state.refreshFailure != null)
-                InlineMessageWidget(
-                  message: AppTexts.refreshFailedLabel,
-                  actionLabel: AppTexts.retryButtonLabel,
-                  onAction: context.read<CatalogCubit>().retry,
-                ),
-              const SizedBox(height: AppSpacing.m),
-              if (state.brands.isEmpty)
-                const EmptyStateWidget()
-              else ...[
-                const BrandCarouselWidget(),
-                const SizedBox(height: AppSpacing.xl),
-                BlocBuilder<ModelsCubit, ModelsState>(
-                  builder: (context, modelsState) => ModelsSectionWidget(
-                    brandName: state.brands[state.selectedIndex].name,
-                    state: modelsState,
-                  ),
-                ),
-              ],
-            ],
+    final state = widget.state;
+    final cubit = context.read<CatalogCubit>();
+    final hasBrands = state.brands.isNotEmpty;
+    final snapDuration = MediaQuery.of(context).disableAnimations
+        ? Duration.zero
+        : const Duration(milliseconds: AnimationConfig.headerSnapMilliseconds);
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.xl,
+              AppSpacing.xl,
+              AppSpacing.xl,
+              AppSpacing.m,
+            ),
+            child: Text(AppConfig.appName, style: AppTextStyles.cardTitle),
           ),
+        ),
+        if (hasBrands)
+          SliverPersistentHeader(
+            pinned: true,
+            floating: true,
+            delegate: BrandHeaderDelegate(
+              year: state.year,
+              availableYears: state.availableYears,
+              brandCount: state.brands.length,
+              selectedIndex: state.selectedIndex,
+              windowStart: state.windowStart,
+              brandName: state.brands[state.selectedIndex].name,
+              isRefreshing: state.isRefreshing,
+              snapDuration: snapDuration,
+              onOlderYear: cubit.showOlderYear,
+              onNewerYear: cubit.showNewerYear,
+              vsync: this,
+            ),
+          )
+        else
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              child: _BrandsHeader(state: state),
+            ),
+          ),
+        if (state.refreshFailure != null)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xl,
+                AppSpacing.m,
+                AppSpacing.xl,
+                0,
+              ),
+              child: InlineMessageWidget(
+                message: AppTexts.refreshFailedLabel,
+                actionLabel: AppTexts.retryButtonLabel,
+                onAction: cubit.retry,
+              ),
+            ),
+          ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.xl,
+              AppSpacing.m,
+              AppSpacing.xl,
+              0,
+            ),
+            child: RefreshableContentWidget(
+              isRefreshing: state.isRefreshing,
+              child: hasBrands
+                  ? BlocBuilder<ModelsCubit, ModelsState>(
+                      builder: (context, modelsState) => ModelsSectionWidget(
+                        brandName: state.brands[state.selectedIndex].name,
+                        state: modelsState,
+                      ),
+                    )
+                  : const EmptyStateWidget(),
+            ),
+          ),
+        ),
+        const SliverToBoxAdapter(
+          child: SizedBox(height: UiConfig.navClearance),
         ),
       ],
     );

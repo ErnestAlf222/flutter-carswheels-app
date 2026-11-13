@@ -138,8 +138,9 @@ void main() {
     await pumpHome(tester, catalog: _loaded(), models: _models(3, 3));
     await tester.pumpAndSettle();
     expect(find.byType(BrandCarouselWidget), findsOneWidget);
-    expect(find.byType(YearSelectorWidget), findsOneWidget);
-    expect(find.text('2026'), findsOneWidget);
+    // El encabezado tiene una copia expandida y otra compacta.
+    expect(find.byType(YearSelectorWidget), findsNWidgets(2));
+    expect(find.text('2026'), findsNWidgets(2));
     expect(find.byType(ModelsSectionWidget), findsOneWidget);
     expect(find.byType(ModelCardWidget), findsNWidgets(3));
     expect(find.text('3 modelos'), findsOneWidget);
@@ -449,7 +450,7 @@ void main() {
           brand: 'Marca0',
         ),
       );
-      await tester.drag(find.byType(ListView), const Offset(0, -300));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -300));
       await tester.pump();
       await tester.tap(find.text(AppTexts.retryButtonLabel));
       verify(() => modelsCubit.retry()).called(1);
@@ -474,7 +475,7 @@ void main() {
     testWidgets('llegar al final con hasMore llama a loadMore', (tester) async {
       await pumpHome(tester, catalog: _loaded(), models: _models(30, 10));
       await tester.pumpAndSettle();
-      await tester.drag(find.byType(ListView), const Offset(0, -5000));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -5000));
       await tester.pump();
       verify(() => modelsCubit.loadMore()).called(greaterThan(0));
     });
@@ -484,7 +485,7 @@ void main() {
     ) async {
       await pumpHome(tester, catalog: _loaded(), models: _models(10, 10));
       await tester.pumpAndSettle();
-      await tester.drag(find.byType(ListView), const Offset(0, -5000));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -5000));
       await tester.pump();
       verifyNever(() => modelsCubit.loadMore());
     });
@@ -492,7 +493,7 @@ void main() {
     testWidgets('lejos del final no llama a loadMore', (tester) async {
       await pumpHome(tester, catalog: _loaded(), models: _models(30, 10));
       await tester.pumpAndSettle();
-      await tester.drag(find.byType(ListView), const Offset(0, -20));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -20));
       await tester.pump();
       verifyNever(() => modelsCubit.loadMore());
     });

@@ -11,4 +11,9 @@ class AnimationConfig {
   static const int skeletonPulseMilliseconds = 1200;
   static const int sectionLoaderVisibleMilliseconds = 400;
   static const int sectionLoaderFadeMilliseconds = 150;
+  // Rebote del encabezado fijo al volver a expandirse.
+  static const int headerSnapMilliseconds = 320;
+  // Fracciones del encogimiento en que el contenido expandido se desvanece.
+  static const double headerContentFadeStart = 0.35;
+  static const double headerContentFadeEnd = 0.75;
 }

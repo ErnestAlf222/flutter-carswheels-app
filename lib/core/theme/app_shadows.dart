@@ -19,6 +19,11 @@ class AppShadows {
     ),
   ];
 
+  // Sombra del encabezado fijo; solo se muestra al estar encogido.
+  static const List<BoxShadow> headerBottom = [
+    BoxShadow(color: AppColors.shadow, blurRadius: 12, offset: Offset(0, 4)),
+  ];
+
   // Anillo sólido del color del degradado, sin desenfoque.
   static BoxShadow selectedRing(double width) => BoxShadow(
     color: AppColors.gradientStart,

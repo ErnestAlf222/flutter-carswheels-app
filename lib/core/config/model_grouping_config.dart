@@ -26,7 +26,6 @@ class ModelGroupingConfig {
     'coupe',
     'convertible',
     'avant',
-    'sportback',
     'twin motor',
     // BMW 2020: '228i xDrive Gran Coupe', '640i xDrive Gran Turismo'.
     'gran coupe',

@@ -29,6 +29,10 @@ class UiConfig {
   static const double skeletonShortBarFraction = 0.45;
   // Escala máxima del pulso del esqueleto.
   static const double skeletonPulseScale = 1.02;
+  // Alturas provisionales del encabezado fijo; se ajustan viendo la pantalla.
+  static const double headerExpandedHeight = 188.0;
+  static const double headerCompactHeight = 72.0;
+  static const double headerCompactLogoSize = 40.0;
   // Temporales: solo las usa la pantalla de relleno.
   static const int placeholderItemCount = 30;
   static const double placeholderItemHeight = 72.0;
