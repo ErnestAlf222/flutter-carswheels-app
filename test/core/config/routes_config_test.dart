@@ -9,6 +9,7 @@ void main() {
       RoutesConfig.compare,
       RoutesConfig.favorites,
       RoutesConfig.settings,
+      RoutesConfig.detail,
     ];
     expect(routes.toSet().length, routes.length);
     expect(routes.every((route) => route.startsWith('/')), isTrue);

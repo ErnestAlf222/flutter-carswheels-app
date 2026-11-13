@@ -12,6 +12,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../support/brand_logos_test_support.dart';
+import '../../../support/class_translator_test_support.dart';
 import '../../../support/photos_test_support.dart';
 import '../../../support/summaries_test_support.dart';
 
@@ -40,16 +41,20 @@ void main() {
   });
 
   Widget section(ModelsState state) => MaterialApp(
-    home: MultiBlocProvider(
-      providers: [
-        BlocProvider<ModelsCubit>.value(value: modelsCubit),
-        BlocProvider<PhotosCubit>.value(value: photosCubit),
-        BlocProvider<SummariesCubit>.value(value: buildMockSummariesCubit()),
-        BlocProvider<BrandLogosCubit>.value(value: buildMockBrandLogosCubit()),
-      ],
-      child: Scaffold(
-        body: SingleChildScrollView(
-          child: ModelsSectionWidget(brandName: 'Honda', state: state),
+    home: withClassTranslator(
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<ModelsCubit>.value(value: modelsCubit),
+          BlocProvider<PhotosCubit>.value(value: photosCubit),
+          BlocProvider<SummariesCubit>.value(value: buildMockSummariesCubit()),
+          BlocProvider<BrandLogosCubit>.value(
+            value: buildMockBrandLogosCubit(),
+          ),
+        ],
+        child: Scaffold(
+          body: SingleChildScrollView(
+            child: ModelsSectionWidget(brandName: 'Honda', state: state),
+          ),
         ),
       ),
     ),

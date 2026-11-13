@@ -37,9 +37,12 @@ class VehicleDetailBuilder {
       combinedKmPerLiter: isCombustion
           ? _toKmPerLiter(record.combinedMpg)
           : null,
-      annualFuelCostUsd: record.annualFuelCostUsd,
+      annualFuelCostUsd: _validCost(record.annualFuelCostUsd),
     );
   }
+
+  // Un costo de 0 es un dato no calculado (hidrógeno), no un costo real.
+  int? _validCost(int? cost) => cost == null || cost <= 0 ? null : cost;
 
   double? _toKmPerLiter(double? mpg) {
     return mpg == null

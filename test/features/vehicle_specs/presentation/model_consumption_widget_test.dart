@@ -59,7 +59,7 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(consumption(slot: const SummaryLoading()));
-    final bars = find.byType(SummarySkeletonBarWidget);
+    final bars = find.byType(SkeletonBarWidget);
     expect(bars, findsNWidgets(2));
     expect(
       tester.getSize(bars.first),
@@ -287,7 +287,7 @@ void main() {
       await tester.pumpWidget(consumption(slot: slot));
       await tester.pumpAndSettle();
       expect(find.byType(Text), findsNothing);
-      expect(find.byType(SummarySkeletonBarWidget), findsNothing);
+      expect(find.byType(SkeletonBarWidget), findsNothing);
       expectFixedWidth(tester);
     }
   });

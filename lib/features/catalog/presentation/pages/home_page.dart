@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
+import 'package:cars_wheels_app/features/catalog/domain/domain.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/cubits/cubits.dart';
+import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/widgets/widgets.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
@@ -166,6 +169,28 @@ class HomePage extends StatelessWidget {
     context.read<LogoPrecacheCubit>().precache(context, urls);
   }
 
+  // Abre Detalle con lo que la lista ya sabe del grupo, incluida su foto.
+  static void _openDetail(
+    BuildContext context,
+    ModelsLoaded state,
+    ModelGroupEntity group,
+  ) {
+    final photos = context.read<PhotosCubit>();
+    final heroTag = photos.keyFor(
+      PhotoRequest(brand: state.brand, model: group.name, year: state.year),
+    );
+    final slot = photos.state.slots[heroTag];
+    final args = DetailArgsEntity(
+      brand: state.brand,
+      groupName: group.name,
+      year: state.year,
+      variantNames: [for (final variant in group.variants) variant.name],
+      photo: slot is PhotoFound ? slot.photo : null,
+      heroTag: heroTag,
+    );
+    context.push(RoutesConfig.detail, extra: args);
+  }
+
   // Pide la siguiente página cuando el scroll se acerca al final.
   static void _loadMoreNearEnd(
     BuildContext context,
@@ -274,6 +299,13 @@ class _LoadedContentState extends State<_LoadedContent>
                       builder: (context, modelsState) => ModelsSectionWidget(
                         brandName: state.brands[state.selectedIndex].name,
                         state: modelsState,
+                        onGroupTap: modelsState is ModelsLoaded
+                            ? (group) => HomePage._openDetail(
+                                context,
+                                modelsState,
+                                group,
+                              )
+                            : null,
                       ),
                     )
                   : const EmptyStateWidget(),

@@ -5,6 +5,7 @@ import 'package:isar_community/isar.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
+import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 
@@ -26,6 +27,12 @@ class AppDependencies {
     required this.getGroupOptionsUseCase,
     required this.resolveVehicleDetailUseCase,
     required this.vehicleClassTranslator,
+    required this.driveLabeler,
+    required this.fuelTypeLabeler,
+    required this.transmissionLabeler,
+    required this.versionDescriptorBuilder,
+    required this.defaultVersionSelector,
+    required this.loadGroupDetailsUseCase,
     required this.commonsQueue,
     required this.fuelEconomyQueue,
     required this.closeStorage,
@@ -125,6 +132,17 @@ class AppDependencies {
       queue: fuelEconomyQueue,
     );
     final getGroupSummary = GetGroupSummaryUseCase(vehicleSpecsRepository);
+    final getGroupOptions = GetGroupOptionsUseCase(vehicleSpecsRepository);
+    final resolveVehicleDetail = ResolveVehicleDetailUseCase(
+      cache: detailCache,
+      repository: vehicleSpecsRepository,
+      keyBuilder: const VehicleDetailKeyBuilder(),
+      clock: DateTime.now,
+    );
+    const transmissionLabeler = TransmissionLabeler(
+      onUntranslated: _logUntranslatedText,
+    );
+    const defaultVersionSelector = DefaultVersionSelector();
     return AppDependencies._(
       catalogRepository: repository,
       getAvailableYearsUseCase: getAvailableYears,
@@ -158,15 +176,24 @@ class AppDependencies {
       cancelPendingSummariesUseCase: CancelPendingSummariesUseCase(
         vehicleSpecsRepository,
       ),
-      getGroupOptionsUseCase: GetGroupOptionsUseCase(vehicleSpecsRepository),
-      resolveVehicleDetailUseCase: ResolveVehicleDetailUseCase(
-        cache: detailCache,
-        repository: vehicleSpecsRepository,
-        keyBuilder: const VehicleDetailKeyBuilder(),
-        clock: DateTime.now,
-      ),
+      getGroupOptionsUseCase: getGroupOptions,
+      resolveVehicleDetailUseCase: resolveVehicleDetail,
       vehicleClassTranslator: const VehicleClassTranslator(
         onUntranslated: _logUntranslatedClass,
+      ),
+      driveLabeler: const DriveLabeler(onUntranslated: _logUntranslatedText),
+      fuelTypeLabeler: const FuelTypeLabeler(
+        onUntranslated: _logUntranslatedText,
+      ),
+      transmissionLabeler: transmissionLabeler,
+      versionDescriptorBuilder: const VersionDescriptorBuilder(
+        transmissionLabeler: transmissionLabeler,
+      ),
+      defaultVersionSelector: defaultVersionSelector,
+      loadGroupDetailsUseCase: LoadGroupDetailsUseCase(
+        getGroupOptions: getGroupOptions,
+        resolveVehicleDetail: resolveVehicleDetail,
+        defaultVersionSelector: defaultVersionSelector,
       ),
       commonsQueue: commonsQueue,
       fuelEconomyQueue: fuelEconomyQueue,
@@ -189,6 +216,12 @@ class AppDependencies {
   final GetGroupOptionsUseCase getGroupOptionsUseCase;
   final ResolveVehicleDetailUseCase resolveVehicleDetailUseCase;
   final VehicleClassTranslator vehicleClassTranslator;
+  final DriveLabeler driveLabeler;
+  final FuelTypeLabeler fuelTypeLabeler;
+  final TransmissionLabeler transmissionLabeler;
+  final VersionDescriptorBuilder versionDescriptorBuilder;
+  final DefaultVersionSelector defaultVersionSelector;
+  final LoadGroupDetailsUseCase loadGroupDetailsUseCase;
   final RateLimitedQueue commonsQueue;
   final ConcurrencyLimitedQueue fuelEconomyQueue;
   final Future<void> Function() closeStorage;
@@ -201,6 +234,13 @@ class AppDependencies {
       debugPrint(
         '${VehicleSpecsConfig.untranslatedClassLogPrefix}$originalClass',
       );
+    }
+  }
+
+  // Solo en depuración: avisa de una tracción, combustible o transmisión sin traducción.
+  static void _logUntranslatedText(String original) {
+    if (kDebugMode) {
+      debugPrint('${VehicleSpecsConfig.untranslatedTextLogPrefix}$original');
     }
   }
 

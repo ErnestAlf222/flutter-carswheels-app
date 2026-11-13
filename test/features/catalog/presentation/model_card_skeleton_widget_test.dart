@@ -18,8 +18,10 @@ void main() {
     await tester.pumpWidget(host());
     await tester.pump();
     expect(find.byType(ModelCardSkeletonWidget), findsOneWidget);
-    expect(find.byType(Pulse), findsOneWidget);
-    expect(tester.widget<Pulse>(find.byType(Pulse)).infinite, isTrue);
+    // Cada barra pulsa por su cuenta.
+    expect(find.byType(SkeletonBarWidget), findsNWidgets(4));
+    expect(find.byType(Pulse), findsNWidgets(4));
+    expect(tester.widget<Pulse>(find.byType(Pulse).first).infinite, isTrue);
   });
 
   testWidgets('con disableAnimations se construye sin pulso', (tester) async {

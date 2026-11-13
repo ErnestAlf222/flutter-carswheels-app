@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/domain/domain.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/presentation/cubits/cubits.dart';
-import 'package:cars_wheels_app/features/vehicle_specs/presentation/widgets/summary_skeleton_bar_widget.dart';
 
 /// Línea bajo el nombre del modelo con su clase y la cantidad de versiones.
 class ModelClassLineWidget extends StatelessWidget {
@@ -14,18 +13,17 @@ class ModelClassLineWidget extends StatelessWidget {
     required this.groupName,
     required this.year,
     required this.versionsCount,
-    this.translator = const VehicleClassTranslator(),
   });
 
   final String brand;
   final String groupName;
   final int year;
   final int versionsCount;
-  final VehicleClassTranslator translator;
 
   @override
   Widget build(BuildContext context) {
     final key = context.read<SummariesCubit>().keyFor(brand, groupName, year);
+    final translator = context.read<VehicleClassTranslator>();
     return BlocSelector<SummariesCubit, SummariesState, SummarySlot?>(
       selector: (state) => state.slots[key],
       builder: (context, slot) {
@@ -40,14 +38,14 @@ class ModelClassLineWidget extends StatelessWidget {
             alignment: Alignment.topLeft,
             children: [...previous, ?current],
           ),
-          child: _line(slot),
+          child: _line(slot, translator),
         );
       },
     );
   }
 
   // Contenido según el espacio; la llave define cuándo hay fundido.
-  Widget _line(SummarySlot? slot) {
+  Widget _line(SummarySlot? slot, VehicleClassTranslator translator) {
     final versions = versionsCount > 1
         ? AppTexts.versionsCountLabel(versionsCount)
         : null;
@@ -56,8 +54,9 @@ class ModelClassLineWidget extends StatelessWidget {
         key: const ValueKey('loading'),
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SummarySkeletonBarWidget(
+          const SkeletonBarWidget(
             width: UiConfig.summarySkeletonLongBarWidth,
+            height: UiConfig.summarySkeletonBarHeight,
           ),
           if (versions != null) ...[
             const SizedBox(width: AppSpacing.xs),

@@ -1,4 +1,3 @@
-import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
@@ -36,9 +35,9 @@ class ModelCardSkeletonWidget extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _SkeletonBar(widthFraction: UiConfig.skeletonLongBarFraction),
+                _FractionBar(widthFraction: UiConfig.skeletonLongBarFraction),
                 SizedBox(height: AppSpacing.xs),
-                _SkeletonBar(widthFraction: UiConfig.skeletonShortBarFraction),
+                _FractionBar(widthFraction: UiConfig.skeletonShortBarFraction),
               ],
             ),
           ),
@@ -48,32 +47,28 @@ class ModelCardSkeletonWidget extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                _SummaryBar(width: UiConfig.summarySkeletonLongBarWidth),
+                SkeletonBarWidget(
+                  width: UiConfig.summarySkeletonLongBarWidth,
+                  height: UiConfig.summarySkeletonBarHeight,
+                ),
                 SizedBox(height: AppSpacing.xs),
-                _SummaryBar(width: UiConfig.summarySkeletonShortBarWidth),
+                SkeletonBarWidget(
+                  width: UiConfig.summarySkeletonShortBarWidth,
+                  height: UiConfig.summarySkeletonBarHeight,
+                ),
               ],
             ),
           ),
         ],
       ),
     );
-    final content = MediaQuery.of(context).disableAnimations
-        ? card
-        : Pulse(
-            infinite: true,
-            to: UiConfig.skeletonPulseScale,
-            duration: const Duration(
-              milliseconds: AnimationConfig.skeletonPulseMilliseconds,
-            ),
-            child: card,
-          );
-    return Semantics(excludeSemantics: true, child: content);
+    return Semantics(excludeSemantics: true, child: card);
   }
 }
 
-/// Barra gris que imita una línea de texto.
-class _SkeletonBar extends StatelessWidget {
-  const _SkeletonBar({required this.widthFraction});
+/// Barra de texto cuyo ancho es una fracción del espacio libre.
+class _FractionBar extends StatelessWidget {
+  const _FractionBar({required this.widthFraction});
 
   final double widthFraction;
 
@@ -81,31 +76,9 @@ class _SkeletonBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return FractionallySizedBox(
       widthFactor: widthFraction,
-      child: Container(
+      child: const SkeletonBarWidget(
+        width: double.infinity,
         height: UiConfig.skeletonBarHeight,
-        decoration: BoxDecoration(
-          color: AppColors.line,
-          borderRadius: BorderRadius.circular(UiConfig.skeletonBarHeight),
-        ),
-      ),
-    );
-  }
-}
-
-/// Barra fija de la columna de consumo.
-class _SummaryBar extends StatelessWidget {
-  const _SummaryBar({required this.width});
-
-  final double width;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      height: UiConfig.summarySkeletonBarHeight,
-      decoration: BoxDecoration(
-        color: AppColors.line,
-        borderRadius: BorderRadius.circular(UiConfig.summarySkeletonBarHeight),
       ),
     );
   }

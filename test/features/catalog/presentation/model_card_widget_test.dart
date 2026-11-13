@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../support/brand_logos_test_support.dart';
+import '../../../support/class_translator_test_support.dart';
 import '../../../support/photos_test_support.dart';
 import '../../../support/summaries_test_support.dart';
 
@@ -24,35 +25,41 @@ void main() {
     int versions = 1,
     Map<String, SummarySlot> slots = const {},
     double textScale = 1,
+    VoidCallback? onTap,
   }) => MaterialApp(
     builder: (context, child) => MediaQuery(
       data: MediaQuery.of(context)
           .copyWith(textScaler: TextScaler.linear(textScale)),
       child: child!,
     ),
-    home: MultiBlocProvider(
-      providers: [
-        BlocProvider<PhotosCubit>.value(value: buildMockPhotosCubit()),
-        BlocProvider<SummariesCubit>.value(
-          value: buildMockSummariesCubit(slots: slots),
-        ),
-        BlocProvider<BrandLogosCubit>.value(value: buildMockBrandLogosCubit()),
-      ],
-      child: Scaffold(
-        body: Center(
-          child: SizedBox(
-            width: width,
-            child: ModelCardWidget(
-              group: ModelGroupEntity(
-                name: name,
-                variants: [
-                  for (int i = 0; i < versions; i++)
-                    ModelEntity(name: '$name $i'),
-                ],
+    home: withClassTranslator(
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<PhotosCubit>.value(value: buildMockPhotosCubit()),
+          BlocProvider<SummariesCubit>.value(
+            value: buildMockSummariesCubit(slots: slots),
+          ),
+          BlocProvider<BrandLogosCubit>.value(
+            value: buildMockBrandLogosCubit(),
+          ),
+        ],
+        child: Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: width,
+              child: ModelCardWidget(
+                group: ModelGroupEntity(
+                  name: name,
+                  variants: [
+                    for (int i = 0; i < versions; i++)
+                      ModelEntity(name: '$name $i'),
+                  ],
+                ),
+                brand: 'Honda',
+                year: 2020,
+                index: 0,
+                onTap: onTap,
               ),
-              brand: 'Honda',
-              year: 2020,
-              index: 0,
             ),
           ),
         ),
@@ -134,7 +141,16 @@ void main() {
           AppSpacing.xs,
         ),
       );
-      final decoration = container.decoration as BoxDecoration;
+      // El fondo, el radio y la sombra viven en el contenedor que recibe el toque.
+      final background = tester.widget<DecoratedBox>(
+        find
+            .descendant(
+              of: find.byType(ModelCardWidget),
+              matching: find.byType(DecoratedBox),
+            )
+            .first,
+      );
+      final decoration = background.decoration as BoxDecoration;
       expect(decoration.color, AppColors.card);
       expect(decoration.borderRadius, BorderRadius.circular(AppRadii.card));
       final photoRect = tester.getRect(find.byType(ModelPhotoWidget));
@@ -247,5 +263,43 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  group('toque', () {
+    testWidgets('con onTap toda la tarjeta responde y es un botón', (
+      tester,
+    ) async {
+      final taps = <int>[];
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(card('Civic', onTap: () => taps.add(1)));
+      await tester.pumpAndSettle();
+      final ink = tester.widget<InkWell>(find.byType(InkWell));
+      expect(ink.borderRadius, BorderRadius.circular(AppRadii.card));
+      expect(
+        find.bySemanticsLabel(
+          AppTexts.modelSummarySemanticLabel('Civic', null),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.byType(ModelCardWidget));
+      expect(taps, hasLength(1));
+      handle.dispose();
+    });
+
+    testWidgets('sin onTap la tarjeta no es tocable', (tester) async {
+      await tester.pumpWidget(card('Civic'));
+      await tester.pumpAndSettle();
+      expect(find.byType(InkWell), findsNothing);
+    });
+
+    testWidgets('el ModelPhotoWidget recibe la clave de foto como heroTag', (
+      tester,
+    ) async {
+      await tester.pumpWidget(card('Civic'));
+      final photo = tester.widget<ModelPhotoWidget>(
+        find.byType(ModelPhotoWidget),
+      );
+      expect(photo.heroTag, photoKeyFor('Honda', 'Civic', 2020));
+    });
   });
 }

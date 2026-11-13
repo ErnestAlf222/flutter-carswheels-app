@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/catalog/domain/domain.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/cubits/cubits.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/widgets/model_card_skeleton_widget.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/widgets/model_card_widget.dart';
@@ -12,10 +13,14 @@ class ModelsSectionWidget extends StatelessWidget {
     super.key,
     required this.brandName,
     required this.state,
+    this.onGroupTap,
   });
 
   final String brandName;
   final ModelsState state;
+
+  /// Al tocar la tarjeta de un grupo.
+  final ValueChanged<ModelGroupEntity>? onGroupTap;
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +65,7 @@ class ModelsSectionWidget extends StatelessWidget {
     ModelsLoaded() => _LoadedList(
       key: ValueKey('${current.year}-${current.brand}'),
       state: current,
+      onGroupTap: onGroupTap,
     ),
   };
 }
@@ -107,9 +113,10 @@ class _SkeletonList extends StatelessWidget {
 
 /// Tarjetas visibles, atenuadas mientras se refresca la lista.
 class _LoadedList extends StatelessWidget {
-  const _LoadedList({super.key, required this.state});
+  const _LoadedList({super.key, required this.state, this.onGroupTap});
 
   final ModelsLoaded state;
+  final ValueChanged<ModelGroupEntity>? onGroupTap;
 
   @override
   Widget build(BuildContext context) {
@@ -133,6 +140,9 @@ class _LoadedList extends StatelessWidget {
                   brand: state.brand,
                   year: state.year,
                   index: index,
+                  onTap: onGroupTap == null
+                      ? null
+                      : () => onGroupTap!(state.groups[index]),
                   // La primera página entra con el fundido de la columna.
                   animateEntry: index >= CatalogConfig.defaultPageSize,
                 ),

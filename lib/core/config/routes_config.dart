@@ -7,4 +7,5 @@ class RoutesConfig {
   static const String compare = '/compare';
   static const String favorites = '/favorites';
   static const String settings = '/settings';
+  static const String detail = '/detail';
 }

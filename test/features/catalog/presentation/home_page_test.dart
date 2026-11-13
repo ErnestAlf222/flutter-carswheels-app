@@ -13,6 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../support/class_translator_test_support.dart';
 import '../../../support/photos_test_support.dart';
 import '../../../support/summaries_test_support.dart';
 
@@ -121,16 +122,18 @@ void main() {
     whenListen(modelsCubit, modelsEvents.stream, initialState: models);
     await tester.pumpWidget(
       MaterialApp(
-        home: MultiBlocProvider(
-          providers: [
-            BlocProvider<CatalogCubit>.value(value: catalogCubit),
-            BlocProvider<ModelsCubit>.value(value: modelsCubit),
-            BlocProvider<PhotosCubit>.value(value: photosCubit),
-            BlocProvider<SummariesCubit>.value(value: summariesCubit),
-            BlocProvider<BrandLogosCubit>.value(value: logosCubit),
-            BlocProvider<LogoPrecacheCubit>.value(value: precacheCubit),
-          ],
-          child: const HomePage(),
+        home: withClassTranslator(
+          MultiBlocProvider(
+            providers: [
+              BlocProvider<CatalogCubit>.value(value: catalogCubit),
+              BlocProvider<ModelsCubit>.value(value: modelsCubit),
+              BlocProvider<PhotosCubit>.value(value: photosCubit),
+              BlocProvider<SummariesCubit>.value(value: summariesCubit),
+              BlocProvider<BrandLogosCubit>.value(value: logosCubit),
+              BlocProvider<LogoPrecacheCubit>.value(value: precacheCubit),
+            ],
+            child: const HomePage(),
+          ),
         ),
       ),
     );

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../support/class_translator_test_support.dart';
 import '../../../support/summaries_test_support.dart';
 
 GroupSummaryEntity _summary(String? vehicleClass) => GroupSummaryEntity(
@@ -33,21 +34,23 @@ void main() {
             .copyWith(disableAnimations: disableAnimations),
         child: child!,
       ),
-      home: BlocProvider<SummariesCubit>.value(
-        value: buildMockSummariesCubit(slots: {key: ?slot}),
-        child: Scaffold(
-          body: ModelClassLineWidget(
-            brand: 'Honda',
-            groupName: 'Civic',
-            year: 2020,
-            versionsCount: versions,
+      home: withClassTranslator(
+        BlocProvider<SummariesCubit>.value(
+          value: buildMockSummariesCubit(slots: {key: ?slot}),
+          child: Scaffold(
+            body: ModelClassLineWidget(
+              brand: 'Honda',
+              groupName: 'Civic',
+              year: 2020,
+              versionsCount: versions,
+            ),
           ),
         ),
       ),
     );
   }
 
-  final skeleton = find.byType(SummarySkeletonBarWidget);
+  final skeleton = find.byType(SkeletonBarWidget);
 
   testWidgets('Loading muestra el esqueleto y las versiones', (tester) async {
     await tester.pumpWidget(line(slot: const SummaryLoading()));

@@ -5,7 +5,6 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/domain/domain.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/presentation/cubits/cubits.dart';
-import 'package:cars_wheels_app/features/vehicle_specs/presentation/widgets/summary_skeleton_bar_widget.dart';
 
 /// Columna derecha de la tarjeta con el rango de km/l del modelo.
 class ModelConsumptionWidget extends StatelessWidget {
@@ -57,10 +56,14 @@ class ModelConsumptionWidget extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          SummarySkeletonBarWidget(width: UiConfig.summarySkeletonLongBarWidth),
+          SkeletonBarWidget(
+            width: UiConfig.summarySkeletonLongBarWidth,
+            height: UiConfig.summarySkeletonBarHeight,
+          ),
           SizedBox(height: AppSpacing.xs),
-          SummarySkeletonBarWidget(
+          SkeletonBarWidget(
             width: UiConfig.summarySkeletonShortBarWidth,
+            height: UiConfig.summarySkeletonBarHeight,
           ),
         ],
       );

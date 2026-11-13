@@ -18,6 +18,7 @@ class ModelPhotoWidget extends StatelessWidget {
     required this.width,
     required this.height,
     required this.borderRadius,
+    this.heroTag,
     this.thumbnailUrlBuilder = const ThumbnailUrlBuilder(),
   });
 
@@ -31,6 +32,9 @@ class ModelPhotoWidget extends StatelessWidget {
   final double width;
   final double height;
   final double borderRadius;
+
+  /// Etiqueta del Hero hacia Detalle; sin ella la foto no vuela.
+  final String? heroTag;
   final ThumbnailUrlBuilder thumbnailUrlBuilder;
 
   @override
@@ -43,19 +47,23 @@ class ModelPhotoWidget extends StatelessWidget {
       builder: (context, slot) {
         final radius = BorderRadius.circular(borderRadius);
         final found = slot;
+        final tag = heroTag;
         return SizedBox(
           width: width,
           height: height,
           child: ClipRRect(
             borderRadius: radius,
             child: found is PhotoFound
-                ? _PhotoContent(
-                    photo: found.photo,
-                    width: width,
-                    brand: brand,
-                    thumbnailUrl: thumbnailUrlBuilder.forUrl(
-                      found.photo.thumbnailUrl,
-                      PhotosConfig.listThumbnailWidthPixels,
+                ? _withHero(
+                    tag,
+                    _PhotoContent(
+                      photo: found.photo,
+                      width: width,
+                      brand: brand,
+                      thumbnailUrl: thumbnailUrlBuilder.forUrl(
+                        found.photo.thumbnailUrl,
+                        PhotosConfig.listThumbnailWidthPixels,
+                      ),
                     ),
                   )
                 : _FallbackBox(brand: brand),
@@ -65,6 +73,15 @@ class ModelPhotoWidget extends StatelessWidget {
     );
   }
 }
+
+// Envuelve la foto en un Hero solo si hay etiqueta.
+Widget _withHero(String? tag, Widget child) => tag == null
+    ? child
+    : Hero(
+        tag: tag,
+        flightShuttleBuilder: PhotoHeroShuttle.builder,
+        child: child,
+      );
 
 /// Imagen con fundido y, si es de referencia, su insignia.
 class _PhotoContent extends StatelessWidget {

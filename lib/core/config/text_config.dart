@@ -2,6 +2,12 @@
 class TextConfig {
   const TextConfig._();
 
+  // Formato de números para mostrar; el patrón agrupa de tres en tres cifras.
+  static const String thousandsSeparator = ',';
+  static const String thousandsBoundaryPattern = r'\B(?=(\d{3})+(?!\d))';
+  static const int displacementFractionDigits = 1;
+  static const int kmPerLiterFractionDigits = 1;
+
   // La normalización trabaja sobre texto en minúsculas.
   static const Map<String, String> accentReplacements = {
     'á': 'a',

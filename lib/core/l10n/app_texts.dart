@@ -1,3 +1,5 @@
+import 'package:cars_wheels_app/core/config/config.dart';
+
 /// Textos para el usuario.
 class AppTexts {
   const AppTexts._();
@@ -49,4 +51,57 @@ class AppTexts {
   /// Etiqueta de accesibilidad de una fila de modelo.
   static String modelSummarySemanticLabel(String name, String? consumption) =>
       consumption == null ? name : '$name, $consumption';
+
+  static const String transmissionAutomaticLabel = 'Automática';
+  static const String transmissionManualLabel = 'Manual';
+  static const String transmissionCvtLabel = 'CVT';
+  static const String descriptorSeparator = ' · ';
+  static const String noDataLabel = '—';
+
+  // Pantalla Detalle.
+  static const String detailConsumptionCaption = 'consumo combinado';
+  static const String detailPowertrainCaption = 'tipo de motor';
+  static const String detailAnnualCostCaption = 'combustible al año (USD)';
+  static const String detailSafetyCaption = 'seguridad NHTSA';
+  static const String detailClassRowLabel = 'Clase';
+  static const String detailFuelRowLabel = 'Combustible';
+  static const String detailDriveRowLabel = 'Tracción';
+  static const String detailRecallsLabel = 'Avisos de seguridad (recalls)';
+  static const String compareWithOtherLabel = 'Comparar con otro';
+  static const String addToFavoritesLabel = 'Agregar a favoritos';
+  static const String backLabel = 'Volver';
+  static const String versionSheetTitle = 'Elige una versión';
+  static const String authorMissingLabel = 'Autor no indicado';
+  static const String kmPerLiterUnit = 'km/l';
+  static const String creditSeparator = ' · ';
+
+  static String detailVersionLabel(int n) =>
+      n == 1 ? 'Versión (1 disponible)' : 'Versión ($n disponibles)';
+
+  static String brandYearLabel(String brand, int year) =>
+      '${brand.toUpperCase()} · $year';
+
+  static String photoCreditLabel(String author, String license) =>
+      'Foto: $author · $license';
+
+  /// Consumo con un decimal, por ejemplo '14.6'.
+  static String kmPerLiterFigure(double value) =>
+      value.toStringAsFixed(TextConfig.kmPerLiterFractionDigits);
+
+  static String transmissionSpeedsLabel(int count) => '$count vel.';
+
+  static String cylindersLabel(int count) => '$count cil';
+
+  /// Litros con un decimal, por ejemplo '2.0 L'.
+  static String displacementLabel(double liters) =>
+      '${liters.toStringAsFixed(TextConfig.displacementFractionDigits)} L';
+
+  /// Costo anual en dólares con separador de miles, por ejemplo '$1,750'.
+  static String annualCostLabel(int usd) {
+    final grouped = usd.toString().replaceAllMapped(
+      RegExp(TextConfig.thousandsBoundaryPattern),
+      (_) => TextConfig.thousandsSeparator,
+    );
+    return '\$$grouped';
+  }
 }

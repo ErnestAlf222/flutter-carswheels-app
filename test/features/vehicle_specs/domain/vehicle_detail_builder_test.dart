@@ -81,14 +81,20 @@ void main() {
       expect(detail.annualFuelCostUsd, 1100);
     });
 
-    test('hidrógeno (FCV y eFCV): sin km/l y con costo anual', () {
+    test('hidrógeno (FCV y eFCV): sin km/l y con costo anual nulo (fuelCost08 = 0)', () {
       for (final atvType in ['FCV', 'eFCV']) {
         final detail = build(_record(atvType: atvType, cost: 0));
         expect(detail.powertrain, Powertrain.fuelCell, reason: atvType);
         expect(detail.cityKmPerLiter, isNull, reason: atvType);
         expect(detail.combinedKmPerLiter, isNull, reason: atvType);
-        expect(detail.annualFuelCostUsd, 0, reason: atvType);
+        expect(detail.annualFuelCostUsd, isNull, reason: atvType);
       }
+    });
+
+    test('Mirai (FCV, fuelCost08 0) deja el costo nulo; 1750 se conserva', () {
+      final mirai = build(_record(atvType: 'FCV', cost: 0, combined: 66));
+      expect(mirai.annualFuelCostUsd, isNull);
+      expect(build(_record(cost: 1750)).annualFuelCostUsd, 1750);
     });
 
     test('un tipo no listado es other y no trae km/l', () {

@@ -52,6 +52,43 @@ class AppTextStyles {
     fontSize: 12,
     color: AppColors.subtle,
   );
+  static final TextStyle detailTitle = GoogleFonts.outfit(
+    fontWeight: FontWeight.w700,
+    fontSize: 32,
+    letterSpacing: -0.3,
+    color: AppColors.ink,
+  );
+  static final TextStyle ghostTitle = GoogleFonts.outfit(
+    fontWeight: FontWeight.w700,
+    fontSize: 80,
+    letterSpacing: -2,
+    color: AppColors.ink,
+  );
+  static final TextStyle classChipLabel = GoogleFonts.inter(
+    fontWeight: FontWeight.w700,
+    fontSize: 13,
+    color: AppColors.link,
+  );
+  static final TextStyle statFigure = GoogleFonts.outfit(
+    fontWeight: FontWeight.w700,
+    fontSize: 26,
+    color: AppColors.link,
+  );
+  static final TextStyle infoLabel = GoogleFonts.inter(
+    fontWeight: FontWeight.w400,
+    fontSize: 14,
+    color: AppColors.subtle,
+  );
+  static final TextStyle infoValue = GoogleFonts.inter(
+    fontWeight: FontWeight.w600,
+    fontSize: 14,
+    color: AppColors.ink,
+  );
+  static final TextStyle recallsValue = GoogleFonts.inter(
+    fontWeight: FontWeight.w700,
+    fontSize: 14,
+    color: AppColors.link,
+  );
   static final TextStyle label = GoogleFonts.inter(
     fontWeight: FontWeight.w700,
     fontSize: 12,

@@ -47,14 +47,17 @@ class VehicleSpecsConfig {
   // Registro de depuración de una clase sin traducción; va seguido del valor.
   static const String untranslatedClassLogPrefix = 'clase sin traducir: ';
 
+  // Registro de depuración de una tracción, combustible o transmisión sin traducción.
+  static const String untranslatedTextLogPrefix = 'texto sin traducir: ';
+
   // Versión de la clave del resumen; 'v3' invalida lo guardado sin hasFuelCell.
   static const String summaryCacheKeyVersion = 'v3';
 
   // Provisional: días de vigencia del resumen guardado.
   static const int summaryCacheTimeToLiveDays = 30;
 
-  // Versión de la clave del detalle de una versión.
-  static const String vehicleDetailCacheKeyVersion = 'v1';
+  // Versión de la clave del detalle; 'v2' invalida los guardados con costo 0.
+  static const String vehicleDetailCacheKeyVersion = 'v2';
 
   // Provisional: días de vigencia del detalle guardado.
   static const int vehicleDetailCacheTimeToLiveDays = 30;

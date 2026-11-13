@@ -14,13 +14,19 @@ export 'datasources/vehicle_specs_datasource.dart';
 // Repositorios
 export 'repositories/vehicle_specs_repository.dart';
 // Servicios
+export 'services/default_version_selector.dart';
+export 'services/drive_labeler.dart';
+export 'services/fuel_type_labeler.dart';
 export 'services/group_summary_builder.dart';
+export 'services/label_table_translator.dart';
 export 'services/powertrain_classifier.dart';
 export 'services/powertrain_labels_resolver.dart';
 export 'services/summary_key_builder.dart';
+export 'services/transmission_labeler.dart';
 export 'services/vehicle_class_translator.dart';
 export 'services/vehicle_detail_builder.dart';
 export 'services/vehicle_detail_key_builder.dart';
+export 'services/version_descriptor_builder.dart';
 // Casos de uso
 export 'usecases/cancel_pending_summaries_usecase.dart';
 export 'usecases/get_group_options_usecase.dart';

@@ -25,6 +25,23 @@ class AppPageTransition extends StatelessWidget {
     return _fadeThrough(child, animation, secondaryAnimation);
   }
 
+  /// Transición de pantallas de flujo: eje compartido horizontal.
+  static Widget flowRouteTransition(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    if (MediaQuery.of(context).disableAnimations) return child;
+    return SharedAxisTransition(
+      animation: animation,
+      secondaryAnimation: secondaryAnimation,
+      transitionType: SharedAxisTransitionType.horizontal,
+      fillColor: Colors.transparent,
+      child: child,
+    );
+  }
+
   static Widget _fadeThrough(
     Widget child,
     Animation<double> primary,

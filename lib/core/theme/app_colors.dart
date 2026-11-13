@@ -15,5 +15,6 @@ class AppColors {
   static const Color tintText = Color(0xFF2B5C8F);
   static const Color link = Color(0xFF1E40AF);
   static const Color onGradient = Color(0xFFFFFFFF);
+  static const Color dashedLine = Color(0xFFD3CCBB);
   static const Color shadow = Color(0x141A1A22);
 }

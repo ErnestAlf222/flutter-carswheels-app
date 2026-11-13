@@ -42,7 +42,7 @@ void main() {
     expect(VehicleSpecsConfig.annualFuelCostKey, 'fuelCost08');
     expect(VehicleSpecsConfig.displacementKey, 'displ');
     expect(VehicleSpecsConfig.transmissionKey, 'trany');
-    expect(VehicleSpecsConfig.vehicleDetailCacheKeyVersion, 'v1');
+    expect(VehicleSpecsConfig.vehicleDetailCacheKeyVersion, 'v2');
     expect(VehicleSpecsConfig.vehicleDetailCacheTimeToLiveDays, 30);
   });
 
