@@ -194,6 +194,72 @@ void main() {
     verify(() => load(any())).called(1);
   });
 
+  GroupDetailsEntity efficiencyDetails() => GroupDetailsEntity(
+    versions: [
+      testVersion(
+        testDetail(
+          id: 1,
+          cityKmPerLiter: 13.1,
+          co2GramsPerKilometer: 160,
+          fuelScore: 8,
+        ),
+      ),
+      testVersion(
+        testDetail(
+          id: 2,
+          powertrain: Powertrain.electric,
+          combinedKmPerLiter: null,
+          totalRangeKilometers: 531,
+          co2GramsPerKilometer: 0,
+        ),
+        variantName: 'Corolla EV',
+      ),
+    ],
+    defaultIndex: 0,
+  );
+
+  testWidgets('la tarjeta de consumo queda entre las filas y los recalls', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(800, 2400);
+    addTearDown(tester.view.reset);
+    when(() => load(any())).thenAnswer((_) async => efficiencyDetails());
+    await pumpPage(tester);
+    await tester.pumpAndSettle();
+    final driveY = tester
+        .getTopLeft(find.text(AppTexts.detailDriveRowLabel))
+        .dy;
+    final cardY = tester.getTopLeft(find.text(AppTexts.efficiencyTitle)).dy;
+    final recallsY = tester
+        .getTopLeft(find.text(AppTexts.detailRecallsLabel))
+        .dy;
+    expect(driveY, lessThan(cardY));
+    expect(cardY, lessThan(recallsY));
+    expect(find.text('13.1 km/l'), findsOneWidget);
+  });
+
+  testWidgets('cambiar de versión actualiza la tarjeta sin AppLoader', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(800, 2400);
+    addTearDown(tester.view.reset);
+    when(() => load(any())).thenAnswer((_) async => efficiencyDetails());
+    await pumpPage(tester);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(VersionSelectorButtonWidget));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Corolla EV'));
+    await tester.pump();
+    expect(find.byType(AppLoader), findsNothing);
+    await tester.pumpAndSettle();
+    expect(find.text('531 km'), findsOneWidget);
+    expect(find.text('0 g/km'), findsOneWidget);
+    expect(find.text('13.1 km/l'), findsNothing);
+    expect(find.byType(DetailEfficiencyCardWidget), findsOneWidget);
+  });
+
   testWidgets('sin versiones muestra el estado vacío', (tester) async {
     when(() => load(any())).thenAnswer(
       (_) async => const GroupDetailsEntity(versions: [], defaultIndex: 0),

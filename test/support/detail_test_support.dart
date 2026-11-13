@@ -63,6 +63,15 @@ VehicleDetailEntity testDetail({
   String? fuelType = 'Regular',
   double? combinedKmPerLiter = 14.62,
   int? annualFuelCostUsd = 1750,
+  double? cityKmPerLiter,
+  double? highwayKmPerLiter,
+  double? co2GramsPerKilometer,
+  double? electricRangeKilometers,
+  double? totalRangeKilometers,
+  double? electricConsumptionKwhPer100Kilometers,
+  double? hybridGasKmPerLiter,
+  int? fuelScore,
+  int? emissionsScore,
 }) => VehicleDetailEntity(
   id: id,
   year: 2020,
@@ -75,10 +84,18 @@ VehicleDetailEntity testDetail({
   displacementLiters: displacementLiters,
   drive: drive,
   fuelType: fuelType,
-  cityKmPerLiter: null,
-  highwayKmPerLiter: null,
+  cityKmPerLiter: cityKmPerLiter,
+  highwayKmPerLiter: highwayKmPerLiter,
   combinedKmPerLiter: combinedKmPerLiter,
   annualFuelCostUsd: annualFuelCostUsd,
+  co2GramsPerKilometer: co2GramsPerKilometer,
+  electricRangeKilometers: electricRangeKilometers,
+  totalRangeKilometers: totalRangeKilometers,
+  electricConsumptionKwhPer100Kilometers:
+      electricConsumptionKwhPer100Kilometers,
+  hybridGasKmPerLiter: hybridGasKmPerLiter,
+  fuelScore: fuelScore,
+  emissionsScore: emissionsScore,
 );
 
 /// Versión de un grupo con su variante.

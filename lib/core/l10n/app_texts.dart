@@ -79,6 +79,16 @@ class AppTexts {
   static const String authorMissingLabel = 'Autor no indicado';
   static const String kmPerLiterUnit = 'km/l';
   static const String creditSeparator = ' · ';
+  static const String efficiencyTitle = 'Consumo y emisiones';
+  static const String cityConsumptionLabel = 'En ciudad';
+  static const String highwayConsumptionLabel = 'En carretera';
+  static const String co2Label = 'Emisiones de CO₂';
+  static const String electricRangeLabel = 'Autonomía eléctrica';
+  static const String totalRangeLabel = 'Autonomía';
+  static const String electricConsumptionLabel = 'Consumo eléctrico';
+  static const String hybridGasConsumptionLabel = 'Con gasolina (modo híbrido)';
+  static const String fuelScoreLabel = 'Puntaje de consumo (EPA)';
+  static const String emissionsScoreLabel = 'Puntaje de emisiones (EPA)';
 
   static String detailVersionLabel(int n) =>
       n == 1 ? 'Versión (1 disponible)' : 'Versión ($n disponibles)';
@@ -95,6 +105,17 @@ class AppTexts {
   /// Consumo con un decimal, por ejemplo '14.6'.
   static String kmPerLiterFigure(double value) =>
       value.toStringAsFixed(TextConfig.kmPerLiterFractionDigits);
+
+  static String kilometersFigure(double km) => '${km.round()} km';
+
+  static String gramsPerKilometerFigure(double grams) =>
+      '${grams.round()} g/km';
+
+  static String kwhPer100KmFigure(double value) =>
+      '${value.toStringAsFixed(TextConfig.kwhPer100KmFractionDigits)} kWh/100 km';
+
+  static String scoreSemanticLabel(int score) =>
+      '$score de ${VehicleSpecsConfig.scoreMax}';
 
   static String transmissionSpeedsLabel(int count) => '$count vel.';
 

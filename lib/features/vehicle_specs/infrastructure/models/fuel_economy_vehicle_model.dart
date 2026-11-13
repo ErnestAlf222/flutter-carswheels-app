@@ -18,6 +18,12 @@ class FuelEconomyVehicleModel {
     this.make,
     this.model,
     this.year,
+    this.electricRange,
+    this.totalRange,
+    this.electricConsumption,
+    this.co2TailpipeGramsPerMile,
+    this.fuelEconomyScore,
+    this.greenhouseGasScore,
   });
 
   /// Tolera campos ausentes o vacíos; falla si la raíz no es un objeto.
@@ -43,6 +49,18 @@ class FuelEconomyVehicleModel {
       make: _readText(json[VehicleSpecsConfig.makeKey]),
       model: _readText(json[VehicleSpecsConfig.modelKey]),
       year: _readText(json[VehicleSpecsConfig.yearKey]),
+      electricRange: _readText(json[VehicleSpecsConfig.electricRangeKey]),
+      totalRange: _readText(json[VehicleSpecsConfig.totalRangeKey]),
+      electricConsumption: _readText(
+        json[VehicleSpecsConfig.electricConsumptionKey],
+      ),
+      co2TailpipeGramsPerMile: _readText(
+        json[VehicleSpecsConfig.co2TailpipeKey],
+      ),
+      fuelEconomyScore: _readText(json[VehicleSpecsConfig.fuelEconomyScoreKey]),
+      greenhouseGasScore: _readText(
+        json[VehicleSpecsConfig.greenhouseGasScoreKey],
+      ),
     );
   }
 
@@ -61,6 +79,12 @@ class FuelEconomyVehicleModel {
   final String? make;
   final String? model;
   final String? year;
+  final String? electricRange;
+  final String? totalRange;
+  final String? electricConsumption;
+  final String? co2TailpipeGramsPerMile;
+  final String? fuelEconomyScore;
+  final String? greenhouseGasScore;
 
   // Texto sin espacios sobrantes; nulo si falta o queda vacío.
   static String? _readText(Object? value) {

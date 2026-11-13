@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 
-/// Siluetas de la cápsula, el botón de versión, las cifras y las filas.
+/// Siluetas de la cápsula, el botón de versión, las cifras, las filas y la tarjeta de consumo.
 class DetailSkeletonWidget extends StatelessWidget {
   const DetailSkeletonWidget({super.key});
 
@@ -72,6 +72,18 @@ class DetailSkeletonWidget extends StatelessWidget {
                   ),
                 ],
               ],
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(
+              UiConfig.detailInfoSideMargin,
+              AppSpacing.s,
+              UiConfig.detailInfoSideMargin,
+              0,
+            ),
+            child: SkeletonBarWidget(
+              width: double.infinity,
+              height: UiConfig.detailSkeletonEfficiencyHeight,
             ),
           ),
         ],

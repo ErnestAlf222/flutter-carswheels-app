@@ -84,6 +84,11 @@ class AppTextStyles {
     fontSize: 26,
     color: AppColors.link,
   );
+  static final TextStyle efficiencyFigure = GoogleFonts.outfit(
+    fontWeight: FontWeight.w700,
+    fontSize: 22,
+    color: AppColors.link,
+  );
   static final TextStyle infoLabel = GoogleFonts.inter(
     fontWeight: FontWeight.w400,
     fontSize: 14,

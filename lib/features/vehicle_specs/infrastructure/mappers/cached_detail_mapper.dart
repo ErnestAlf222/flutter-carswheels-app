@@ -28,6 +28,14 @@ class CachedDetailMapper {
         highwayKmPerLiter: model.highwayKmPerLiter,
         combinedKmPerLiter: model.combinedKmPerLiter,
         annualFuelCostUsd: model.annualFuelCostUsd,
+        co2GramsPerKilometer: model.co2GramsPerKilometer,
+        electricRangeKilometers: model.electricRangeKilometers,
+        totalRangeKilometers: model.totalRangeKilometers,
+        electricConsumptionKwhPer100Kilometers:
+            model.electricConsumptionKwhPer100Kilometers,
+        hybridGasKmPerLiter: model.hybridGasKmPerLiter,
+        fuelScore: model.fuelScore,
+        emissionsScore: model.emissionsScore,
       ),
       savedAt: DateTime.fromMillisecondsSinceEpoch(model.savedAtMillis),
     );
@@ -55,6 +63,14 @@ class CachedDetailMapper {
       highwayKmPerLiter: detail.highwayKmPerLiter,
       combinedKmPerLiter: detail.combinedKmPerLiter,
       annualFuelCostUsd: detail.annualFuelCostUsd,
+      co2GramsPerKilometer: detail.co2GramsPerKilometer,
+      electricRangeKilometers: detail.electricRangeKilometers,
+      totalRangeKilometers: detail.totalRangeKilometers,
+      electricConsumptionKwhPer100Kilometers:
+          detail.electricConsumptionKwhPer100Kilometers,
+      hybridGasKmPerLiter: detail.hybridGasKmPerLiter,
+      fuelScore: detail.fuelScore,
+      emissionsScore: detail.emissionsScore,
       savedAtMillis: entity.savedAt.millisecondsSinceEpoch,
     );
   }

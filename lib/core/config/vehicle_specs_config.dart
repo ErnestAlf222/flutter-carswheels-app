@@ -25,6 +25,16 @@ class VehicleSpecsConfig {
   static const String makeKey = 'make';
   static const String modelKey = 'model';
   static const String yearKey = 'year';
+  static const String electricRangeKey = 'rangeA'; // millas, solo enchufables
+  static const String totalRangeKey = 'range'; // millas
+  static const String electricConsumptionKey = 'combE'; // kWh por 100 millas
+  static const String co2TailpipeKey = 'co2TailpipeGpm'; // gramos por milla
+  static const String fuelEconomyScoreKey = 'feScore'; // 1 a 10; -1 sin dato
+  static const String greenhouseGasScoreKey = 'ghgScore'; // 1 a 10; -1 sin dato
+
+  // Límites de las puntuaciones EPA de consumo y de emisiones.
+  static const int scoreMin = 1;
+  static const int scoreMax = 10;
 
   // Nombre de la clasificación para cualquier atvType no listado.
   static const String otherPowertrainName = 'other';
@@ -56,8 +66,8 @@ class VehicleSpecsConfig {
   // Provisional: días de vigencia del resumen guardado.
   static const int summaryCacheTimeToLiveDays = 30;
 
-  // Versión de la clave del detalle; 'v2' invalida los guardados con costo 0.
-  static const String vehicleDetailCacheKeyVersion = 'v2';
+  // Versión de la clave del detalle; 'v3' invalida lo guardado sin los campos nuevos.
+  static const String vehicleDetailCacheKeyVersion = 'v3';
 
   // Provisional: días de vigencia del detalle guardado.
   static const int vehicleDetailCacheTimeToLiveDays = 30;

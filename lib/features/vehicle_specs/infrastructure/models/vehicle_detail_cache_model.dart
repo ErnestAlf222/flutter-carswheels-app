@@ -23,6 +23,13 @@ class VehicleDetailCacheModel {
     required this.combinedKmPerLiter,
     required this.annualFuelCostUsd,
     required this.savedAtMillis,
+    this.co2GramsPerKilometer,
+    this.electricRangeKilometers,
+    this.totalRangeKilometers,
+    this.electricConsumptionKwhPer100Kilometers,
+    this.hybridGasKmPerLiter,
+    this.fuelScore,
+    this.emissionsScore,
     this.id = Isar.autoIncrement,
   });
 
@@ -50,4 +57,11 @@ class VehicleDetailCacheModel {
   final double? combinedKmPerLiter;
   final int? annualFuelCostUsd;
   final int savedAtMillis;
+  final double? co2GramsPerKilometer;
+  final double? electricRangeKilometers;
+  final double? totalRangeKilometers;
+  final double? electricConsumptionKwhPer100Kilometers;
+  final double? hybridGasKmPerLiter;
+  final int? fuelScore;
+  final int? emissionsScore;
 }

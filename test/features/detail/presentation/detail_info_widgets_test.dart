@@ -283,8 +283,8 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(detailHost(const DetailSkeletonWidget()));
-      // Cápsula, botón de versión, tarjeta de cifras y tres filas.
-      expect(find.byType(SkeletonBarWidget), findsNWidgets(6));
+      // Cápsula, botón de versión, tarjeta de cifras, tres filas y tarjeta de consumo.
+      expect(find.byType(SkeletonBarWidget), findsNWidgets(7));
       expect(find.byType(AppLoader), findsNothing);
     });
   });

@@ -1,6 +1,7 @@
 // Widgets de la pantalla Detalle
 export 'detail_bottom_bar_widget.dart';
 export 'detail_circle_button_widget.dart';
+export 'detail_efficiency_card_widget.dart';
 export 'detail_hero_header_widget.dart';
 export 'detail_info_rows_widget.dart';
 export 'detail_photo_carousel_widget.dart';

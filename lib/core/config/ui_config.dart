@@ -66,7 +66,7 @@ class UiConfig {
   static const double photoViewerMaxScale = 4.0;
   static const double photoViewerDotBottomInset = 24.0;
   static const double rowPhotoLoadingLogoOpacity = 0.4;
-  static const double rowNoPhotoBadgeSize = 14.0;
+  static const double rowNoPhotoBadgeSize = 18.0;
   static const int detailEntryStepMilliseconds = 70;
   static const double detailPhotoBlurSigma = 18.0;
   static const double detailCreditGap = 4.0;
@@ -94,10 +94,18 @@ class UiConfig {
   static const double detailSkeletonChipHeight = 28.0;
   static const double detailSkeletonStatsHeight = 96.0;
   static const double detailSkeletonRowHeight = 20.0;
+  static const double detailSkeletonEfficiencyHeight = 160.0;
   static const double detailStatsVerticalPadding = 14.0;
   static const double detailInfoRowVerticalPadding = 10.0;
   static const double detailRecallsTopMargin = 10.0;
   static const int detailSkeletonRowCount = 3;
+  static const double efficiencyCardPadding = 20.0;
+  static const double efficiencyGridSpacing = 16.0;
+  static const int efficiencyScoreSegmentCount = 10;
+  static const double efficiencyScoreSegmentWidth = 14.0;
+  static const double efficiencyScoreSegmentHeight = 6.0;
+  static const double efficiencyScoreSegmentGap = 3.0;
+  static const double efficiencyScoreSegmentRadius = 3.0;
   static const double dashedDashWidth = 4.0;
   static const double dashedGapWidth = 3.0;
   // Temporales: solo las usa la pantalla de relleno.

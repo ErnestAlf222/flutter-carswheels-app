@@ -22,7 +22,19 @@ class VehicleRecordMapper {
       make: model.make,
       model: model.model,
       year: int.tryParse(model.year ?? ''),
+      electricRangeMiles: _positive(model.electricRange),
+      totalRangeMiles: _positive(model.totalRange),
+      electricConsumptionKwhPer100Miles: _positive(model.electricConsumption),
+      co2GramsPerMile: _nonNegative(model.co2TailpipeGramsPerMile),
+      fuelEconomyScore: int.tryParse(model.fuelEconomyScore ?? ''),
+      greenhouseGasScore: int.tryParse(model.greenhouseGasScore ?? ''),
     );
+  }
+
+  // El número solo si es válido y no negativo; el 0 se conserva.
+  static double? _nonNegative(String? text) {
+    final value = double.tryParse(text ?? '');
+    return value != null && value >= 0 ? value : null;
   }
 
   // El número solo si es válido y mayor que 0.

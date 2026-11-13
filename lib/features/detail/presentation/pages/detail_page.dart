@@ -174,6 +174,15 @@ class _LoadedContent extends StatelessWidget {
                   detail.fuelType,
                 ),
                 driveLabel: context.read<DriveLabeler>().labelFor(detail.drive),
+                beforeRecalls: _entry(
+                  4,
+                  _FadeSwitcher(
+                    child: KeyedSubtree(
+                      key: ValueKey(state.selectedIndex),
+                      child: DetailEfficiencyCardWidget(detail: detail),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),

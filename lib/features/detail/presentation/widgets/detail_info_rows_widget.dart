@@ -11,12 +11,16 @@ class DetailInfoRowsWidget extends StatelessWidget {
     this.fuelLabel,
     this.driveLabel,
     this.recallsLabel,
+    this.beforeRecalls,
   });
 
   final String? classLabel;
   final String? fuelLabel;
   final String? driveLabel;
   final String? recallsLabel;
+
+  /// Contenido opcional entre las filas de datos y la fila de recalls.
+  final Widget? beforeRecalls;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +36,7 @@ class DetailInfoRowsWidget extends StatelessWidget {
           _InfoRow(label: AppTexts.detailClassRowLabel, value: classLabel),
           _InfoRow(label: AppTexts.detailFuelRowLabel, value: fuelLabel),
           _InfoRow(label: AppTexts.detailDriveRowLabel, value: driveLabel),
+          ?beforeRecalls,
           _RecallsRow(value: recallsLabel),
         ],
       ),

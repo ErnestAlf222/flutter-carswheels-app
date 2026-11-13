@@ -20,6 +20,13 @@ class VehicleDetailEntity extends Equatable {
     required this.highwayKmPerLiter,
     required this.combinedKmPerLiter,
     required this.annualFuelCostUsd,
+    this.co2GramsPerKilometer,
+    this.electricRangeKilometers,
+    this.totalRangeKilometers,
+    this.electricConsumptionKwhPer100Kilometers,
+    this.hybridGasKmPerLiter,
+    this.fuelScore,
+    this.emissionsScore,
   });
 
   final int id;
@@ -44,6 +51,23 @@ class VehicleDetailEntity extends Equatable {
   final double? combinedKmPerLiter;
   final int? annualFuelCostUsd;
 
+  /// CO₂ en g/km; 0 se conserva en eléctricos.
+  final double? co2GramsPerKilometer;
+
+  /// Autonomía eléctrica (solo enchufables) y total (eléctricos e hidrógeno).
+  final double? electricRangeKilometers;
+  final double? totalRangeKilometers;
+
+  /// Consumo eléctrico en kWh por 100 km (eléctricos y enchufables).
+  final double? electricConsumptionKwhPer100Kilometers;
+
+  /// Consumo con gasolina en modo híbrido, solo enchufables.
+  final double? hybridGasKmPerLiter;
+
+  /// Puntuaciones de 1 a 10; nulas si no hay dato válido.
+  final int? fuelScore;
+  final int? emissionsScore;
+
   @override
   List<Object?> get props => [
     id,
@@ -61,5 +85,12 @@ class VehicleDetailEntity extends Equatable {
     highwayKmPerLiter,
     combinedKmPerLiter,
     annualFuelCostUsd,
+    co2GramsPerKilometer,
+    electricRangeKilometers,
+    totalRangeKilometers,
+    electricConsumptionKwhPer100Kilometers,
+    hybridGasKmPerLiter,
+    fuelScore,
+    emissionsScore,
   ];
 }

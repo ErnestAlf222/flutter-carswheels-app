@@ -14,11 +14,12 @@ class AppColors {
   static const Color tint = Color(0xFFDCE8F7);
   static const Color tintText = Color(0xFF2B5C8F);
   static const Color link = Color(0xFF1E40AF);
+  static const Color scoreSegmentEmpty = line;
   static const Color onGradient = Color(0xFFFFFFFF);
   static const Color dashedLine = Color(0xFFD3CCBB);
   static const Color shadow = Color(0x141A1A22);
-  static const Color galleryDotInactive = Color(0x99FFFFFF);
-  static const Color galleryDotActive = gradientStart;
+  static const Color galleryDotInactive = Color(0x80FFFFFF);
+  static const Color galleryDotActive = onGradient;
   static const Color galleryDotsBackground = Color(0x66000000);
   static const Color photoChipBackground = Color(0x73000000);
   static const Color photoViewerBackground = Color(0xFF0E0E12);

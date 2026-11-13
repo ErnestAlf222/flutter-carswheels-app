@@ -7,6 +7,7 @@ class TextConfig {
   static const String thousandsBoundaryPattern = r'\B(?=(\d{3})+(?!\d))';
   static const int displacementFractionDigits = 1;
   static const int kmPerLiterFractionDigits = 1;
+  static const int kwhPer100KmFractionDigits = 1;
 
   // La normalización trabaja sobre texto en minúsculas.
   static const Map<String, String> accentReplacements = {
