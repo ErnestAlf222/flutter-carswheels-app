@@ -39,6 +39,7 @@ void main() {
     maxKmPerLiter: 16.25,
     hasElectric: true,
     hasPluginHybrid: true,
+    hasFuelCell: true,
     variantCount: 4,
   );
   final entry = CachedSummaryEntity(

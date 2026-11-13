@@ -16,6 +16,45 @@ double _kmPerLiter(double mpg) =>
     mpg * UnitsConfig.milesPerGallonToKilometersPerLiter;
 
 void main() {
+  group('PowertrainLabelsResolver', () {
+    const resolver = PowertrainLabelsResolver();
+    GroupSummaryEntity summary({
+      bool electric = false,
+      bool plugin = false,
+      bool fuelCell = false,
+    }) => GroupSummaryEntity(
+      vehicleClass: null,
+      minKmPerLiter: null,
+      maxKmPerLiter: null,
+      hasElectric: electric,
+      hasPluginHybrid: plugin,
+      hasFuelCell: fuelCell,
+      variantCount: 1,
+    );
+
+    test('devuelve las etiquetas en orden fijo', () {
+      expect(
+        resolver.labelsFor(
+          summary(electric: true, plugin: true, fuelCell: true),
+        ),
+        [
+          AppTexts.electricLabel,
+          AppTexts.pluginHybridLabel,
+          AppTexts.hydrogenLabel,
+        ],
+      );
+      expect(resolver.labelsFor(summary(fuelCell: true)), [
+        AppTexts.hydrogenLabel,
+      ]);
+    });
+
+    test('sin banderas no hay etiquetas ni alternativa', () {
+      expect(resolver.labelsFor(summary()), isEmpty);
+      expect(resolver.hasAlternative(summary()), isFalse);
+      expect(resolver.hasAlternative(summary(fuelCell: true)), isTrue);
+    });
+  });
+
   group('GroupSummaryBuilder', () {
     const builder = GroupSummaryBuilder();
 
@@ -100,8 +139,34 @@ void main() {
       );
     });
 
+    test('FCV (Mirai 2020): hidrógeno sin km/l', () {
+      final summary = builder.build([
+        _record('FCV', 67, vehicleClass: 'Subcompact Cars'),
+      ]);
+      expect(summary.hasFuelCell, isTrue);
+      expect(summary.minKmPerLiter, isNull);
+      expect(summary.maxKmPerLiter, isNull);
+      expect(summary.hasElectric, isFalse);
+    });
+
+    test('FCV en minúsculas también cuenta', () {
+      expect(builder.build([_record('fcv', 67)]).hasFuelCell, isTrue);
+    });
+
+    test('FCV mezclado con combustión conserva el rango y marca hidrógeno', () {
+      final summary = builder.build([_record('', 25), _record('FCV', 67)]);
+      expect(summary.hasFuelCell, isTrue);
+      expect(summary.minKmPerLiter, closeTo(_kmPerLiter(25), 1e-9));
+      expect(summary.maxKmPerLiter, closeTo(_kmPerLiter(25), 1e-9));
+    });
+
+    test('sin FCV hasFuelCell es falso', () {
+      expect(builder.build([_record('', 25)]).hasFuelCell, isFalse);
+    });
+
     test('un tipo no listado es other: ni km/l ni etiquetas', () {
       final summary = builder.build([_record('Hidrogeno', 60)]);
+      expect(summary.hasFuelCell, isFalse);
       expect(summary.minKmPerLiter, isNull);
       expect(summary.hasElectric, isFalse);
       expect(summary.hasPluginHybrid, isFalse);

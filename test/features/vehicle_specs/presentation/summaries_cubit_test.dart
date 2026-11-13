@@ -231,7 +231,7 @@ void main() {
     expect(cubit.isClosed, isTrue);
   });
 
-  test('consumptionLabelFor da el rango solo si hay km/l', () {
+  test('consumptionLabelFor da el rango o las etiquetas de motorización', () {
     const state = SummariesState(
       slots: {
         'a': SummaryFound(_summary),
@@ -246,10 +246,53 @@ void main() {
           ),
         ),
         'c': SummaryLoading(),
+        'd': SummaryFound(
+          GroupSummaryEntity(
+            vehicleClass: null,
+            minKmPerLiter: null,
+            maxKmPerLiter: null,
+            hasElectric: true,
+            hasPluginHybrid: true,
+            hasFuelCell: true,
+            variantCount: 1,
+          ),
+        ),
+        'e': SummaryFound(
+          GroupSummaryEntity(
+            vehicleClass: null,
+            minKmPerLiter: null,
+            maxKmPerLiter: null,
+            hasElectric: false,
+            hasPluginHybrid: false,
+            hasFuelCell: true,
+            variantCount: 1,
+          ),
+        ),
+        'f': SummaryFound(
+          GroupSummaryEntity(
+            vehicleClass: null,
+            minKmPerLiter: null,
+            maxKmPerLiter: null,
+            hasElectric: false,
+            hasPluginHybrid: false,
+            hasFuelCell: false,
+            variantCount: 1,
+          ),
+        ),
       },
     );
     expect(state.consumptionLabelFor('a'), '10–12 km/l combinado');
-    expect(state.consumptionLabelFor('b'), isNull);
+    expect(state.consumptionLabelFor('b'), AppTexts.electricLabel);
+    expect(
+      state.consumptionLabelFor('d'),
+      [
+        AppTexts.electricLabel,
+        AppTexts.pluginHybridLabel,
+        AppTexts.hydrogenLabel,
+      ].join(AppTexts.semanticListSeparator),
+    );
+    expect(state.consumptionLabelFor('e'), AppTexts.hydrogenLabel);
+    expect(state.consumptionLabelFor('f'), isNull);
     expect(state.consumptionLabelFor('c'), isNull);
     expect(state.consumptionLabelFor('z'), isNull);
   });

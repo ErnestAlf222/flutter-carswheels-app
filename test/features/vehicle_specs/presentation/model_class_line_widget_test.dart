@@ -119,10 +119,10 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      line(slot: SummaryFound(_summary('Special Purpose Vehicle 2WD'))),
+      line(slot: SummaryFound(_summary('Hovercraft Class 2WD'))),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Special Purpose Vehicle · 3 versiones'), findsOneWidget);
+    expect(find.text('Hovercraft Class · 3 versiones'), findsOneWidget);
   });
 
   testWidgets('la clase entra con fundido', (tester) async {

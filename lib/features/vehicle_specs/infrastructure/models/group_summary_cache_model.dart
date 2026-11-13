@@ -12,6 +12,7 @@ class GroupSummaryCacheModel {
     required this.maxKmPerLiter,
     required this.hasElectric,
     required this.hasPluginHybrid,
+    required this.hasFuelCell,
     required this.variantCount,
     required this.savedAtMillis,
     this.id = Isar.autoIncrement,
@@ -28,6 +29,7 @@ class GroupSummaryCacheModel {
   final double? maxKmPerLiter;
   final bool hasElectric;
   final bool hasPluginHybrid;
+  final bool hasFuelCell;
   final int variantCount;
   final int savedAtMillis;
 }

@@ -10,6 +10,7 @@ export 'datasources/vehicle_specs_datasource.dart';
 export 'repositories/vehicle_specs_repository.dart';
 // Servicios
 export 'services/group_summary_builder.dart';
+export 'services/powertrain_labels_resolver.dart';
 export 'services/summary_key_builder.dart';
 export 'services/vehicle_class_translator.dart';
 // Casos de uso

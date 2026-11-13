@@ -9,6 +9,7 @@ class GroupSummaryEntity extends Equatable {
     required this.hasElectric,
     required this.hasPluginHybrid,
     required this.variantCount,
+    this.hasFuelCell = false,
   });
 
   /// Clase original en inglés más frecuente; la traducción se hace al mostrarla.
@@ -19,6 +20,7 @@ class GroupSummaryEntity extends Equatable {
   final double? maxKmPerLiter;
   final bool hasElectric;
   final bool hasPluginHybrid;
+  final bool hasFuelCell;
 
   /// Cuántas variantes se leyeron.
   final int variantCount;
@@ -30,6 +32,7 @@ class GroupSummaryEntity extends Equatable {
     maxKmPerLiter,
     hasElectric,
     hasPluginHybrid,
+    hasFuelCell,
     variantCount,
   ];
 }

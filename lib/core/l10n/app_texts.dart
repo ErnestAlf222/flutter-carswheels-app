@@ -35,10 +35,11 @@ class AppTexts {
 
   static const String electricLabel = 'Eléctrico';
   static const String pluginHybridLabel = 'Híbrido enchufable';
-  static const String electricAndPluginLabel = 'Eléctrico e híbrido enchufable';
+  static const String hydrogenLabel = 'Hidrógeno';
+  static const String semanticListSeparator = ', ';
   static const String consumptionUnitLabel = 'km/l combinado';
   static const String mixedPowertrainSemanticLabel =
-      'Incluye versiones eléctricas o híbridas enchufables';
+      'Incluye versiones eléctricas, híbridas enchufables o de hidrógeno';
   static const String classAndVersionsSeparator = ' · ';
 
   /// Cifra de consumo: un solo número si el rango redondea igual.

@@ -23,34 +23,39 @@ const GroupSummaryCacheModelSchema = CollectionSchema(
       name: r'hasElectric',
       type: IsarType.bool,
     ),
-    r'hasPluginHybrid': PropertySchema(
+    r'hasFuelCell': PropertySchema(
       id: 1,
+      name: r'hasFuelCell',
+      type: IsarType.bool,
+    ),
+    r'hasPluginHybrid': PropertySchema(
+      id: 2,
       name: r'hasPluginHybrid',
       type: IsarType.bool,
     ),
-    r'key': PropertySchema(id: 2, name: r'key', type: IsarType.string),
+    r'key': PropertySchema(id: 3, name: r'key', type: IsarType.string),
     r'maxKmPerLiter': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'maxKmPerLiter',
       type: IsarType.double,
     ),
     r'minKmPerLiter': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'minKmPerLiter',
       type: IsarType.double,
     ),
     r'savedAtMillis': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'savedAtMillis',
       type: IsarType.long,
     ),
     r'variantCount': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'variantCount',
       type: IsarType.long,
     ),
     r'vehicleClass': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'vehicleClass',
       type: IsarType.string,
     ),
@@ -108,13 +113,14 @@ void _groupSummaryCacheModelSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeBool(offsets[0], object.hasElectric);
-  writer.writeBool(offsets[1], object.hasPluginHybrid);
-  writer.writeString(offsets[2], object.key);
-  writer.writeDouble(offsets[3], object.maxKmPerLiter);
-  writer.writeDouble(offsets[4], object.minKmPerLiter);
-  writer.writeLong(offsets[5], object.savedAtMillis);
-  writer.writeLong(offsets[6], object.variantCount);
-  writer.writeString(offsets[7], object.vehicleClass);
+  writer.writeBool(offsets[1], object.hasFuelCell);
+  writer.writeBool(offsets[2], object.hasPluginHybrid);
+  writer.writeString(offsets[3], object.key);
+  writer.writeDouble(offsets[4], object.maxKmPerLiter);
+  writer.writeDouble(offsets[5], object.minKmPerLiter);
+  writer.writeLong(offsets[6], object.savedAtMillis);
+  writer.writeLong(offsets[7], object.variantCount);
+  writer.writeString(offsets[8], object.vehicleClass);
 }
 
 GroupSummaryCacheModel _groupSummaryCacheModelDeserialize(
@@ -125,14 +131,15 @@ GroupSummaryCacheModel _groupSummaryCacheModelDeserialize(
 ) {
   final object = GroupSummaryCacheModel(
     hasElectric: reader.readBool(offsets[0]),
-    hasPluginHybrid: reader.readBool(offsets[1]),
+    hasFuelCell: reader.readBool(offsets[1]),
+    hasPluginHybrid: reader.readBool(offsets[2]),
     id: id,
-    key: reader.readString(offsets[2]),
-    maxKmPerLiter: reader.readDoubleOrNull(offsets[3]),
-    minKmPerLiter: reader.readDoubleOrNull(offsets[4]),
-    savedAtMillis: reader.readLong(offsets[5]),
-    variantCount: reader.readLong(offsets[6]),
-    vehicleClass: reader.readStringOrNull(offsets[7]),
+    key: reader.readString(offsets[3]),
+    maxKmPerLiter: reader.readDoubleOrNull(offsets[4]),
+    minKmPerLiter: reader.readDoubleOrNull(offsets[5]),
+    savedAtMillis: reader.readLong(offsets[6]),
+    variantCount: reader.readLong(offsets[7]),
+    vehicleClass: reader.readStringOrNull(offsets[8]),
   );
   return object;
 }
@@ -149,16 +156,18 @@ P _groupSummaryCacheModelDeserializeProp<P>(
     case 1:
       return (reader.readBool(offset)) as P;
     case 2:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 3:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 4:
       return (reader.readDoubleOrNull(offset)) as P;
     case 5:
-      return (reader.readLong(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 6:
       return (reader.readLong(offset)) as P;
     case 7:
+      return (reader.readLong(offset)) as P;
+    case 8:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -420,6 +429,19 @@ extension GroupSummaryCacheModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'hasElectric', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  hasFuelCellEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'hasFuelCell', value: value),
       );
     });
   }
@@ -1302,6 +1324,20 @@ extension GroupSummaryCacheModelQuerySortBy
   }
 
   QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  sortByHasFuelCell() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasFuelCell', Sort.asc);
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  sortByHasFuelCellDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasFuelCell', Sort.desc);
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
   sortByHasPluginHybrid() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'hasPluginHybrid', Sort.asc);
@@ -1418,6 +1454,20 @@ extension GroupSummaryCacheModelQuerySortThenBy
   thenByHasElectricDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'hasElectric', Sort.desc);
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  thenByHasFuelCell() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasFuelCell', Sort.asc);
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QAfterSortBy>
+  thenByHasFuelCellDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasFuelCell', Sort.desc);
     });
   }
 
@@ -1544,6 +1594,13 @@ extension GroupSummaryCacheModelQueryWhereDistinct
   }
 
   QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QDistinct>
+  distinctByHasFuelCell() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'hasFuelCell');
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QDistinct>
   distinctByHasPluginHybrid() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'hasPluginHybrid');
@@ -1610,6 +1667,13 @@ extension GroupSummaryCacheModelQueryProperty
   hasElectricProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'hasElectric');
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, bool, QQueryOperations>
+  hasFuelCellProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'hasFuelCell');
     });
   }
 

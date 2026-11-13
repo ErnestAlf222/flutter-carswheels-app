@@ -20,6 +20,8 @@ class ModelConsumptionWidget extends StatelessWidget {
   final String groupName;
   final int year;
 
+  static const PowertrainLabelsResolver _labels = PowertrainLabelsResolver();
+
   @override
   Widget build(BuildContext context) {
     final key = context.read<SummariesCubit>().keyFor(brand, groupName, year);
@@ -71,29 +73,26 @@ class ModelConsumptionWidget extends StatelessWidget {
       return _Figure(
         key: const ValueKey('figure'),
         figure: AppTexts.consumptionFigureLabel(min.round(), max.round()),
-        isMixed: summary.hasElectric || summary.hasPluginHybrid,
+        isMixed: _labels.hasAlternative(summary),
       );
     }
-    final label = _powertrainLabel(summary);
-    if (label == null) return nothing;
-    return Text(
-      label,
-      key: ValueKey(label),
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
-      textAlign: TextAlign.right,
-      style: AppTextStyles.caption,
+    final labels = _labels.labelsFor(summary);
+    if (labels.isEmpty) return nothing;
+    return Column(
+      key: ValueKey(labels.join()),
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        for (final label in labels)
+          Text(
+            label,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.right,
+            style: AppTextStyles.caption,
+          ),
+      ],
     );
-  }
-
-  // Texto para los grupos sin km/l; nulo si no hay nada que decir.
-  String? _powertrainLabel(GroupSummaryEntity summary) {
-    if (summary.hasElectric && summary.hasPluginHybrid) {
-      return AppTexts.electricAndPluginLabel;
-    }
-    if (summary.hasElectric) return AppTexts.electricLabel;
-    if (summary.hasPluginHybrid) return AppTexts.pluginHybridLabel;
-    return null;
   }
 }
 

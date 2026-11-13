@@ -205,7 +205,7 @@ void main() {
     },
   );
 
-  testWidgets('con etiqueta de dos líneas y fuentes grandes no desborda', (
+  testWidgets('con dos etiquetas en líneas y fuentes grandes no desborda', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -222,7 +222,8 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    expect(find.text(AppTexts.electricAndPluginLabel), findsOneWidget);
+    expect(find.text(AppTexts.electricLabel), findsOneWidget);
+    expect(find.text(AppTexts.pluginHybridLabel), findsOneWidget);
   });
 
   testWidgets('la semántica incluye el consumo cuando existe', (tester) async {

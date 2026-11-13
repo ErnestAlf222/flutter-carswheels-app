@@ -1,31 +1,21 @@
+import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../../support/vehicle_class_fixture.dart';
 
 void main() {
   const translator = VehicleClassTranslator();
 
   const expected = <String, String>{
-    'Minicompact Cars': 'Minicompacto',
-    'Subcompact Cars': 'Subcompacto',
-    'Compact Cars': 'Compacto',
-    'Midsize Cars': 'Mediano',
-    'Large Cars': 'Grande',
-    'Two Seaters': 'Dos plazas',
-    'Small Station Wagons': 'Familiar pequeña',
-    'Midsize Station Wagons': 'Familiar mediana',
-    'Small SUV 2WD': 'SUV pequeña',
-    'Small SUV 4WD': 'SUV pequeña',
-    'Standard SUV 2WD': 'SUV estándar',
-    'Standard SUV 4WD': 'SUV estándar',
-    'Small Pickup Trucks 2WD': 'Pickup pequeña',
+    'Small Sport Utility Vehicle 2WD': 'SUV pequeña',
+    'Standard Sport Utility Vehicle 4WD': 'SUV estándar',
     'Small Pickup Trucks 4WD': 'Pickup pequeña',
-    'Small Pickup 2WD': 'Pickup pequeña',
-    'Standard Pickup Trucks 2WD': 'Pickup estándar',
-    'Standard Pickup Trucks 4WD': 'Pickup estándar',
-    'Standard Pickup 2WD': 'Pickup estándar',
-    'Standard Pickup 4WD': 'Pickup estándar',
+    'Standard Pickup Trucks/2wd': 'Pickup estándar',
     'Minivan - 2WD': 'Minivan',
     'Minivan - 4WD': 'Minivan',
+    'Two Seaters': 'Dos plazas',
   };
 
   for (final entry in expected.entries) {
@@ -35,14 +25,42 @@ void main() {
   }
 
   test('una clase no observada se devuelve sin sufijo y en inglés', () {
-    expect(
-      translator.labelFor('Special Purpose Vehicle 2WD'),
-      'Special Purpose Vehicle',
-    );
+    expect(translator.labelFor('Hovercraft Class 2WD'), 'Hovercraft Class');
   });
 
+  test('cada valor real de VClass se traduce con texto corto', () {
+    for (final entry in realVehicleClassTranslations.entries) {
+      final label = translator.labelFor(entry.key);
+      expect(label, entry.value, reason: entry.key);
+      expect(label, isNotEmpty, reason: entry.key);
+      expect(label!.length, lessThanOrEqualTo(22), reason: entry.key);
+    }
+  });
+
+  test('toda traducción de la tabla es corta y no vacía', () {
+    for (final entry in VehicleClassTexts.labels.entries) {
+      expect(entry.value, isNotEmpty, reason: entry.key);
+      expect(entry.value.length, lessThanOrEqualTo(22), reason: entry.key);
+    }
+  });
+
+  test(
+    'un valor sin entrada se registra en depuración sin cambiar el texto',
+    () {
+      final lines = <String?>[];
+      final previous = debugPrint;
+      debugPrint = (message, {wrapWidth}) => lines.add(message);
+      addTearDown(() => debugPrint = previous);
+      expect(translator.labelFor('Hovercraft Class 4WD'), 'Hovercraft Class');
+      expect(translator.labelFor('Compact Cars'), 'Compacto');
+      expect(lines, [
+        '${VehicleSpecsConfig.untranslatedClassLogPrefix}Hovercraft Class',
+      ]);
+    },
+  );
+
   test('el sufijo se quita sin distinguir mayúsculas', () {
-    expect(translator.labelFor('Small SUV 4wd'), 'SUV pequeña');
+    expect(translator.labelFor('Small Pickup Trucks 4wd'), 'Pickup pequeña');
   });
 
   test('nulo y vacío devuelven nulo', () {

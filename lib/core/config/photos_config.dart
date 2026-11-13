@@ -103,7 +103,6 @@ class PhotosConfig {
 
   // Rank de una página sin orden: queda al final de cualquier desempate.
   static const int missingRank = 1000000;
-  static const int yearDigitCount = 4;
 
   // Separadores de palabras del título.
   static const String titleTokenPattern = r'[^\p{L}\p{N}]+';

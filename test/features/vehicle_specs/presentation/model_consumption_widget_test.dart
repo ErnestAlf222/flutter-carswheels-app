@@ -13,12 +13,14 @@ GroupSummaryEntity _summary({
   double? max = 10.4,
   bool electric = false,
   bool plugin = false,
+  bool fuelCell = false,
 }) => GroupSummaryEntity(
   vehicleClass: 'Midsize Cars',
   minKmPerLiter: min,
   maxKmPerLiter: max,
   hasElectric: electric,
   hasPluginHybrid: plugin,
+  hasFuelCell: fuelCell,
   variantCount: 3,
 );
 
@@ -144,25 +146,132 @@ void main() {
     expect(find.text(AppTexts.pluginHybridLabel), findsOneWidget);
   });
 
-  testWidgets('ambos sin km/l muestra la etiqueta combinada en dos líneas', (
+  testWidgets('con hidrógeno y km/l añade el icono mixto', (tester) async {
+    await tester.pumpWidget(
+      consumption(slot: SummaryFound(_summary(fuelCell: true))),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Symbols.bolt), findsOneWidget);
+  });
+
+  testWidgets('solo hidrógeno (Mirai) muestra Hidrógeno sin km/l', (
     tester,
   ) async {
     await tester.pumpWidget(
       consumption(
-        slot: SummaryFound(
-          _summary(min: null, max: null, electric: true, plugin: true),
+        slot: SummaryFound(_summary(min: null, max: null, fuelCell: true)),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text(AppTexts.hydrogenLabel), findsOneWidget);
+    expect(find.text(AppTexts.consumptionUnitLabel), findsNothing);
+    expect(find.byIcon(Symbols.bolt), findsNothing);
+    expectFixedWidth(tester);
+  });
+
+  testWidgets('combinaciones sin km/l: una línea por etiqueta y en orden', (
+    tester,
+  ) async {
+    final cases = <({bool e, bool p, bool f, List<String> labels})>[
+      (
+        e: true,
+        p: true,
+        f: false,
+        labels: [AppTexts.electricLabel, AppTexts.pluginHybridLabel],
+      ),
+      (
+        e: true,
+        p: false,
+        f: true,
+        labels: [AppTexts.electricLabel, AppTexts.hydrogenLabel],
+      ),
+      (
+        e: false,
+        p: true,
+        f: true,
+        labels: [AppTexts.pluginHybridLabel, AppTexts.hydrogenLabel],
+      ),
+      (
+        e: true,
+        p: true,
+        f: true,
+        labels: [
+          AppTexts.electricLabel,
+          AppTexts.pluginHybridLabel,
+          AppTexts.hydrogenLabel,
+        ],
+      ),
+    ];
+    for (final item in cases) {
+      await tester.pumpWidget(
+        consumption(
+          slot: SummaryFound(
+            _summary(
+              min: null,
+              max: null,
+              electric: item.e,
+              plugin: item.p,
+              fuelCell: item.f,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      double previousTop = -1;
+      for (final label in item.labels) {
+        final finder = find.text(label);
+        expect(finder, findsOneWidget);
+        final text = tester.widget<Text>(finder);
+        expect(text.style, AppTextStyles.caption);
+        expect(text.textAlign, TextAlign.right);
+        final top = tester.getTopLeft(finder).dy;
+        expect(top, greaterThan(previousTop));
+        previousTop = top;
+      }
+      expectFixedWidth(tester);
+    }
+  });
+
+  testWidgets('las tres líneas con textScaler 2 no desbordan', (tester) async {
+    final key = summaryKeyFor('Honda', 'Civic', 2020);
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: const TextScaler.linear(2)),
+          child: child!,
+        ),
+        home: BlocProvider<SummariesCubit>.value(
+          value: buildMockSummariesCubit(
+            slots: {
+              key: SummaryFound(
+                _summary(
+                  min: null,
+                  max: null,
+                  electric: true,
+                  plugin: true,
+                  fuelCell: true,
+                ),
+              ),
+            },
+          ),
+          child: const Scaffold(
+            body: Align(
+              alignment: Alignment.topRight,
+              child: ModelConsumptionWidget(
+                brand: 'Honda',
+                groupName: 'Civic',
+                year: 2020,
+              ),
+            ),
+          ),
         ),
       ),
     );
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    final text = tester.widget<Text>(
-      find.text(AppTexts.electricAndPluginLabel),
-    );
-    expect(text.maxLines, 2);
-    expect(text.textAlign, TextAlign.right);
-    expect(text.style, AppTextStyles.caption);
-    expectFixedWidth(tester);
+    expect(find.text(AppTexts.hydrogenLabel), findsOneWidget);
   });
 
   testWidgets('Found sin nada, Missing, Failed y sin slot no muestran nada', (

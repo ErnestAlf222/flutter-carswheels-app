@@ -14,6 +14,7 @@ class CachedSummaryMapper {
         maxKmPerLiter: model.maxKmPerLiter,
         hasElectric: model.hasElectric,
         hasPluginHybrid: model.hasPluginHybrid,
+        hasFuelCell: model.hasFuelCell,
         variantCount: model.variantCount,
       ),
       savedAt: DateTime.fromMillisecondsSinceEpoch(model.savedAtMillis),
@@ -32,6 +33,7 @@ class CachedSummaryMapper {
       maxKmPerLiter: summary.maxKmPerLiter,
       hasElectric: summary.hasElectric,
       hasPluginHybrid: summary.hasPluginHybrid,
+      hasFuelCell: summary.hasFuelCell,
       variantCount: summary.variantCount,
       savedAtMillis: entity.savedAt.millisecondsSinceEpoch,
     );

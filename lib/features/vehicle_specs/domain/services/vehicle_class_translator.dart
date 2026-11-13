@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:cars_wheels_app/core/core.dart';
 
 /// Traduce la clase de FuelEconomy al español, sin el sufijo de tracción.
@@ -14,6 +16,11 @@ class VehicleClassTranslator {
     if (originalClass == null || originalClass.trim().isEmpty) return null;
     final cleaned = originalClass.replaceFirst(_driveSuffix, '').trim();
     if (cleaned.isEmpty) return null;
-    return VehicleSpecsConfig.vehicleClassLabels[cleaned] ?? cleaned;
+    final label = VehicleClassTexts.labels[cleaned];
+    if (label != null) return label;
+    if (kDebugMode) {
+      debugPrint('${VehicleSpecsConfig.untranslatedClassLogPrefix}$cleaned');
+    }
+    return cleaned;
   }
 }

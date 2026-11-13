@@ -26,32 +26,17 @@ class VehicleSpecsConfig {
     'hybrid': 'combustion',
     'ev': 'electric',
     'plug-in hybrid': 'pluginHybrid',
-  };
-
-  // Clases de FuelEconomy sin sufijo de tracción; crece con casos nuevos.
-  static const Map<String, String> vehicleClassLabels = {
-    'Minicompact Cars': 'Minicompacto',
-    'Subcompact Cars': 'Subcompacto',
-    'Compact Cars': 'Compacto',
-    'Midsize Cars': 'Mediano',
-    'Large Cars': 'Grande',
-    'Two Seaters': 'Dos plazas',
-    'Small Station Wagons': 'Familiar pequeña',
-    'Midsize Station Wagons': 'Familiar mediana',
-    'Small SUV': 'SUV pequeña',
-    'Standard SUV': 'SUV estándar',
-    'Small Pickup Trucks': 'Pickup pequeña',
-    'Small Pickup': 'Pickup pequeña',
-    'Standard Pickup Trucks': 'Pickup estándar',
-    'Standard Pickup': 'Pickup estándar',
-    'Minivan': 'Minivan',
+    'fcv': 'fuelCell',
   };
 
   // Sufijo de tracción al final de la clase; se aplica sin distinguir mayúsculas.
-  static const String driveSuffixPattern = r'\s*-?\s*(2WD|4WD)$';
+  static const String driveSuffixPattern = r'\s*[-/]?\s*(2WD|4WD)$';
 
-  // Versión de la clave del resumen; 'v2' invalida las entradas de una sola variante.
-  static const String summaryCacheKeyVersion = 'v2';
+  // Registro de depuración de una clase sin traducción; va seguido del valor.
+  static const String untranslatedClassLogPrefix = 'clase sin traducir: ';
+
+  // Versión de la clave del resumen; 'v3' invalida lo guardado sin hasFuelCell.
+  static const String summaryCacheKeyVersion = 'v3';
 
   // Provisional: días de vigencia del resumen guardado.
   static const int summaryCacheTimeToLiveDays = 30;

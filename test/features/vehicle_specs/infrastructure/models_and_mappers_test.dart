@@ -128,6 +128,7 @@ void main() {
         maxKmPerLiter: 16.25,
         hasElectric: true,
         hasPluginHybrid: true,
+        hasFuelCell: true,
         variantCount: 4,
       ),
       savedAt: DateTime.fromMillisecondsSinceEpoch(1700000000000),
@@ -137,6 +138,7 @@ void main() {
       final model = CachedSummaryMapper.toModel('clave', entity);
       expect(model.key, 'clave');
       expect(model.variantCount, 4);
+      expect(model.hasFuelCell, isTrue);
       expect(model.savedAtMillis, 1700000000000);
       expect(CachedSummaryMapper.toEntity(model), entity);
     });

@@ -31,6 +31,7 @@ class GroupSummaryBuilder {
           : kmPerLiter.reduce((a, b) => a > b ? a : b),
       hasElectric: powertrains.contains(Powertrain.electric),
       hasPluginHybrid: powertrains.contains(Powertrain.pluginHybrid),
+      hasFuelCell: powertrains.contains(Powertrain.fuelCell),
       variantCount: records.length,
     );
   }
