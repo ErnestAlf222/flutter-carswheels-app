@@ -1,3 +1,4 @@
+import 'package:bloc_test/bloc_test.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
@@ -5,6 +6,7 @@ import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mocktail/mocktail.dart';
 
 import 'brand_logos_test_support.dart';
 import 'class_translator_test_support.dart';
@@ -14,16 +16,36 @@ void disableFontFetching() {
   GoogleFonts.config.allowRuntimeFetching = false;
 }
 
+/// Cubit de galería falso para pruebas de widgets.
+class MockDetailGalleryCubit extends MockCubit<GalleryState>
+    implements DetailGalleryCubit {}
+
+/// Caso de uso de galería falso para pruebas de páginas.
+class MockResolveModelGalleryUseCase extends Mock
+    implements ResolveModelGalleryUseCase {}
+
+/// Cubit de galería falso con el estado dado.
+MockDetailGalleryCubit buildMockGalleryCubit([
+  GalleryState state = const GalleryState(),
+]) {
+  final cubit = MockDetailGalleryCubit();
+  when(() => cubit.state).thenReturn(state);
+  when(() => cubit.selectPage(any())).thenReturn(null);
+  return cubit;
+}
+
 /// Foto de prueba; la URL no se pide porque las pruebas no tienen red.
 PhotoEntity testPhoto({
+  String url = 'https://upload.test/civic-960px.jpg',
+  String source = 'fuente',
   String author = 'Autora',
   String license = 'CC BY 4.0',
   bool isReference = false,
 }) => PhotoEntity(
-  thumbnailUrl: 'https://upload.test/civic-960px.jpg',
+  thumbnailUrl: url,
   authorName: author,
   licenseName: license,
-  sourceUrl: 'fuente',
+  sourceUrl: source,
   isReference: isReference,
 );
 
@@ -80,6 +102,8 @@ Widget detailHost(
   double textScale = 1,
   bool disableAnimations = true,
   Map<String, String> logoUrls = const {},
+  DetailGalleryCubit? galleryCubit,
+  PhotoPrefetcher prefetcher = const PhotoPrefetcher(),
 }) => MaterialApp(
   // Los proveedores van sobre el Navigator, como en la app, para que la hoja los vea.
   builder: (context, home) => MediaQuery(
@@ -92,9 +116,15 @@ Widget detailHost(
         value: const VersionDescriptorBuilder(
           transmissionLabeler: TransmissionLabeler(),
         ),
-        child: BlocProvider<BrandLogosCubit>.value(
-          value: buildMockBrandLogosCubit(urls: logoUrls),
-          child: home!,
+        child: RepositoryProvider<PhotoPrefetcher>.value(
+          value: prefetcher,
+          child: BlocProvider<DetailGalleryCubit>.value(
+            value: galleryCubit ?? buildMockGalleryCubit(),
+            child: BlocProvider<BrandLogosCubit>.value(
+              value: buildMockBrandLogosCubit(urls: logoUrls),
+              child: home!,
+            ),
+          ),
         ),
       ),
     ),

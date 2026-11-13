@@ -1,7 +1,7 @@
-import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/photos/domain/entities/photo_entity.dart';
 import 'package:cars_wheels_app/features/photos/domain/repositories/photos_repository.dart';
 import 'package:cars_wheels_app/features/photos/domain/services/photo_candidate_selector.dart';
+import 'package:cars_wheels_app/features/photos/domain/services/photo_search_term_builder.dart';
 
 /// Busca la foto de un modelo: primero con año y luego sin año.
 class GetModelPhotoUseCase {
@@ -19,17 +19,15 @@ class GetModelPhotoUseCase {
     required String modelName,
     required int year,
   }) async {
-    final cleanModel = selector.cleanModelName(modelName);
-    final baseTerm = [
-      brand,
-      _applyAlias(cleanModel),
-    ].join(PhotosConfig.searchTermSeparator);
+    final terms = PhotoSearchTermBuilder(selector: selector);
     final withYear = await repository.searchCandidates(
-      '$baseTerm${PhotosConfig.searchTermSeparator}$year',
+      terms.withYear(brand: brand, modelName: modelName, year: year),
     );
     final exact = selector.select(withYear, brand, modelName, year);
     if (exact != null) return exact;
-    final withoutYear = await repository.searchCandidates(baseTerm);
+    final withoutYear = await repository.searchCandidates(
+      terms.base(brand: brand, modelName: modelName),
+    );
     final reference = selector.select(withoutYear, brand, modelName, year);
     if (reference == null) return null;
     return PhotoEntity(
@@ -39,14 +37,5 @@ class GetModelPhotoUseCase {
       sourceUrl: reference.sourceUrl,
       isReference: true,
     );
-  }
-
-  // Reemplaza la primera palabra por su alias, si tiene uno.
-  String _applyAlias(String cleanModel) {
-    final words = cleanModel.split(PhotosConfig.searchTermSeparator);
-    final alias = PhotosConfig
-        .photoSearchTermAliases[TextNormalizer.normalize(words.first)];
-    if (alias == null) return cleanModel;
-    return [alias, ...words.skip(1)].join(PhotosConfig.searchTermSeparator);
   }
 }

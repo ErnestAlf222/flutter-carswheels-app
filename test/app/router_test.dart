@@ -7,6 +7,7 @@ import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/navigation/navigation.dart';
+import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -34,6 +35,14 @@ class _MockLogoPrecacheCubit extends MockCubit<LogoPrecacheState>
 /// Envuelve la app con los cubits que necesita la pantalla de inicio.
 Widget _app(GoRouter router) {
   final load = _MockLoad();
+  final gallery = MockResolveModelGalleryUseCase();
+  when(
+    () => gallery(
+      brand: any(named: 'brand'),
+      modelName: any(named: 'modelName'),
+      year: any(named: 'year'),
+    ),
+  ).thenAnswer((_) async => const []);
   // Detalle nunca termina de cargar: se ve el esqueleto.
   when(() => load(any()))
       .thenAnswer((_) => Completer<GroupDetailsEntity>().future);
@@ -48,6 +57,8 @@ Widget _app(GoRouter router) {
   return MultiRepositoryProvider(
     providers: [
       RepositoryProvider<LoadGroupDetailsUseCase>.value(value: load),
+      RepositoryProvider<ResolveModelGalleryUseCase>.value(value: gallery),
+      RepositoryProvider<PhotoPrefetcher>.value(value: const PhotoPrefetcher()),
       RepositoryProvider<VehicleClassTranslator>.value(
         value: const VehicleClassTranslator(),
       ),

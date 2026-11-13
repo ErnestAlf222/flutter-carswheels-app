@@ -51,6 +51,10 @@ class UiConfig {
   static const double detailPhotoSideMargin = 36.0;
   static const double detailPhotoBlurSigma = 18.0;
   static const double detailCreditGap = 4.0;
+  static const double galleryDotSize = 6.0;
+  static const double galleryDotSpacing = 6.0;
+  static const double galleryDotsBottomInset = 8.0;
+  static const double galleryDotsPadding = 6.0;
   static const double detailSelectorHeight = 56.0;
   static const double detailSelectorSideMargin = 20.0;
   static const double detailStatsSideMargin = 12.0;
@@ -65,7 +69,6 @@ class UiConfig {
   static const double detailGhostOpacity = 0.22;
   static const double detailChipVerticalPadding = 6.0;
   static const double detailChipHorizontalPadding = 14.0;
-  static const double detailFavoriteIconSize = 22.0;
   static const double detailSelectorHorizontalPadding = 18.0;
   static const double detailStatDividerWidth = 1.0;
   static const double detailSkeletonChipWidth = 96.0;

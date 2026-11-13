@@ -81,6 +81,9 @@ class AppTexts {
   static String brandYearLabel(String brand, int year) =>
       '${brand.toUpperCase()} · $year';
 
+  static String photoPositionSemanticLabel(int position, int total) =>
+      'Foto $position de $total';
+
   static String photoCreditLabel(String author, String license) =>
       'Foto: $author · $license';
 

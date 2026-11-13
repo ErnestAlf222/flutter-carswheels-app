@@ -123,4 +123,16 @@ class PhotosConfig {
     'f250': 'F-250',
     'f350': 'F-350',
   };
+
+  // Galería de Detalle: tamaño, segunda búsqueda y versión de la caché.
+  static const int galleryMaxPhotos = 6;
+  static const int galleryMinPhotosBeforeSecondSearch = 3;
+  static const String galleryCacheKeyVersion = 'v1';
+  static const String galleryCacheKeyTag = 'gallery';
+  // Claves del JSON de cada foto guardada en la caché de la galería.
+  static const String galleryPayloadThumbnailKey = 'thumbnailUrl';
+  static const String galleryPayloadAuthorKey = 'authorName';
+  static const String galleryPayloadLicenseKey = 'licenseName';
+  static const String galleryPayloadSourceKey = 'sourceUrl';
+  static const String galleryPayloadReferenceKey = 'isReference';
 }

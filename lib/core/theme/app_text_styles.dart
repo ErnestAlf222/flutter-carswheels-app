@@ -95,4 +95,7 @@ class AppTextStyles {
     letterSpacing: 1.4,
     color: AppColors.ink,
   );
+  static final TextStyle detailBrandYearLabel = label.copyWith(
+    letterSpacing: 1.2,
+  );
 }

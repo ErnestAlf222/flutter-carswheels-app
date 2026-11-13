@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/detail/presentation/widgets/widgets.dart';
+import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,7 +32,7 @@ void main() {
     expect(find.byType(SvgPicture), findsOneWidget);
   });
 
-  testWidgets('los botones circulares están a 20 del borde y miden 48', (
+  testWidgets('el botón de volver está a 20 del borde y mide 48', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -38,14 +40,8 @@ void main() {
     );
     final header = tester.getRect(find.byType(DetailHeroHeaderWidget));
     final back = tester.getRect(find.byIcon(Symbols.chevron_left));
-    final favorite = tester.getRect(find.byIcon(Symbols.favorite));
-    expect(favorite.center.dy, back.center.dy);
     expect(
       back.center.dx - header.left,
-      UiConfig.detailCircleButtonInset + UiConfig.detailCircleButtonSize / 2,
-    );
-    expect(
-      header.right - favorite.center.dx,
       UiConfig.detailCircleButtonInset + UiConfig.detailCircleButtonSize / 2,
     );
     final button = find.ancestor(
@@ -53,6 +49,23 @@ void main() {
       matching: find.byType(SizedBox),
     );
     expect(tester.getSize(button.first), const Size(48, 48));
+  });
+
+  testWidgets('la zona alta recorta lo que se pinta fuera de sus 280', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      detailHost(DetailHeroHeaderWidget(args: testArgs())),
+    );
+    final stack = tester.widget<Stack>(
+      find
+          .descendant(
+            of: find.byType(DetailHeroHeaderWidget),
+            matching: find.byType(Stack),
+          )
+          .first,
+    );
+    expect(stack.clipBehavior, Clip.hardEdge);
   });
 
   testWidgets('volver llama a pop', (tester) async {
@@ -71,7 +84,13 @@ void main() {
     await tester.pumpWidget(
       BlocProvider<BrandLogosCubit>.value(
         value: buildMockBrandLogosCubit(),
-        child: MaterialApp.router(routerConfig: router),
+        child: BlocProvider<DetailGalleryCubit>.value(
+          value: buildMockGalleryCubit(),
+          child: RepositoryProvider<PhotoPrefetcher>.value(
+            value: const PhotoPrefetcher(),
+            child: MaterialApp.router(routerConfig: router),
+          ),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -84,16 +103,12 @@ void main() {
     expect(find.byType(DetailHeroHeaderWidget), findsNothing);
   });
 
-  testWidgets('el corazón de favoritos se muestra y no hace nada', (
-    tester,
-  ) async {
+  testWidgets('arriba ya no hay corazón de favoritos', (tester) async {
     await tester.pumpWidget(
       detailHost(DetailHeroHeaderWidget(args: testArgs())),
     );
-    expect(find.bySemanticsLabel(AppTexts.addToFavoritesLabel), findsOneWidget);
-    await tester.tap(find.byIcon(Symbols.favorite));
-    await tester.pump();
-    expect(tester.takeException(), isNull);
+    expect(find.byIcon(Symbols.favorite), findsNothing);
+    expect(find.bySemanticsLabel(AppTexts.addToFavoritesLabel), findsNothing);
   });
 
   testWidgets('un nombre largo con textScaler 2 no desborda', (tester) async {

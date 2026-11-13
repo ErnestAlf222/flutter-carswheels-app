@@ -3,4 +3,5 @@ export 'domain/domain.dart';
 export 'infrastructure/infrastructure.dart';
 // Lo que usan otras features
 export 'presentation/cubits/cubits.dart';
+export 'presentation/services/services.dart';
 export 'presentation/widgets/widgets.dart';

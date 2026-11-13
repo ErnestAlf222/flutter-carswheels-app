@@ -65,6 +65,12 @@ class _AppState extends State<App> {
         RepositoryProvider<VersionDescriptorBuilder>.value(
           value: _dependencies.versionDescriptorBuilder,
         ),
+        RepositoryProvider<PhotoPrefetcher>.value(
+          value: const PhotoPrefetcher(),
+        ),
+        RepositoryProvider<ResolveModelGalleryUseCase>.value(
+          value: _dependencies.resolveModelGalleryUseCase,
+        ),
         RepositoryProvider<LoadGroupDetailsUseCase>.value(
           value: _dependencies.loadGroupDetailsUseCase,
         ),

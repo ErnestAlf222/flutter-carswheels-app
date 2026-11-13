@@ -38,7 +38,9 @@ class DetailTitleRowWidget extends StatelessWidget {
                   AppTexts.brandYearLabel(brand, year),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.label.copyWith(color: AppColors.subtle),
+                  style: AppTextStyles.detailBrandYearLabel.copyWith(
+                    color: AppColors.subtle,
+                  ),
                 ),
                 Text(
                   groupName,

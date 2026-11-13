@@ -3,6 +3,7 @@ import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -12,6 +13,14 @@ class _FakePhotoCache implements PhotoCacheDatasource {
 
   @override
   Future<void> write(String key, CachedPhotoEntity entry) async {}
+}
+
+class _FakeGalleryCache implements GalleryCacheDatasource {
+  @override
+  Future<CachedGalleryEntity?> read(String key) async => null;
+
+  @override
+  Future<void> write(String key, CachedGalleryEntity entry) async {}
 }
 
 class _FakeSummaryCache implements SummaryCacheDatasource {
@@ -33,6 +42,7 @@ class _FakeDetailCache implements VehicleDetailCacheDatasource {
 App _buildApp() => App(
   dependencies: AppDependencies.create(
     photoCache: _FakePhotoCache(),
+    galleryCache: _FakeGalleryCache(),
     summaryCache: _FakeSummaryCache(),
     detailCache: _FakeDetailCache(),
   ),
@@ -67,5 +77,26 @@ void main() {
     final app = tester.widget<MaterialApp>(find.byType(MaterialApp));
     expect(app.debugShowCheckedModeBanner, isFalse);
     expect(AppConfig.showDebugBanner, isFalse);
+  });
+
+  testWidgets('la app provee la galería y el precargador a Detalle', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_buildApp());
+    await tester.pump(
+      const Duration(
+        milliseconds: UiConfig.initialLoaderMinimumVisibleMilliseconds,
+      ),
+    );
+    await tester.pumpAndSettle();
+    final context = tester.element(find.byType(MaterialApp));
+    expect(
+      RepositoryProvider.of<ResolveModelGalleryUseCase>(context),
+      isA<ResolveModelGalleryUseCase>(),
+    );
+    expect(
+      RepositoryProvider.of<PhotoPrefetcher>(context),
+      isA<PhotoPrefetcher>(),
+    );
   });
 }

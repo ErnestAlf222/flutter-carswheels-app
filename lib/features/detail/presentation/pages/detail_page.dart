@@ -6,6 +6,7 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/detail/domain/domain.dart';
 import 'package:cars_wheels_app/features/detail/presentation/cubits/cubits.dart';
 import 'package:cars_wheels_app/features/detail/presentation/widgets/widgets.dart';
+import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 
 /// Pantalla Detalle de un grupo de modelos.
@@ -16,9 +17,18 @@ class DetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<DetailCubit>(
-      create: (context) =>
-          DetailCubit(context.read<LoadGroupDetailsUseCase>())..load(args),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<DetailCubit>(
+          create: (context) =>
+              DetailCubit(context.read<LoadGroupDetailsUseCase>())..load(args),
+        ),
+        BlocProvider<DetailGalleryCubit>(
+          create: (context) =>
+              DetailGalleryCubit(context.read<ResolveModelGalleryUseCase>())
+                ..load(args),
+        ),
+      ],
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: Stack(

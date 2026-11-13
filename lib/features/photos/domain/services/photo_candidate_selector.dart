@@ -37,18 +37,37 @@ class PhotoCandidateSelector {
     String modelName,
     int year,
   ) {
+    final photos = selectMany(candidates, brand, modelName, year, 1);
+    return photos.isEmpty ? null : photos.first;
+  }
+
+  /// Hasta limit fotos válidas: las del año y luego las de referencia.
+  List<PhotoEntity> selectMany(
+    List<PhotoCandidateEntity> candidates,
+    String brand,
+    String modelName,
+    int year,
+    int limit,
+  ) {
     final brandKey = TextNormalizer.normalize(brand);
     final modelKey = _modelKey(modelName);
     final valid = candidates
         .where((candidate) => _isValid(candidate, brandKey, modelKey))
         .toList();
     final sameYear = valid.where((c) => _titleYears(c).contains(year));
-    final fromYear = _bestRanked(sameYear);
-    if (fromYear != null) return _toPhoto(fromYear, isReference: false);
     final others = valid.where((c) => !_titleYears(c).contains(year));
-    final fallback = _bestReference(others, year);
-    if (fallback != null) return _toPhoto(fallback, isReference: true);
-    return null;
+    final ordered = <PhotoEntity>[
+      ..._byRank(sameYear).map((c) => _toPhoto(c, isReference: false)),
+      ..._referenceOrder(
+        others,
+        year,
+      ).map((c) => _toPhoto(c, isReference: true)),
+    ];
+    final seenSources = <String>{};
+    return ordered
+        .where((photo) => seenSources.add(photo.sourceUrl))
+        .take(limit < 0 ? 0 : limit)
+        .toList();
   }
 
   // Años reconocidos del título: el inicial con espacio y los de paréntesis.
@@ -63,8 +82,8 @@ class PhotoCandidateSelector {
     return years;
   }
 
-  // Con año cercano primero (menor diferencia); sin año después; lejanos fuera.
-  PhotoCandidateEntity? _bestReference(
+  // Con año cercano primero (menor diferencia, luego rank); sin año al final.
+  List<PhotoCandidateEntity> _referenceOrder(
     Iterable<PhotoCandidateEntity> candidates,
     int year,
   ) {
@@ -83,12 +102,11 @@ class PhotoCandidateSelector {
         dated[candidate] = difference;
       }
     }
-    if (dated.isEmpty) return _bestRanked(undated);
-    return dated.keys.reduce((a, b) {
-      final byDifference = dated[b]!.compareTo(dated[a]!);
-      if (byDifference != 0) return byDifference < 0 ? b : a;
-      return b.rank < a.rank ? b : a;
-    });
+    final byDifference = _stableSorted(
+      dated.keys,
+      (a, b) => dated[a]!.compareTo(dated[b]!),
+    );
+    return [...byDifference, ..._byRank(undated)];
   }
 
   // Primera palabra del modelo limpio, normalizada.
@@ -166,10 +184,23 @@ class PhotoCandidateSelector {
     return false;
   }
 
-  // Candidata de menor rank, o null si no hay ninguna.
-  PhotoCandidateEntity? _bestRanked(Iterable<PhotoCandidateEntity> candidates) {
-    if (candidates.isEmpty) return null;
-    return candidates.reduce((a, b) => b.rank < a.rank ? b : a);
+  // Candidatas de menor a mayor rank; el orden original rompe los empates.
+  List<PhotoCandidateEntity> _byRank(Iterable<PhotoCandidateEntity> items) =>
+      _stableSorted(items, (a, b) => 0);
+
+  // Orden por criterio, luego rank y luego posición original (estable).
+  List<PhotoCandidateEntity> _stableSorted(
+    Iterable<PhotoCandidateEntity> items,
+    int Function(PhotoCandidateEntity a, PhotoCandidateEntity b) criterion,
+  ) {
+    final indexed = items.toList().asMap().entries.toList()
+      ..sort((a, b) {
+        final byCriterion = criterion(a.value, b.value);
+        if (byCriterion != 0) return byCriterion;
+        final byRank = a.value.rank.compareTo(b.value.rank);
+        return byRank != 0 ? byRank : a.key.compareTo(b.key);
+      });
+    return [for (final entry in indexed) entry.value];
   }
 
   PhotoEntity _toPhoto(

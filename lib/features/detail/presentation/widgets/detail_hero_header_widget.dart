@@ -6,9 +6,9 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/detail/domain/domain.dart';
 import 'package:cars_wheels_app/features/detail/presentation/widgets/detail_circle_button_widget.dart';
-import 'package:cars_wheels_app/features/detail/presentation/widgets/detail_photo_card_widget.dart';
+import 'package:cars_wheels_app/features/detail/presentation/widgets/detail_photo_carousel_widget.dart';
 
-/// Zona alta de Detalle: mancha de fondo, nombre grande, botones y foto.
+/// Zona alta de Detalle: mancha de fondo, nombre grande, volver y fotos.
 class DetailHeroHeaderWidget extends StatelessWidget {
   const DetailHeroHeaderWidget({super.key, required this.args});
 
@@ -22,8 +22,9 @@ class DetailHeroHeaderWidget extends StatelessWidget {
       child: SizedBox(
         height: UiConfig.detailHeroHeight,
         width: double.infinity,
+        // Recorta la mancha de fondo a la altura de la zona alta.
         child: Stack(
-          clipBehavior: Clip.none,
+          clipBehavior: Clip.hardEdge,
           children: [
             Positioned(
               top: 0,
@@ -47,8 +48,7 @@ class DetailHeroHeaderWidget extends StatelessWidget {
               top: UiConfig.detailPhotoTop,
               left: UiConfig.detailPhotoSideMargin,
               right: UiConfig.detailPhotoSideMargin,
-              child: DetailPhotoCardWidget(
-                photo: args.photo,
+              child: DetailPhotoCarouselWidget(
                 brandName: args.brand,
                 heroTag: args.heroTag,
               ),
@@ -62,16 +62,6 @@ class DetailHeroHeaderWidget extends StatelessWidget {
                 iconSize: UiConfig.iconSize,
                 semanticLabel: AppTexts.backLabel,
                 onTap: () => context.pop(),
-              ),
-            ),
-            const Positioned(
-              top: UiConfig.detailCircleButtonInset,
-              right: UiConfig.detailCircleButtonInset,
-              child: DetailCircleButtonWidget(
-                icon: Symbols.favorite,
-                size: UiConfig.detailCircleButtonSize,
-                iconSize: UiConfig.detailFavoriteIconSize,
-                semanticLabel: AppTexts.addToFavoritesLabel,
               ),
             ),
           ],

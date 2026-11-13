@@ -12,6 +12,7 @@ Future<void> main() async {
   GoogleFonts.config.allowRuntimeFetching = false;
   final isar = await IsarDatabase.open([
     CachedPhotoModelSchema,
+    PhotoGalleryCacheModelSchema,
     GroupSummaryCacheModelSchema,
     VehicleDetailCacheModelSchema,
   ]);

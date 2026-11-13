@@ -17,4 +17,6 @@ class AppColors {
   static const Color onGradient = Color(0xFFFFFFFF);
   static const Color dashedLine = Color(0xFFD3CCBB);
   static const Color shadow = Color(0x141A1A22);
+  static const Color galleryDotInactive = Color(0x99FFFFFF);
+  static const Color galleryDotActive = gradientStart;
 }

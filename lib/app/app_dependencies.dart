@@ -19,6 +19,8 @@ class AppDependencies {
     required this.brandLogosRepository,
     required this.getModelPhotoUseCase,
     required this.resolveModelPhotoUseCase,
+    required this.getModelGalleryUseCase,
+    required this.resolveModelGalleryUseCase,
     required this.cancelPendingPhotosUseCase,
     required this.photoKeyBuilder,
     required this.getGroupSummaryUseCase,
@@ -42,6 +44,7 @@ class AppDependencies {
   factory AppDependencies.withIsar(Isar isar) {
     return AppDependencies.create(
       photoCache: IsarPhotoCacheDatasource(isar),
+      galleryCache: IsarGalleryCacheDatasource(isar),
       summaryCache: IsarSummaryCacheDatasource(isar),
       detailCache: IsarVehicleDetailCacheDatasource(isar),
       closeStorage: () => IsarDatabase.close(isar),
@@ -51,6 +54,7 @@ class AppDependencies {
   /// Compone la app con clientes reales y la caché de fotos dada.
   factory AppDependencies.create({
     required PhotoCacheDatasource photoCache,
+    required GalleryCacheDatasource galleryCache,
     required SummaryCacheDatasource summaryCache,
     required VehicleDetailCacheDatasource detailCache,
     Future<void> Function()? closeStorage,
@@ -78,6 +82,7 @@ class AppDependencies {
       logosDio,
       commonsDio,
       photoCache,
+      galleryCache,
       summaryCache,
       detailCache,
       closeStorage: closeStorage,
@@ -90,6 +95,7 @@ class AppDependencies {
     Dio logosDio,
     Dio commonsDio,
     PhotoCacheDatasource photoCache,
+    GalleryCacheDatasource galleryCache,
     SummaryCacheDatasource summaryCache,
     VehicleDetailCacheDatasource detailCache, {
     Future<void> Function()? closeStorage,
@@ -118,6 +124,10 @@ class AppDependencies {
     );
     const photoKeyBuilder = PhotoKeyBuilder(selector: PhotoCandidateSelector());
     final getModelPhoto = GetModelPhotoUseCase(
+      repository: photosRepository,
+      selector: const PhotoCandidateSelector(),
+    );
+    final getModelGallery = GetModelGalleryUseCase(
       repository: photosRepository,
       selector: const PhotoCandidateSelector(),
     );
@@ -161,6 +171,13 @@ class AppDependencies {
       resolveModelPhotoUseCase: ResolveModelPhotoUseCase(
         cache: photoCache,
         getModelPhoto: getModelPhoto,
+        keyBuilder: photoKeyBuilder,
+        clock: DateTime.now,
+      ),
+      getModelGalleryUseCase: getModelGallery,
+      resolveModelGalleryUseCase: ResolveModelGalleryUseCase(
+        cache: galleryCache,
+        getGallery: getModelGallery,
         keyBuilder: photoKeyBuilder,
         clock: DateTime.now,
       ),
@@ -208,6 +225,8 @@ class AppDependencies {
   final BrandLogosRepository brandLogosRepository;
   final GetModelPhotoUseCase getModelPhotoUseCase;
   final ResolveModelPhotoUseCase resolveModelPhotoUseCase;
+  final GetModelGalleryUseCase getModelGalleryUseCase;
+  final ResolveModelGalleryUseCase resolveModelGalleryUseCase;
   final CancelPendingPhotosUseCase cancelPendingPhotosUseCase;
   final PhotoKeyBuilder photoKeyBuilder;
   final GetGroupSummaryUseCase getGroupSummaryUseCase;

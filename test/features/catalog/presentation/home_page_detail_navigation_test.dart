@@ -29,6 +29,18 @@ class _MockLogoPrecacheCubit extends MockCubit<LogoPrecacheState>
 
 class _FakeBuildContext extends Fake implements BuildContext {}
 
+/// Anota cada precarga en la misma lista que anota los empujes de ruta.
+class _RecordingPrefetcher extends PhotoPrefetcher {
+  _RecordingPrefetcher(this.events);
+
+  final List<String> events;
+
+  @override
+  Future<void> prefetchLarge(BuildContext context, PhotoEntity photo) async {
+    events.add('prefetch:${photo.sourceUrl}');
+  }
+}
+
 void main() {
   setUpAll(() {
     GoogleFonts.config.allowRuntimeFetching = false;
@@ -37,9 +49,11 @@ void main() {
   });
 
   late List<Object?> pushedExtras;
+  late List<String> events;
 
   Future<void> pumpHome(WidgetTester tester, {required PhotoSlot? slot}) async {
     pushedExtras = [];
+    events = [];
     final catalog = _MockCatalogCubit();
     final models = _MockModelsCubit();
     final precache = _MockLogoPrecacheCubit();
@@ -107,13 +121,19 @@ void main() {
           path: RoutesConfig.detail,
           builder: (_, state) {
             pushedExtras.add(state.extra);
+            events.add('push');
             return const Text('pantalla detalle');
           },
         ),
       ],
     );
     addTearDown(router.dispose);
-    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.pumpWidget(
+      RepositoryProvider<PhotoPrefetcher>.value(
+        value: _RecordingPrefetcher(events),
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
     await tester.pump();
   }
 
@@ -163,5 +183,22 @@ void main() {
     );
     expect(photoWidget.heroTag, photoKeyFor('Toyota', 'Corolla', 2020));
     expect(find.byType(Hero), findsOneWidget);
+  });
+
+  testWidgets('con foto precarga la grande ANTES de empujar Detalle', (
+    tester,
+  ) async {
+    final photo = testPhoto();
+    await pumpHome(tester, slot: PhotoFound(photo));
+    await tester.tap(find.byType(ModelCardWidget).first);
+    await tester.pumpAndSettle();
+    expect(events, ['prefetch:${photo.sourceUrl}', 'push']);
+  });
+
+  testWidgets('sin foto no se precarga nada', (tester) async {
+    await pumpHome(tester, slot: const PhotoLoading());
+    await tester.tap(find.byType(ModelCardWidget).first);
+    await tester.pumpAndSettle();
+    expect(events, ['push']);
   });
 }

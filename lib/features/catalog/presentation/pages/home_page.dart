@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -180,12 +182,19 @@ class HomePage extends StatelessWidget {
       PhotoRequest(brand: state.brand, model: group.name, year: state.year),
     );
     final slot = photos.state.slots[heroTag];
+    final cachedPhoto = slot is PhotoFound ? slot.photo : null;
+    if (cachedPhoto != null) {
+      // La foto grande baja mientras se abre Detalle; no se espera.
+      unawaited(
+        context.read<PhotoPrefetcher>().prefetchLarge(context, cachedPhoto),
+      );
+    }
     final args = DetailArgsEntity(
       brand: state.brand,
       groupName: group.name,
       year: state.year,
       variantNames: [for (final variant in group.variants) variant.name],
-      photo: slot is PhotoFound ? slot.photo : null,
+      photo: cachedPhoto,
       heroTag: heroTag,
     );
     context.push(RoutesConfig.detail, extra: args);

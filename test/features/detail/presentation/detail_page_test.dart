@@ -4,7 +4,9 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/detail/presentation/widgets/widgets.dart';
+import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -41,22 +43,38 @@ GroupDetailsEntity _details({int count = 2, int defaultIndex = 0}) =>
 
 void main() {
   late _MockLoad load;
+  late MockResolveModelGalleryUseCase gallery;
   late GoRouter router;
 
   setUpAll(() {
     disableFontFetching();
     registerFallbackValue(testArgs());
   });
-  setUp(() => load = _MockLoad());
+  setUp(() {
+    load = _MockLoad();
+    gallery = MockResolveModelGalleryUseCase();
+    when(
+      () => gallery(
+        brand: any(named: 'brand'),
+        modelName: any(named: 'modelName'),
+        year: any(named: 'year'),
+      ),
+    ).thenAnswer((_) async => const []);
+  });
 
-  Future<void> pumpPage(WidgetTester tester) async {
+  Future<void> pumpPage(
+    WidgetTester tester, {
+    PhotoEntity? photo,
+    bool withPhoto = true,
+  }) async {
+    final args = testArgs(photo: withPhoto ? (photo ?? testPhoto()) : null);
     router = GoRouter(
       initialLocation: '/',
       routes: [
         GoRoute(path: '/', builder: (_, _) => const Text('inicio')),
         GoRoute(
           path: RoutesConfig.detail,
-          builder: (_, _) => DetailPage(args: testArgs(photo: testPhoto())),
+          builder: (_, _) => DetailPage(args: args),
         ),
         GoRoute(
           path: RoutesConfig.compare,
@@ -69,6 +87,10 @@ void main() {
       MultiRepositoryProvider(
         providers: [
           RepositoryProvider<LoadGroupDetailsUseCase>.value(value: load),
+          RepositoryProvider<ResolveModelGalleryUseCase>.value(value: gallery),
+          RepositoryProvider<PhotoPrefetcher>.value(
+            value: const PhotoPrefetcher(),
+          ),
           RepositoryProvider<VehicleClassTranslator>.value(
             value: const VehicleClassTranslator(),
           ),
@@ -203,5 +225,63 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('pantalla comparar'), findsOneWidget);
     expect(router.state.uri.path, RoutesConfig.compare);
+  });
+
+  testWidgets('hay un solo corazón: el de la barra inferior', (tester) async {
+    when(() => load(any())).thenAnswer((_) async => _details());
+    await pumpPage(tester);
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Symbols.favorite), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(DetailBottomBarWidget),
+        matching: find.byIcon(Symbols.favorite),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('la foto de args se muestra de inmediato, sin AppLoader', (
+    tester,
+  ) async {
+    final pending = Completer<List<PhotoEntity>>();
+    when(() => load(any())).thenAnswer((_) async => _details());
+    when(
+      () => gallery(
+        brand: any(named: 'brand'),
+        modelName: any(named: 'modelName'),
+        year: any(named: 'year'),
+      ),
+    ).thenAnswer((_) => pending.future);
+    await pumpPage(tester);
+    final urls = tester
+        .widgetList<CachedNetworkImage>(find.byType(CachedNetworkImage))
+        .map((image) => image.imageUrl);
+    expect(urls, contains(testPhoto().thumbnailUrl));
+    expect(find.byType(AppLoader), findsNothing);
+    expect(find.text('Foto: Autora · CC BY 4.0'), findsOneWidget);
+  });
+
+  testWidgets('con args.photo nula la foto aparece cuando llega la galería', (
+    tester,
+  ) async {
+    final pending = Completer<List<PhotoEntity>>();
+    when(() => load(any())).thenAnswer((_) async => _details());
+    when(
+      () => gallery(
+        brand: any(named: 'brand'),
+        modelName: any(named: 'modelName'),
+        year: any(named: 'year'),
+      ),
+    ).thenAnswer((_) => pending.future);
+    await pumpPage(tester, withPhoto: false);
+    expect(find.byType(CachedNetworkImage), findsNothing);
+    expect(find.byType(AppLoader), findsNothing);
+    pending.complete([testPhoto(author: 'Galería')]);
+    await tester.pump();
+    await tester.pump();
+    expect(find.byType(CachedNetworkImage), findsWidgets);
+    expect(find.text('Foto: Galería · CC BY 4.0'), findsOneWidget);
+    expect(find.byType(AppLoader), findsNothing);
   });
 }
