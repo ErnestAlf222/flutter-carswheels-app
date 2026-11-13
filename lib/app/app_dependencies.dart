@@ -5,6 +5,7 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
+import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 
 /// Construye las dependencias de la app en un solo lugar.
 class AppDependencies {
@@ -18,7 +19,11 @@ class AppDependencies {
     required this.resolveModelPhotoUseCase,
     required this.cancelPendingPhotosUseCase,
     required this.photoKeyBuilder,
+    required this.getModelSummaryUseCase,
+    required this.resolveModelSummaryUseCase,
+    required this.cancelPendingSummariesUseCase,
     required this.commonsQueue,
+    required this.fuelEconomyQueue,
     required this.closeStorage,
   });
 
@@ -26,6 +31,7 @@ class AppDependencies {
   factory AppDependencies.withIsar(Isar isar) {
     return AppDependencies.create(
       photoCache: IsarPhotoCacheDatasource(isar),
+      summaryCache: IsarSummaryCacheDatasource(isar),
       closeStorage: () => IsarDatabase.close(isar),
     );
   }
@@ -33,6 +39,7 @@ class AppDependencies {
   /// Compone la app con clientes reales y la caché de fotos dada.
   factory AppDependencies.create({
     required PhotoCacheDatasource photoCache,
+    required SummaryCacheDatasource summaryCache,
     Future<void> Function()? closeStorage,
   }) {
     final fuelEconomyDio = ApiClientFactory.create(
@@ -58,6 +65,7 @@ class AppDependencies {
       logosDio,
       commonsDio,
       photoCache,
+      summaryCache,
       closeStorage: closeStorage,
     );
   }
@@ -67,7 +75,8 @@ class AppDependencies {
     Dio fuelEconomyDio,
     Dio logosDio,
     Dio commonsDio,
-    PhotoCacheDatasource photoCache, {
+    PhotoCacheDatasource photoCache,
+    SummaryCacheDatasource summaryCache, {
     Future<void> Function()? closeStorage,
   }) {
     final repository = CatalogRepositoryImpl(
@@ -97,6 +106,20 @@ class AppDependencies {
       repository: photosRepository,
       selector: const PhotoCandidateSelector(),
     );
+    final fuelEconomyQueue = ConcurrencyLimitedQueue(
+      maxConcurrent: NetworkConfig.maxConcurrentRequests,
+    );
+    final vehicleSpecsRepository = VehicleSpecsRepositoryImpl(
+      datasource: FuelEconomyVehicleSpecsDatasource(
+        dio: fuelEconomyDio,
+        queue: fuelEconomyQueue,
+      ),
+      queue: fuelEconomyQueue,
+    );
+    final getModelSummary = GetModelSummaryUseCase(
+      repository: vehicleSpecsRepository,
+      selector: const RepresentativeVariantSelector(),
+    );
     return AppDependencies._(
       catalogRepository: repository,
       getAvailableYearsUseCase: getAvailableYears,
@@ -120,7 +143,18 @@ class AppDependencies {
       ),
       cancelPendingPhotosUseCase: CancelPendingPhotosUseCase(photosRepository),
       photoKeyBuilder: photoKeyBuilder,
+      getModelSummaryUseCase: getModelSummary,
+      resolveModelSummaryUseCase: ResolveModelSummaryUseCase(
+        cache: summaryCache,
+        getModelSummary: getModelSummary,
+        keyBuilder: const SummaryKeyBuilder(),
+        clock: DateTime.now,
+      ),
+      cancelPendingSummariesUseCase: CancelPendingSummariesUseCase(
+        vehicleSpecsRepository,
+      ),
       commonsQueue: commonsQueue,
+      fuelEconomyQueue: fuelEconomyQueue,
       closeStorage: closeStorage ?? _noStorageToClose,
     );
   }
@@ -134,7 +168,11 @@ class AppDependencies {
   final ResolveModelPhotoUseCase resolveModelPhotoUseCase;
   final CancelPendingPhotosUseCase cancelPendingPhotosUseCase;
   final PhotoKeyBuilder photoKeyBuilder;
+  final GetModelSummaryUseCase getModelSummaryUseCase;
+  final ResolveModelSummaryUseCase resolveModelSummaryUseCase;
+  final CancelPendingSummariesUseCase cancelPendingSummariesUseCase;
   final RateLimitedQueue commonsQueue;
+  final ConcurrencyLimitedQueue fuelEconomyQueue;
   final Future<void> Function() closeStorage;
 
   static Future<void> _noStorageToClose() async {}
@@ -142,6 +180,7 @@ class AppDependencies {
   /// Libera los recursos de la composición.
   Future<void> close() async {
     await commonsQueue.close();
+    await fuelEconomyQueue.close();
     await closeStorage();
   }
 }

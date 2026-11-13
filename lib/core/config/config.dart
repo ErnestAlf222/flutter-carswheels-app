@@ -19,3 +19,4 @@ export 'text_config.dart';
 export 'ui_config.dart';
 export 'units_config.dart';
 export 'user_agents_config.dart';
+export 'vehicle_specs_config.dart';

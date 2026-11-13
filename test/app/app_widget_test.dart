@@ -1,5 +1,6 @@
 import 'package:cars_wheels_app/app/app.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
+import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,8 +14,20 @@ class _FakePhotoCache implements PhotoCacheDatasource {
   Future<void> write(String key, CachedPhotoEntity entry) async {}
 }
 
-App _buildApp() =>
-    App(dependencies: AppDependencies.create(photoCache: _FakePhotoCache()));
+class _FakeSummaryCache implements SummaryCacheDatasource {
+  @override
+  Future<CachedSummaryEntity?> read(String key) async => null;
+
+  @override
+  Future<void> write(String key, CachedSummaryEntity entry) async {}
+}
+
+App _buildApp() => App(
+  dependencies: AppDependencies.create(
+    photoCache: _FakePhotoCache(),
+    summaryCache: _FakeSummaryCache(),
+  ),
+);
 
 void main() {
   setUpAll(() {
