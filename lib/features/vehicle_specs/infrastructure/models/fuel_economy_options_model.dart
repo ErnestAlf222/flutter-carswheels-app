@@ -1,8 +1,11 @@
 import 'package:cars_wheels_app/core/core.dart';
 
-/// Respuesta de opciones de FuelEconomy: los ids de los vehículos.
+/// Una opción de FuelEconomy: id numérico del vehículo y su texto.
+typedef FuelEconomyOptionItem = ({int id, String text});
+
+/// Respuesta de opciones de FuelEconomy: los vehículos con su id y texto.
 class FuelEconomyOptionsModel {
-  const FuelEconomyOptionsModel({required this.ids});
+  const FuelEconomyOptionsModel({required this.items});
 
   /// Acepta menuItem como lista, objeto único o ausente; otra forma falla.
   factory FuelEconomyOptionsModel.fromJson(Object? json) {
@@ -10,21 +13,27 @@ class FuelEconomyOptionsModel {
       throw const ParsingFailure('El cuerpo de opciones no es un objeto JSON');
     }
     final rawItems = json[FuelEconomyConfig.menuItemKey];
-    if (rawItems == null) return const FuelEconomyOptionsModel(ids: []);
+    if (rawItems == null) return const FuelEconomyOptionsModel(items: []);
     final items = rawItems is List<dynamic> ? rawItems : [rawItems];
     return FuelEconomyOptionsModel(
-      ids: items.map(_readId).whereType<int>().toList(),
+      items: items.map(_readItem).whereType<FuelEconomyOptionItem>().toList(),
     );
   }
 
-  final List<int> ids;
+  final List<FuelEconomyOptionItem> items;
 
-  // Lee el id de un item; ignora los no numéricos y falla si no es un objeto.
-  static int? _readId(Object? item) {
+  /// Solo los ids, en el orden de la API.
+  List<int> get ids => [for (final item in items) item.id];
+
+  // Lee un item; ignora los de id no numérico y falla si no es un objeto.
+  static FuelEconomyOptionItem? _readItem(Object? item) {
     if (item is! Map<String, dynamic>) {
       throw const ParsingFailure('Un item de opciones no es un objeto JSON');
     }
     final value = item[VehicleSpecsConfig.menuValueKey];
-    return value == null ? null : int.tryParse('$value');
+    final id = value == null ? null : int.tryParse('$value');
+    if (id == null) return null;
+    final text = item[FuelEconomyConfig.itemTextKey];
+    return (id: id, text: text == null ? '' : '$text');
   }
 }

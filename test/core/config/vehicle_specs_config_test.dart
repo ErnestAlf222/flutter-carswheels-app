@@ -34,6 +34,18 @@ void main() {
     expect(VehicleSpecsConfig.powertrainByAtvType['fcv'], 'fuelCell');
   });
 
+  test('eFCV (CR-V e-FCEV) se clasifica como celda de combustible', () {
+    expect(VehicleSpecsConfig.powertrainByAtvType['efcv'], 'fuelCell');
+  });
+
+  test('las claves del detalle y su vigencia están definidas', () {
+    expect(VehicleSpecsConfig.annualFuelCostKey, 'fuelCost08');
+    expect(VehicleSpecsConfig.displacementKey, 'displ');
+    expect(VehicleSpecsConfig.transmissionKey, 'trany');
+    expect(VehicleSpecsConfig.vehicleDetailCacheKeyVersion, 'v1');
+    expect(VehicleSpecsConfig.vehicleDetailCacheTimeToLiveDays, 30);
+  });
+
   test('la tabla de clases no trae sufijos de tracción', () {
     final suffix = RegExp(
       VehicleSpecsConfig.driveSuffixPattern,

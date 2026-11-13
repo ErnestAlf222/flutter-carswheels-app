@@ -1,9 +1,12 @@
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/domain/datasources/vehicle_specs_datasource.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/domain/entities/group_summary_entity.dart';
+import 'package:cars_wheels_app/features/vehicle_specs/domain/entities/vehicle_detail_entity.dart';
+import 'package:cars_wheels_app/features/vehicle_specs/domain/entities/vehicle_option_entity.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/domain/entities/vehicle_record_entity.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/domain/repositories/vehicle_specs_repository.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/domain/services/group_summary_builder.dart';
+import 'package:cars_wheels_app/features/vehicle_specs/domain/services/vehicle_detail_builder.dart';
 
 // Resultado de leer una variante: su registro, o el fallo de red que lo impidió.
 typedef _VariantRead = ({VehicleRecordEntity? record, NetworkFailure? failure});
@@ -14,6 +17,7 @@ class VehicleSpecsRepositoryImpl implements VehicleSpecsRepository {
     required this.datasource,
     required this.queue,
     this.builder = const GroupSummaryBuilder(),
+    this.detailBuilder = const VehicleDetailBuilder(),
   });
 
   final VehicleSpecsDatasource datasource;
@@ -21,6 +25,7 @@ class VehicleSpecsRepositoryImpl implements VehicleSpecsRepository {
   /// Cola de FuelEconomy, para cancelar lo pendiente.
   final ConcurrencyLimitedQueue queue;
   final GroupSummaryBuilder builder;
+  final VehicleDetailBuilder detailBuilder;
 
   @override
   Future<GroupSummaryEntity?> getSummary(
@@ -43,6 +48,27 @@ class VehicleSpecsRepositoryImpl implements VehicleSpecsRepository {
     ];
     if (networkFailures.isNotEmpty) throw networkFailures.first;
     return null;
+  }
+
+  @override
+  Future<List<VehicleOptionEntity>> getOptions(
+    int year,
+    String brand,
+    String model,
+  ) {
+    return datasource.fetchOptions(year, brand, model);
+  }
+
+  @override
+  Future<VehicleDetailEntity?> getDetail(
+    int id, {
+    required int year,
+    required String brand,
+    required String model,
+  }) async {
+    final record = await datasource.fetchVehicle(id);
+    if (record == null) return null;
+    return detailBuilder.build(record, id, year, brand, model);
   }
 
   @override

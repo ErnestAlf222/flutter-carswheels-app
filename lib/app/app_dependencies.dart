@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:isar_community/isar.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
@@ -22,6 +23,9 @@ class AppDependencies {
     required this.getGroupSummaryUseCase,
     required this.resolveGroupSummaryUseCase,
     required this.cancelPendingSummariesUseCase,
+    required this.getGroupOptionsUseCase,
+    required this.resolveVehicleDetailUseCase,
+    required this.vehicleClassTranslator,
     required this.commonsQueue,
     required this.fuelEconomyQueue,
     required this.closeStorage,
@@ -32,6 +36,7 @@ class AppDependencies {
     return AppDependencies.create(
       photoCache: IsarPhotoCacheDatasource(isar),
       summaryCache: IsarSummaryCacheDatasource(isar),
+      detailCache: IsarVehicleDetailCacheDatasource(isar),
       closeStorage: () => IsarDatabase.close(isar),
     );
   }
@@ -40,6 +45,7 @@ class AppDependencies {
   factory AppDependencies.create({
     required PhotoCacheDatasource photoCache,
     required SummaryCacheDatasource summaryCache,
+    required VehicleDetailCacheDatasource detailCache,
     Future<void> Function()? closeStorage,
   }) {
     final fuelEconomyDio = ApiClientFactory.create(
@@ -66,6 +72,7 @@ class AppDependencies {
       commonsDio,
       photoCache,
       summaryCache,
+      detailCache,
       closeStorage: closeStorage,
     );
   }
@@ -76,7 +83,8 @@ class AppDependencies {
     Dio logosDio,
     Dio commonsDio,
     PhotoCacheDatasource photoCache,
-    SummaryCacheDatasource summaryCache, {
+    SummaryCacheDatasource summaryCache,
+    VehicleDetailCacheDatasource detailCache, {
     Future<void> Function()? closeStorage,
   }) {
     final repository = CatalogRepositoryImpl(
@@ -150,6 +158,16 @@ class AppDependencies {
       cancelPendingSummariesUseCase: CancelPendingSummariesUseCase(
         vehicleSpecsRepository,
       ),
+      getGroupOptionsUseCase: GetGroupOptionsUseCase(vehicleSpecsRepository),
+      resolveVehicleDetailUseCase: ResolveVehicleDetailUseCase(
+        cache: detailCache,
+        repository: vehicleSpecsRepository,
+        keyBuilder: const VehicleDetailKeyBuilder(),
+        clock: DateTime.now,
+      ),
+      vehicleClassTranslator: const VehicleClassTranslator(
+        onUntranslated: _logUntranslatedClass,
+      ),
       commonsQueue: commonsQueue,
       fuelEconomyQueue: fuelEconomyQueue,
       closeStorage: closeStorage ?? _noStorageToClose,
@@ -168,11 +186,23 @@ class AppDependencies {
   final GetGroupSummaryUseCase getGroupSummaryUseCase;
   final ResolveGroupSummaryUseCase resolveGroupSummaryUseCase;
   final CancelPendingSummariesUseCase cancelPendingSummariesUseCase;
+  final GetGroupOptionsUseCase getGroupOptionsUseCase;
+  final ResolveVehicleDetailUseCase resolveVehicleDetailUseCase;
+  final VehicleClassTranslator vehicleClassTranslator;
   final RateLimitedQueue commonsQueue;
   final ConcurrencyLimitedQueue fuelEconomyQueue;
   final Future<void> Function() closeStorage;
 
   static Future<void> _noStorageToClose() async {}
+
+  // Solo en depuración: avisa de una clase de vehículo sin traducción.
+  static void _logUntranslatedClass(String originalClass) {
+    if (kDebugMode) {
+      debugPrint(
+        '${VehicleSpecsConfig.untranslatedClassLogPrefix}$originalClass',
+      );
+    }
+  }
 
   /// Libera los recursos de la composición.
   Future<void> close() async {

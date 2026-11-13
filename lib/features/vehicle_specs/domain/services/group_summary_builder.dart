@@ -2,10 +2,13 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/domain/entities/group_summary_entity.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/domain/entities/powertrain.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/domain/entities/vehicle_record_entity.dart';
+import 'package:cars_wheels_app/features/vehicle_specs/domain/services/powertrain_classifier.dart';
 
 /// Construye el resumen de un grupo a partir de los registros de sus variantes.
 class GroupSummaryBuilder {
-  const GroupSummaryBuilder();
+  const GroupSummaryBuilder({this.classifier = const PowertrainClassifier()});
+
+  final PowertrainClassifier classifier;
 
   static const String _emptyMessage = 'No hay registros para resumir';
 
@@ -14,7 +17,7 @@ class GroupSummaryBuilder {
     final kmPerLiter = <double>[];
     final powertrains = <Powertrain>{};
     for (final record in records) {
-      final powertrain = _classify(record.atvType);
+      final powertrain = classifier.classify(record.atvType);
       final mpg = record.combinedMpg;
       powertrains.add(powertrain);
       if (powertrain == Powertrain.combustion && mpg != null) {
@@ -49,16 +52,5 @@ class GroupSummaryBuilder {
           current == null || entry.value > current.value ? entry : current,
     );
     return best?.key;
-  }
-
-  // Sin distinguir mayúsculas; un valor no listado es other.
-  Powertrain _classify(String atvType) {
-    final name =
-        VehicleSpecsConfig.powertrainByAtvType[atvType.trim().toLowerCase()] ??
-        VehicleSpecsConfig.otherPowertrainName;
-    return Powertrain.values.firstWhere(
-      (powertrain) => powertrain.name == name,
-      orElse: () => Powertrain.other,
-    );
   }
 }

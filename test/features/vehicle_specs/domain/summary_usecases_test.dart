@@ -26,6 +26,21 @@ class _FakeRepository implements VehicleSpecsRepository {
   Future<void> cancelPendingRequests() async => cancels[0]++;
 
   @override
+  Future<List<VehicleOptionEntity>> getOptions(
+    int year,
+    String brand,
+    String model,
+  ) => throw UnimplementedError();
+
+  @override
+  Future<VehicleDetailEntity?> getDetail(
+    int id, {
+    required int year,
+    required String brand,
+    required String model,
+  }) => throw UnimplementedError();
+
+  @override
   Future<GroupSummaryEntity?> getSummary(
     int year,
     String brand,

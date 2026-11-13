@@ -14,6 +14,17 @@ class VehicleSpecsConfig {
   static const String atvTypeKey = 'atvType';
   static const String combinedMpgKey = 'comb08';
   static const String combinedMpgPreciseKey = 'comb08U';
+  static const String cityMpgKey = 'city08';
+  static const String highwayMpgKey = 'highway08';
+  static const String annualFuelCostKey = 'fuelCost08';
+  static const String cylindersKey = 'cylinders';
+  static const String displacementKey = 'displ';
+  static const String transmissionKey = 'trany';
+  static const String driveKey = 'drive';
+  static const String fuelTypeKey = 'fuelType';
+  static const String makeKey = 'make';
+  static const String modelKey = 'model';
+  static const String yearKey = 'year';
 
   // Nombre de la clasificación para cualquier atvType no listado.
   static const String otherPowertrainName = 'other';
@@ -27,6 +38,7 @@ class VehicleSpecsConfig {
     'ev': 'electric',
     'plug-in hybrid': 'pluginHybrid',
     'fcv': 'fuelCell',
+    'efcv': 'fuelCell',
   };
 
   // Sufijo de tracción al final de la clase; se aplica sin distinguir mayúsculas.
@@ -40,4 +52,10 @@ class VehicleSpecsConfig {
 
   // Provisional: días de vigencia del resumen guardado.
   static const int summaryCacheTimeToLiveDays = 30;
+
+  // Versión de la clave del detalle de una versión.
+  static const String vehicleDetailCacheKeyVersion = 'v1';
+
+  // Provisional: días de vigencia del detalle guardado.
+  static const int vehicleDetailCacheTimeToLiveDays = 30;
 }

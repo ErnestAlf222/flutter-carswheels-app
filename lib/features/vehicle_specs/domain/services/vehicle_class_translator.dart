@@ -1,10 +1,11 @@
-import 'package:flutter/foundation.dart';
-
 import 'package:cars_wheels_app/core/core.dart';
 
 /// Traduce la clase de FuelEconomy al español, sin el sufijo de tracción.
 class VehicleClassTranslator {
-  const VehicleClassTranslator();
+  const VehicleClassTranslator({this.onUntranslated});
+
+  /// Se llama con la clase limpia cuando no tiene traducción.
+  final void Function(String originalClass)? onUntranslated;
 
   static final RegExp _driveSuffix = RegExp(
     VehicleSpecsConfig.driveSuffixPattern,
@@ -18,9 +19,7 @@ class VehicleClassTranslator {
     if (cleaned.isEmpty) return null;
     final label = VehicleClassTexts.labels[cleaned];
     if (label != null) return label;
-    if (kDebugMode) {
-      debugPrint('${VehicleSpecsConfig.untranslatedClassLogPrefix}$cleaned');
-    }
+    onUntranslated?.call(cleaned);
     return cleaned;
   }
 }

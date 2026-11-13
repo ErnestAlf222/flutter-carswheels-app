@@ -11,6 +11,17 @@ class VehicleRecordMapper {
       atvType: model.atvType,
       combinedMpg:
           _positive(model.combinedMpgPrecise) ?? _positive(model.combinedMpg),
+      cityMpg: _positive(model.cityMpg),
+      highwayMpg: _positive(model.highwayMpg),
+      annualFuelCostUsd: int.tryParse(model.annualFuelCost ?? ''),
+      cylinders: int.tryParse(model.cylinders ?? ''),
+      displacementLiters: double.tryParse(model.displacement ?? ''),
+      transmission: model.transmission,
+      drive: model.drive,
+      fuelType: model.fuelType,
+      make: model.make,
+      model: model.model,
+      year: int.tryParse(model.year ?? ''),
     );
   }
 

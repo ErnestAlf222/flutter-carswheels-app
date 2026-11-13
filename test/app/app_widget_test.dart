@@ -22,10 +22,19 @@ class _FakeSummaryCache implements SummaryCacheDatasource {
   Future<void> write(String key, CachedSummaryEntity entry) async {}
 }
 
+class _FakeDetailCache implements VehicleDetailCacheDatasource {
+  @override
+  Future<CachedDetailEntity?> read(String key) async => null;
+
+  @override
+  Future<void> write(String key, CachedDetailEntity entry) async {}
+}
+
 App _buildApp() => App(
   dependencies: AppDependencies.create(
     photoCache: _FakePhotoCache(),
     summaryCache: _FakeSummaryCache(),
+    detailCache: _FakeDetailCache(),
   ),
 );
 

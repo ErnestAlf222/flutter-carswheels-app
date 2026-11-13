@@ -92,8 +92,6 @@ class PhotosConfig {
 
   // Armado de los términos de búsqueda y coincidencia del año.
   static const String searchTermSeparator = ' ';
-  static const String yearOpeningDelimiter = '(';
-  static const String yearClosingDelimiter = ')';
 
   // Provisionales: diferencia máxima de años y vigencias de la caché.
   static const int maxReferenceYearDifference = 5;

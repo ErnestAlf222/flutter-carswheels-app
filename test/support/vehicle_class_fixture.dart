@@ -18,7 +18,7 @@ const Map<String, String> realVehicleClassTranslations = {
   'Small Sport Utility Vehicle 2WD': 'SUV pequeña',
   'Vans': 'Van',
   'Special Purpose Vehicle 2WD': 'Vehículo especial',
-  'Midsize-Large Station Wagons': 'Familiar med.-grande',
+  'Midsize-Large Station Wagons': 'Familiar mediana-grande',
   'Standard Sport Utility Vehicle 2WD': 'SUV estándar',
   'Midsize Station Wagons': 'Familiar mediana',
   'Small Pickup Trucks': 'Pickup pequeña',

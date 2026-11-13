@@ -3,7 +3,7 @@ class VehicleClassTexts {
   const VehicleClassTexts._();
 
   // Sale del análisis oficial de FuelEconomy del 2026-11-13; un valor ausente se muestra en inglés.
-  // Clave: la clase sin sufijo de tracción; valor: traducción de máximo 22 caracteres.
+  // Clave: la clase sin sufijo de tracción; valor: traducción de máximo 24 caracteres.
   static const Map<String, String> labels = {
     'Minicompact Cars': 'Minicompacto',
     'Subcompact Cars': 'Subcompacto',
@@ -13,7 +13,7 @@ class VehicleClassTexts {
     'Two Seaters': 'Dos plazas',
     'Small Station Wagons': 'Familiar pequeña',
     'Midsize Station Wagons': 'Familiar mediana',
-    'Midsize-Large Station Wagons': 'Familiar med.-grande',
+    'Midsize-Large Station Wagons': 'Familiar mediana-grande',
     'Sport Utility Vehicle': 'SUV',
     'Small Sport Utility Vehicle': 'SUV pequeña',
     'Standard Sport Utility Vehicle': 'SUV estándar',

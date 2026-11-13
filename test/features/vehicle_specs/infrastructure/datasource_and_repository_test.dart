@@ -33,6 +33,16 @@ class _FakeDatasource implements VehicleSpecsDatasource {
   }
 
   @override
+  Future<List<VehicleOptionEntity>> fetchOptions(
+    int year,
+    String brand,
+    String model,
+  ) async {
+    final ids = await fetchOptionIds(year, brand, model);
+    return [for (final id in ids) VehicleOptionEntity(id: id, text: '')];
+  }
+
+  @override
   Future<VehicleRecordEntity?> fetchVehicle(int id) async {
     fetchedIds.add(id);
     return recordsById[id];

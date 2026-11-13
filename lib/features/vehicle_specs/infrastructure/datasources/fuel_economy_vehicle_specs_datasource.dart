@@ -2,7 +2,9 @@ import 'package:dio/dio.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/domain/datasources/vehicle_specs_datasource.dart';
+import 'package:cars_wheels_app/features/vehicle_specs/domain/entities/vehicle_option_entity.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/domain/entities/vehicle_record_entity.dart';
+import 'package:cars_wheels_app/features/vehicle_specs/infrastructure/mappers/vehicle_option_mapper.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/infrastructure/mappers/vehicle_record_mapper.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/infrastructure/models/fuel_economy_options_model.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/infrastructure/models/fuel_economy_vehicle_model.dart';
@@ -18,7 +20,17 @@ class FuelEconomyVehicleSpecsDatasource implements VehicleSpecsDatasource {
   final ConcurrencyLimitedQueue queue;
 
   @override
-  Future<List<int>> fetchOptionIds(int year, String brand, String model) {
+  Future<List<int>> fetchOptionIds(int year, String brand, String model) async {
+    final options = await fetchOptions(year, brand, model);
+    return [for (final option in options) option.id];
+  }
+
+  @override
+  Future<List<VehicleOptionEntity>> fetchOptions(
+    int year,
+    String brand,
+    String model,
+  ) {
     return queue.enqueue(() => _fetchOptions(year, brand, model));
   }
 
@@ -27,13 +39,19 @@ class FuelEconomyVehicleSpecsDatasource implements VehicleSpecsDatasource {
     return queue.enqueue(() => _fetchVehicle(id));
   }
 
-  Future<List<int>> _fetchOptions(int year, String brand, String model) async {
+  Future<List<VehicleOptionEntity>> _fetchOptions(
+    int year,
+    String brand,
+    String model,
+  ) async {
     final data = await _get(VehicleSpecsConfig.optionsPath, {
       FuelEconomyConfig.yearQueryParameter: year,
       FuelEconomyConfig.makeQueryParameter: brand,
       VehicleSpecsConfig.modelQueryParameter: model,
     });
-    return FuelEconomyOptionsModel.fromJson(data).ids;
+    return VehicleOptionMapper.toEntities(
+      FuelEconomyOptionsModel.fromJson(data),
+    );
   }
 
   Future<VehicleRecordEntity?> _fetchVehicle(int id) async {

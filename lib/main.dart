@@ -13,6 +13,7 @@ Future<void> main() async {
   final isar = await IsarDatabase.open([
     CachedPhotoModelSchema,
     GroupSummaryCacheModelSchema,
+    VehicleDetailCacheModelSchema,
   ]);
   runApp(App(dependencies: AppDependencies.withIsar(isar)));
 }

@@ -1,6 +1,5 @@
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/vehicle_class_fixture.dart';
@@ -33,31 +32,28 @@ void main() {
       final label = translator.labelFor(entry.key);
       expect(label, entry.value, reason: entry.key);
       expect(label, isNotEmpty, reason: entry.key);
-      expect(label!.length, lessThanOrEqualTo(22), reason: entry.key);
+      expect(label!.length, lessThanOrEqualTo(24), reason: entry.key);
     }
   });
 
   test('toda traducción de la tabla es corta y no vacía', () {
     for (final entry in VehicleClassTexts.labels.entries) {
       expect(entry.value, isNotEmpty, reason: entry.key);
-      expect(entry.value.length, lessThanOrEqualTo(22), reason: entry.key);
+      expect(entry.value.length, lessThanOrEqualTo(24), reason: entry.key);
     }
   });
 
-  test(
-    'un valor sin entrada se registra en depuración sin cambiar el texto',
-    () {
-      final lines = <String?>[];
-      final previous = debugPrint;
-      debugPrint = (message, {wrapWidth}) => lines.add(message);
-      addTearDown(() => debugPrint = previous);
-      expect(translator.labelFor('Hovercraft Class 4WD'), 'Hovercraft Class');
-      expect(translator.labelFor('Compact Cars'), 'Compacto');
-      expect(lines, [
-        '${VehicleSpecsConfig.untranslatedClassLogPrefix}Hovercraft Class',
-      ]);
-    },
-  );
+  test('un valor sin entrada llama a la función con el valor limpio', () {
+    final calls = <String>[];
+    final logging = VehicleClassTranslator(onUntranslated: calls.add);
+    expect(logging.labelFor('Hovercraft Class 4WD'), 'Hovercraft Class');
+    expect(logging.labelFor('Compact Cars'), 'Compacto');
+    expect(calls, ['Hovercraft Class']);
+  });
+
+  test('sin función un valor sin entrada no falla', () {
+    expect(translator.labelFor('Hovercraft Class'), 'Hovercraft Class');
+  });
 
   test('el sufijo se quita sin distinguir mayúsculas', () {
     expect(translator.labelFor('Small Pickup Trucks 4wd'), 'Pickup pequeña');
