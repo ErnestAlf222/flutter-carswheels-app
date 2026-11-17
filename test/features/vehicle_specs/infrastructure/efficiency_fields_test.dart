@@ -78,8 +78,8 @@ void main() {
     });
   });
 
-  test('la versión de clave del detalle es v3', () {
-    expect(VehicleSpecsConfig.vehicleDetailCacheKeyVersion, 'v3');
+  test('la versión de clave del detalle es v4', () {
+    expect(VehicleSpecsConfig.vehicleDetailCacheKeyVersion, 'v4');
   });
 
   group('caché de Isar con los campos nuevos', () {

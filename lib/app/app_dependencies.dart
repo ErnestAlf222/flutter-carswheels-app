@@ -7,6 +7,7 @@ import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
+import 'package:cars_wheels_app/features/safety/safety.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 
 /// Construye las dependencias de la app en un solo lugar.
@@ -35,8 +36,10 @@ class AppDependencies {
     required this.versionDescriptorBuilder,
     required this.defaultVersionSelector,
     required this.loadGroupDetailsUseCase,
+    required this.resolveGroupSafetyUseCase,
     required this.commonsQueue,
     required this.fuelEconomyQueue,
+    required this.nhtsaQueue,
     required this.closeStorage,
   });
 
@@ -47,6 +50,7 @@ class AppDependencies {
       galleryCache: IsarGalleryCacheDatasource(isar),
       summaryCache: IsarSummaryCacheDatasource(isar),
       detailCache: IsarVehicleDetailCacheDatasource(isar),
+      safetyCache: IsarSafetyCacheDatasource(isar),
       closeStorage: () => IsarDatabase.close(isar),
     );
   }
@@ -57,6 +61,7 @@ class AppDependencies {
     required GalleryCacheDatasource galleryCache,
     required SummaryCacheDatasource summaryCache,
     required VehicleDetailCacheDatasource detailCache,
+    required SafetyCacheDatasource safetyCache,
     Future<void> Function()? closeStorage,
   }) {
     final fuelEconomyDio = ApiClientFactory.create(
@@ -77,14 +82,29 @@ class AppDependencies {
       userAgent: UserAgentsConfig.commonsUserAgent,
       sourceLabel: PhotosConfig.commonsSourceLabel,
     );
+    final nhtsaApiDio = ApiClientFactory.create(
+      baseUrl: ApiConfig.nhtsaApiBaseUrl,
+      acceptHeaderValue: NetworkConfig.jsonAcceptHeaderValue,
+      userAgent: UserAgentsConfig.nhtsaUserAgent,
+      sourceLabel: SafetyConfig.nhtsaSourceLabel,
+    );
+    final nhtsaVpicDio = ApiClientFactory.create(
+      baseUrl: ApiConfig.nhtsaVpicBaseUrl,
+      acceptHeaderValue: NetworkConfig.jsonAcceptHeaderValue,
+      userAgent: UserAgentsConfig.nhtsaUserAgent,
+      sourceLabel: SafetyConfig.nhtsaSourceLabel,
+    );
     return AppDependencies.fromDio(
       fuelEconomyDio,
       logosDio,
       commonsDio,
+      nhtsaApiDio,
+      nhtsaVpicDio,
       photoCache,
       galleryCache,
       summaryCache,
       detailCache,
+      safetyCache,
       closeStorage: closeStorage,
     );
   }
@@ -94,10 +114,13 @@ class AppDependencies {
     Dio fuelEconomyDio,
     Dio logosDio,
     Dio commonsDio,
+    Dio nhtsaApiDio,
+    Dio nhtsaVpicDio,
     PhotoCacheDatasource photoCache,
     GalleryCacheDatasource galleryCache,
     SummaryCacheDatasource summaryCache,
-    VehicleDetailCacheDatasource detailCache, {
+    VehicleDetailCacheDatasource detailCache,
+    SafetyCacheDatasource safetyCache, {
     Future<void> Function()? closeStorage,
   }) {
     final repository = CatalogRepositoryImpl(
@@ -147,6 +170,28 @@ class AppDependencies {
       cache: detailCache,
       repository: vehicleSpecsRepository,
       keyBuilder: const VehicleDetailKeyBuilder(),
+      clock: DateTime.now,
+    );
+    // Una sola cola para las dos APIs de NHTSA.
+    final nhtsaQueue = ConcurrencyLimitedQueue(
+      maxConcurrent: SafetyConfig.maxConcurrentRequests,
+    );
+    final resolveGroupSafety = ResolveGroupSafetyUseCase(
+      cache: safetyCache,
+      ratingsRepository: SafetyRatingsRepositoryImpl(
+        datasource: NhtsaApiSafetyRatingsDatasource(
+          dio: nhtsaApiDio,
+          queue: nhtsaQueue,
+        ),
+      ),
+      recallsRepository: RecallsRepositoryImpl(
+        NhtsaApiRecallsDatasource(
+          apiDio: nhtsaApiDio,
+          vpicDio: nhtsaVpicDio,
+          queue: nhtsaQueue,
+        ),
+      ),
+      keyBuilder: const SafetyKeyBuilder(),
       clock: DateTime.now,
     );
     const transmissionLabeler = TransmissionLabeler(
@@ -212,8 +257,10 @@ class AppDependencies {
         resolveVehicleDetail: resolveVehicleDetail,
         defaultVersionSelector: defaultVersionSelector,
       ),
+      resolveGroupSafetyUseCase: resolveGroupSafety,
       commonsQueue: commonsQueue,
       fuelEconomyQueue: fuelEconomyQueue,
+      nhtsaQueue: nhtsaQueue,
       closeStorage: closeStorage ?? _noStorageToClose,
     );
   }
@@ -241,8 +288,10 @@ class AppDependencies {
   final VersionDescriptorBuilder versionDescriptorBuilder;
   final DefaultVersionSelector defaultVersionSelector;
   final LoadGroupDetailsUseCase loadGroupDetailsUseCase;
+  final ResolveGroupSafetyUseCase resolveGroupSafetyUseCase;
   final RateLimitedQueue commonsQueue;
   final ConcurrencyLimitedQueue fuelEconomyQueue;
+  final ConcurrencyLimitedQueue nhtsaQueue;
   final Future<void> Function() closeStorage;
 
   static Future<void> _noStorageToClose() async {}
@@ -267,6 +316,7 @@ class AppDependencies {
   Future<void> close() async {
     await commonsQueue.close();
     await fuelEconomyQueue.close();
+    await nhtsaQueue.close();
     await closeStorage();
   }
 }

@@ -67,7 +67,7 @@ class VehicleSpecsConfig {
   static const int summaryCacheTimeToLiveDays = 30;
 
   // Versión de la clave del detalle; 'v3' invalida lo guardado sin los campos nuevos.
-  static const String vehicleDetailCacheKeyVersion = 'v3';
+  static const String vehicleDetailCacheKeyVersion = 'v4';
 
   // Provisional: días de vigencia del detalle guardado.
   static const int vehicleDetailCacheTimeToLiveDays = 30;

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cars_wheels_app/app/app.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
+import 'package:cars_wheels_app/features/safety/safety.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 
 Future<void> main() async {
@@ -15,6 +16,9 @@ Future<void> main() async {
     PhotoGalleryCacheModelSchema,
     GroupSummaryCacheModelSchema,
     VehicleDetailCacheModelSchema,
+    SafetyRatingsCacheModelSchema,
+    RecallsCacheModelSchema,
+    SafetyNoMatchCacheModelSchema,
   ]);
   runApp(App(dependencies: AppDependencies.withIsar(isar)));
 }

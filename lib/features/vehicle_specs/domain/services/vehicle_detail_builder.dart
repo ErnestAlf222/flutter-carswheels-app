@@ -23,7 +23,8 @@ class VehicleDetailBuilder {
     final isElectric = powertrain == Powertrain.electric;
     final isPluginHybrid = powertrain == Powertrain.pluginHybrid;
     final isFuelCell = powertrain == Powertrain.fuelCell;
-    final hasCo2 = isCombustion || isElectric || isPluginHybrid;
+    final hasCo2 = isCombustion || isElectric || isPluginHybrid || isFuelCell;
+    final zeroEmission = isElectric || isFuelCell;
     return VehicleDetailEntity(
       id: id,
       year: year,
@@ -43,7 +44,7 @@ class VehicleDetailBuilder {
           : null,
       annualFuelCostUsd: _validCost(record.annualFuelCostUsd),
       co2GramsPerKilometer: hasCo2
-          ? _co2PerKilometer(record.co2GramsPerMile, keepZero: isElectric)
+          ? _co2PerKilometer(record.co2GramsPerMile, keepZero: zeroEmission)
           : null,
       electricRangeKilometers: isPluginHybrid
           ? _milesToKilometers(_positive(record.electricRangeMiles))
@@ -73,7 +74,7 @@ class VehicleDetailBuilder {
   double? _milesToKilometers(double? miles) =>
       miles == null ? null : miles * UnitsConfig.kilometersPerMile;
 
-  // El CO₂ llega en g/mi; un 0 solo es dato real en un eléctrico.
+  // El CO₂ llega en g/mi; un 0 es dato real en eléctricos e hidrógeno.
   double? _co2PerKilometer(double? gramsPerMile, {required bool keepZero}) {
     if (gramsPerMile == null || gramsPerMile < 0) return null;
     if (gramsPerMile == 0 && !keepZero) return null;

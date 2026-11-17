@@ -1,5 +1,6 @@
 import 'package:cars_wheels_app/app/app.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
+import 'package:cars_wheels_app/features/safety/safety.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:flutter/material.dart';
@@ -39,12 +40,33 @@ class _FakeDetailCache implements VehicleDetailCacheDatasource {
   Future<void> write(String key, CachedDetailEntity entry) async {}
 }
 
+class _FakeSafetyCache implements SafetyCacheDatasource {
+  @override
+  Future<CachedGroupSafetyEntity?> readRatings(String key) async => null;
+
+  @override
+  Future<void> writeRatings(String key, CachedGroupSafetyEntity entry) async {}
+
+  @override
+  Future<CachedRecallsEntity?> readRecalls(String key) async => null;
+
+  @override
+  Future<void> writeRecalls(String key, CachedRecallsEntity entry) async {}
+
+  @override
+  Future<DateTime?> readNoMatch(String key) async => null;
+
+  @override
+  Future<void> writeNoMatch(String key, DateTime savedAt) async {}
+}
+
 App _buildApp() => App(
   dependencies: AppDependencies.create(
     photoCache: _FakePhotoCache(),
     galleryCache: _FakeGalleryCache(),
     summaryCache: _FakeSummaryCache(),
     detailCache: _FakeDetailCache(),
+    safetyCache: _FakeSafetyCache(),
   ),
 );
 

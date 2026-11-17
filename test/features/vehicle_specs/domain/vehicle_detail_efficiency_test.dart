@@ -68,11 +68,11 @@ void main() {
       expect(detail.fuelScore, 10);
     });
 
-    test('Mirai: autonomía total, sin CO₂ ni consumo eléctrico', () {
+    test('Mirai: autonomía 502.1 km, CO₂ 0 g/km y sin consumo eléctrico', () {
       final detail = build(realMirai, 47538);
       expect(detail.powertrain, Powertrain.fuelCell);
-      expect(detail.totalRangeKilometers, closeTo(km(312), 1e-9));
-      expect(detail.co2GramsPerKilometer, isNull);
+      expect(detail.totalRangeKilometers, closeTo(502.1, 0.1));
+      expect(detail.co2GramsPerKilometer, 0);
       expect(detail.electricConsumptionKwhPer100Kilometers, isNull);
       expect(detail.electricRangeKilometers, isNull);
       expect(detail.fuelScore, 10);
