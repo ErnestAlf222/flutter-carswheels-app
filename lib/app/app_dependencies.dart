@@ -6,6 +6,7 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
+import 'package:cars_wheels_app/features/mexico_catalog/mexico_catalog.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/safety/safety.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
@@ -37,9 +38,14 @@ class AppDependencies {
     required this.defaultVersionSelector,
     required this.loadGroupDetailsUseCase,
     required this.resolveGroupSafetyUseCase,
+    required this.getMxYearsUseCase,
+    required this.getMxBrandsUseCase,
+    required this.getMxModelGroupsUseCase,
+    required this.getMxVersionsUseCase,
     required this.commonsQueue,
     required this.fuelEconomyQueue,
     required this.nhtsaQueue,
+    required this.conueeQueue,
     required this.closeStorage,
   });
 
@@ -51,6 +57,7 @@ class AppDependencies {
       summaryCache: IsarSummaryCacheDatasource(isar),
       detailCache: IsarVehicleDetailCacheDatasource(isar),
       safetyCache: IsarSafetyCacheDatasource(isar),
+      mexicoCatalogCache: IsarMexicoCatalogCacheDatasource(isar),
       closeStorage: () => IsarDatabase.close(isar),
     );
   }
@@ -62,6 +69,7 @@ class AppDependencies {
     required SummaryCacheDatasource summaryCache,
     required VehicleDetailCacheDatasource detailCache,
     required SafetyCacheDatasource safetyCache,
+    required MexicoCatalogCacheDatasource mexicoCatalogCache,
     Future<void> Function()? closeStorage,
   }) {
     final fuelEconomyDio = ApiClientFactory.create(
@@ -94,17 +102,25 @@ class AppDependencies {
       userAgent: UserAgentsConfig.nhtsaUserAgent,
       sourceLabel: SafetyConfig.nhtsaSourceLabel,
     );
+    final conueeDio = ApiClientFactory.create(
+      baseUrl: ApiConfig.conueeApiBaseUrl,
+      acceptHeaderValue: NetworkConfig.jsonAcceptHeaderValue,
+      userAgent: UserAgentsConfig.conueeUserAgent,
+      sourceLabel: ConueeConfig.sourceLabel,
+    );
     return AppDependencies.fromDio(
       fuelEconomyDio,
       logosDio,
       commonsDio,
       nhtsaApiDio,
       nhtsaVpicDio,
+      conueeDio,
       photoCache,
       galleryCache,
       summaryCache,
       detailCache,
       safetyCache,
+      mexicoCatalogCache,
       closeStorage: closeStorage,
     );
   }
@@ -116,11 +132,13 @@ class AppDependencies {
     Dio commonsDio,
     Dio nhtsaApiDio,
     Dio nhtsaVpicDio,
+    Dio conueeDio,
     PhotoCacheDatasource photoCache,
     GalleryCacheDatasource galleryCache,
     SummaryCacheDatasource summaryCache,
     VehicleDetailCacheDatasource detailCache,
-    SafetyCacheDatasource safetyCache, {
+    SafetyCacheDatasource safetyCache,
+    MexicoCatalogCacheDatasource mexicoCatalogCache, {
     Future<void> Function()? closeStorage,
   }) {
     final repository = CatalogRepositoryImpl(
@@ -194,6 +212,18 @@ class AppDependencies {
       keyBuilder: const SafetyKeyBuilder(),
       clock: DateTime.now,
     );
+    final conueeQueue = ConcurrencyLimitedQueue(
+      maxConcurrent: ConueeConfig.maxConcurrentRequests,
+    );
+    final mexicoCatalogRepository = MexicoCatalogRepositoryImpl(
+      datasource: ConueeApiDatasource(dio: conueeDio, queue: conueeQueue),
+      cache: mexicoCatalogCache,
+      clock: DateTime.now,
+    );
+    final getMxModelGroups = GetMxModelGroupsUseCase(
+      repository: mexicoCatalogRepository,
+      grouper: const MxModelGrouper(),
+    );
     const transmissionLabeler = TransmissionLabeler(
       onUntranslated: _logUntranslatedText,
     );
@@ -258,9 +288,14 @@ class AppDependencies {
         defaultVersionSelector: defaultVersionSelector,
       ),
       resolveGroupSafetyUseCase: resolveGroupSafety,
+      getMxYearsUseCase: GetMxYearsUseCase(mexicoCatalogRepository),
+      getMxBrandsUseCase: GetMxBrandsUseCase(mexicoCatalogRepository),
+      getMxModelGroupsUseCase: getMxModelGroups,
+      getMxVersionsUseCase: GetMxVersionsUseCase(getMxModelGroups),
       commonsQueue: commonsQueue,
       fuelEconomyQueue: fuelEconomyQueue,
       nhtsaQueue: nhtsaQueue,
+      conueeQueue: conueeQueue,
       closeStorage: closeStorage ?? _noStorageToClose,
     );
   }
@@ -289,9 +324,14 @@ class AppDependencies {
   final DefaultVersionSelector defaultVersionSelector;
   final LoadGroupDetailsUseCase loadGroupDetailsUseCase;
   final ResolveGroupSafetyUseCase resolveGroupSafetyUseCase;
+  final GetMxYearsUseCase getMxYearsUseCase;
+  final GetMxBrandsUseCase getMxBrandsUseCase;
+  final GetMxModelGroupsUseCase getMxModelGroupsUseCase;
+  final GetMxVersionsUseCase getMxVersionsUseCase;
   final RateLimitedQueue commonsQueue;
   final ConcurrencyLimitedQueue fuelEconomyQueue;
   final ConcurrencyLimitedQueue nhtsaQueue;
+  final ConcurrencyLimitedQueue conueeQueue;
   final Future<void> Function() closeStorage;
 
   static Future<void> _noStorageToClose() async {}
@@ -317,6 +357,7 @@ class AppDependencies {
     await commonsQueue.close();
     await fuelEconomyQueue.close();
     await nhtsaQueue.close();
+    await conueeQueue.close();
     await closeStorage();
   }
 }

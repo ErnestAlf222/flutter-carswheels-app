@@ -84,6 +84,12 @@ void main() {
       expect(matcher.match('BMW', 'M4', bmw2024Models), isEmpty);
     });
 
+    test('sin alias: Audi A8 y S8 no se emparejan con la versión LWB', () {
+      const audiModels = ['A8 LWB', 'S8 LWB'];
+      expect(matcher.match('Audi', 'A8', audiModels), isEmpty);
+      expect(matcher.match('Audi', 'S8', audiModels), isEmpty);
+    });
+
     test('el alias no aplica si NHTSA no lista ese nombre', () {
       expect(matcher.match('Honda', 'Civic', toyota2024Models), isEmpty);
     });

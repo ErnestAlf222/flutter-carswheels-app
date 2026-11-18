@@ -1,4 +1,5 @@
 import 'package:cars_wheels_app/app/app.dart';
+import 'package:cars_wheels_app/features/mexico_catalog/mexico_catalog.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/safety/safety.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
@@ -60,6 +61,20 @@ class _FakeSafetyCache implements SafetyCacheDatasource {
   Future<void> writeNoMatch(String key, DateTime savedAt) async {}
 }
 
+class _FakeMexicoCatalogCache implements MexicoCatalogCacheDatasource {
+  @override
+  Future<CachedMxYearsEntity?> readYears(String key) async => null;
+
+  @override
+  Future<void> writeYears(String key, CachedMxYearsEntity entry) async {}
+
+  @override
+  Future<CachedMxYearEntity?> readYear(String key) async => null;
+
+  @override
+  Future<void> writeYear(String key, CachedMxYearEntity entry) async {}
+}
+
 App _buildApp() => App(
   dependencies: AppDependencies.create(
     photoCache: _FakePhotoCache(),
@@ -67,6 +82,7 @@ App _buildApp() => App(
     summaryCache: _FakeSummaryCache(),
     detailCache: _FakeDetailCache(),
     safetyCache: _FakeSafetyCache(),
+    mexicoCatalogCache: _FakeMexicoCatalogCache(),
   ),
 );
 

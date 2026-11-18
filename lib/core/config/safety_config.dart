@@ -120,8 +120,5 @@ class SafetyConfig {
     'bmw|i7': ['I7 SEDAN'],
     'audi|s6': ['S6 SEDAN'],
     'audi|rs6': ['RS 6 AVANT'],
-    // vPIC y NHTSA solo listan la versión larga (LWB) en 2024.
-    'audi|a8': ['A8 LWB'],
-    'audi|s8': ['S8 LWB'],
   };
 }
