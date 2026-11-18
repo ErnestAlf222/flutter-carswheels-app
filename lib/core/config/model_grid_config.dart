@@ -15,8 +15,14 @@ class ModelGridConfig {
   static const int nameMaxLines = 2;
   static const double classTopGap = 2.0;
   static const double consumptionTopGap = 8.0;
-  static const double consumptionChipHorizontalPadding = 10.0;
-  static const double consumptionChipVerticalPadding = 5.0;
+  // Bloque de consumo: ícono, barra de eficiencia y su tope de referencia.
+  static const double consumptionIconSize = 18.0;
+  static const double consumptionIconGap = 4.0;
+  static const double efficiencyBarTopGap = 4.0;
+  static const double efficiencyBarHeight = 4.0;
+  // km/l que llena la barra por completo; más allá se queda al 100 %.
+  static const double efficiencyBarMaxKmPerLiter = 20.0;
+  static const int efficiencyBarFillMilliseconds = 600;
   // Espacio extra bajo la última fila, además de la barra flotante.
   static const double listBottomGap = 16.0;
   // Esqueleto de la cuadrícula; par para llenar las dos columnas.
@@ -26,6 +32,7 @@ class ModelGridConfig {
   static const double skeletonClassBarHeight = 12.0;
   static const double skeletonClassBarFraction = 0.5;
   static const double skeletonConsumptionBarWidth = 96.0;
+  static const double skeletonEfficiencyBarFraction = 0.6;
 
   // Insignia de motorización sobre la foto.
   static const int maxEngineBadges = 3;

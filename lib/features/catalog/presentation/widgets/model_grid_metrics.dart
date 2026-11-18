@@ -22,9 +22,14 @@ class ModelGridMetrics {
   static double classHeight(TextScaler scaler) =>
       _lineHeight(AppTextStyles.modelClass, scaler);
 
+  // Alto de la fila de la cifra; la barra de eficiencia va debajo.
+  static double consumptionFigureHeight(TextScaler scaler) =>
+      _lineHeight(AppTextStyles.gridConsumptionFigure, scaler);
+
   static double consumptionHeight(TextScaler scaler) =>
-      _lineHeight(AppTextStyles.gridConsumptionFigure, scaler) +
-      2 * ModelGridConfig.consumptionChipVerticalPadding;
+      consumptionFigureHeight(scaler) +
+      ModelGridConfig.efficiencyBarTopGap +
+      ModelGridConfig.efficiencyBarHeight;
 
   /// Alto total de la celda para un ancho de celda y una escala de texto.
   static double cellHeight(double cellWidth, TextScaler scaler) =>

@@ -92,7 +92,7 @@ class ModelGridCardWidget extends StatelessWidget {
                       SizedBox(
                         height: ModelGridMetrics.consumptionHeight(scaler),
                         width: double.infinity,
-                        child: ModelConsumptionChipWidget(
+                        child: ModelConsumptionBlockWidget(
                           brand: brand,
                           groupName: name,
                           year: year,
@@ -146,6 +146,7 @@ class _PhotoArea extends StatelessWidget {
             borderRadius: AppRadii.card,
             borderRadiusGeometry: topCorners,
             heroTag: heroTag,
+            showNoPhotoBadge: false,
           ),
           Positioned(
             top: ModelGridConfig.badgeInset,

@@ -73,7 +73,14 @@ class ModelGridCardSkeletonWidget extends StatelessWidget {
                   const SizedBox(height: ModelGridConfig.consumptionTopGap),
                   SkeletonBarWidget(
                     width: ModelGridConfig.skeletonConsumptionBarWidth,
-                    height: ModelGridMetrics.consumptionHeight(scaler),
+                    height: ModelGridMetrics.consumptionFigureHeight(scaler),
+                  ),
+                  const SizedBox(height: ModelGridConfig.efficiencyBarTopGap),
+                  const SkeletonBarWidget(
+                    width:
+                        ModelGridConfig.skeletonConsumptionBarWidth *
+                        ModelGridConfig.skeletonEfficiencyBarFraction,
+                    height: ModelGridConfig.efficiencyBarHeight,
                   ),
                 ],
               ),

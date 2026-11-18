@@ -10,6 +10,7 @@ import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/navigation/navigation.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
+import 'package:cars_wheels_app/features/safety/safety.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 
 /// Widget raíz de la app.
@@ -73,6 +74,9 @@ class _AppState extends State<App> {
         ),
         RepositoryProvider<LoadGroupDetailsUseCase>.value(
           value: _dependencies.loadGroupDetailsUseCase,
+        ),
+        RepositoryProvider<ResolveGroupSafetyUseCase>.value(
+          value: _dependencies.resolveGroupSafetyUseCase,
         ),
       ],
       child: MultiBlocProvider(

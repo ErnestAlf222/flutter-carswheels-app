@@ -68,13 +68,19 @@ class AppTextStyles {
     fontWeight: FontWeight.w800,
     fontSize: 20,
     height: 1.2,
-    color: AppColors.consumptionChipText,
+    color: AppColors.ink,
   );
   static final TextStyle gridConsumptionUnit = GoogleFonts.inter(
     fontWeight: FontWeight.w600,
     fontSize: 11,
     height: 1.2,
-    color: AppColors.consumptionChipText,
+    color: AppColors.subtle,
+  );
+  static final TextStyle gridConsumptionLabel = GoogleFonts.inter(
+    fontWeight: FontWeight.w600,
+    fontSize: 12,
+    height: 1.2,
+    color: AppColors.ink,
   );
   static final TextStyle photoChipLabel = GoogleFonts.inter(
     fontWeight: FontWeight.w600,
@@ -127,6 +133,12 @@ class AppTextStyles {
     fontWeight: FontWeight.w700,
     fontSize: 14,
     color: AppColors.link,
+  );
+  static final TextStyle recallBody = GoogleFonts.inter(
+    fontWeight: FontWeight.w400,
+    fontSize: 13,
+    height: 1.4,
+    color: AppColors.ink,
   );
   static final TextStyle label = GoogleFonts.inter(
     fontWeight: FontWeight.w700,

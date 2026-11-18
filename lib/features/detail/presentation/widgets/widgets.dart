@@ -8,5 +8,7 @@ export 'detail_photo_carousel_widget.dart';
 export 'detail_skeleton_widget.dart';
 export 'detail_stats_card_widget.dart';
 export 'detail_title_row_widget.dart';
+export 'recalls_sheet_widget.dart';
+export 'safety_stars_widget.dart';
 export 'version_selector_button_widget.dart';
 export 'version_sheet_widget.dart';

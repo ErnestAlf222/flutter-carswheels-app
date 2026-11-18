@@ -33,16 +33,17 @@ class ResolveGroupSafetyUseCase {
     required String make,
     required String model,
   }) async {
-    final safety = await _resolveSafety(year, make, model);
-    final recalls = await _resolveRecalls(year, make, model);
+    final safety = await resolveSafety(year: year, make: make, model: model);
+    final recalls = await resolveRecalls(year: year, make: make, model: model);
     return GroupSafetyReportEntity(safety: safety, recalls: recalls);
   }
 
-  Future<GroupSafetyEntity?> _resolveSafety(
-    int year,
-    String make,
-    String model,
-  ) async {
+  /// Solo las estrellas; permite pedirlas sin depender de los recalls.
+  Future<GroupSafetyEntity?> resolveSafety({
+    required int year,
+    required String make,
+    required String model,
+  }) async {
     final key = keyBuilder.build(
       SafetyConfig.ratingsKeyKind,
       year,
@@ -83,11 +84,12 @@ class ResolveGroupSafetyUseCase {
     }
   }
 
-  Future<RecallSummaryEntity?> _resolveRecalls(
-    int year,
-    String make,
-    String model,
-  ) async {
+  /// Solo los recalls; permite pedirlos sin depender de las estrellas.
+  Future<RecallSummaryEntity?> resolveRecalls({
+    required int year,
+    required String make,
+    required String model,
+  }) async {
     final key = keyBuilder.build(
       SafetyConfig.recallsKeyKind,
       year,

@@ -6,6 +6,7 @@ import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/detail/presentation/widgets/widgets.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
+import 'package:cars_wheels_app/features/safety/safety.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,8 @@ import '../../../support/brand_logos_test_support.dart';
 import '../../../support/detail_test_support.dart';
 
 class _MockLoad extends Mock implements LoadGroupDetailsUseCase {}
+
+class _MockSafety extends Mock implements ResolveGroupSafetyUseCase {}
 
 GroupDetailsEntity _details({int count = 2, int defaultIndex = 0}) =>
     GroupDetailsEntity(
@@ -48,6 +51,7 @@ const Duration _settle = Duration(seconds: 1);
 void main() {
   late _MockLoad load;
   late MockResolveModelGalleryUseCase gallery;
+  late _MockSafety safety;
   late GoRouter router;
 
   setUpAll(() {
@@ -57,6 +61,21 @@ void main() {
   setUp(() {
     load = _MockLoad();
     gallery = MockResolveModelGalleryUseCase();
+    safety = _MockSafety();
+    when(
+      () => safety.resolveSafety(
+        year: any(named: 'year'),
+        make: any(named: 'make'),
+        model: any(named: 'model'),
+      ),
+    ).thenAnswer((_) async => null);
+    when(
+      () => safety.resolveRecalls(
+        year: any(named: 'year'),
+        make: any(named: 'make'),
+        model: any(named: 'model'),
+      ),
+    ).thenAnswer((_) async => null);
     when(
       () => gallery(
         brand: any(named: 'brand'),
@@ -93,6 +112,7 @@ void main() {
         providers: [
           RepositoryProvider<LoadGroupDetailsUseCase>.value(value: load),
           RepositoryProvider<ResolveModelGalleryUseCase>.value(value: gallery),
+          RepositoryProvider<ResolveGroupSafetyUseCase>.value(value: safety),
           RepositoryProvider<PhotoPrefetcher>.value(
             value: const PhotoPrefetcher(),
           ),
@@ -158,6 +178,52 @@ void main() {
     expect(find.text('Tracción delantera'), findsOneWidget);
     expect(find.byType(DetailBottomBarWidget), findsOneWidget);
     expect(find.byType(FloatingNavBar), findsNothing);
+  });
+
+  testWidgets('la seguridad carga aparte: el contenido no se reemplaza', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(800, 2400);
+    addTearDown(tester.view.reset);
+    final pendingRecalls = Completer<RecallSummaryEntity?>();
+    when(() => load(any())).thenAnswer((_) async => _details());
+    when(
+      () => safety.resolveSafety(
+        year: any(named: 'year'),
+        make: any(named: 'make'),
+        model: any(named: 'model'),
+      ),
+    ).thenAnswer(
+      (_) async =>
+          const GroupSafetyEntity(ratedCount: 2, minOverall: 4, maxOverall: 5),
+    );
+    when(
+      () => safety.resolveRecalls(
+        year: any(named: 'year'),
+        make: any(named: 'make'),
+        model: any(named: 'model'),
+      ),
+    ).thenAnswer((_) => pendingRecalls.future);
+    await pumpPage(tester);
+    await tester.pumpAndSettle();
+    expect(find.text('4–5'), findsOneWidget);
+    expect(find.text('14.6'), findsOneWidget);
+    expect(find.byType(DetailSkeletonWidget), findsNothing);
+    // Los recalls siguen en camino: solo su fila muestra el esqueleto.
+    expect(find.byType(SkeletonBarWidget), findsOneWidget);
+    pendingRecalls.complete(
+      const RecallSummaryEntity(
+        recalls: [RecallEntity(campaignNumber: 'A', component: 'Airbag')],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('1 aviso'), findsOneWidget);
+    expect(find.text('14.6'), findsOneWidget);
+    await tester.tap(find.text('1 aviso'));
+    await tester.pumpAndSettle();
+    expect(find.byType(RecallsSheetWidget), findsOneWidget);
+    expect(find.text('Airbag'), findsOneWidget);
   });
 
   testWidgets('con una sola versión el selector no responde', (tester) async {

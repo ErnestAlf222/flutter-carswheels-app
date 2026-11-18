@@ -1,5 +1,7 @@
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/detail/presentation/cubits/cubits.dart';
 import 'package:cars_wheels_app/features/detail/presentation/widgets/widgets.dart';
+import 'package:cars_wheels_app/features/safety/safety.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -226,7 +228,14 @@ void main() {
             classLabel: 'Compacto',
             fuelLabel: 'Gasolina regular',
             driveLabel: 'Tracción delantera',
-            recallsLabel: '2',
+            recalls: SafetyData(
+              RecallSummaryEntity(
+                recalls: [
+                  RecallEntity(campaignNumber: 'A'),
+                  RecallEntity(campaignNumber: 'B'),
+                ],
+              ),
+            ),
           ),
         ),
       );
@@ -236,7 +245,7 @@ void main() {
       expect(find.text('Tracción delantera'), findsOneWidget);
       expect(find.byType(DashedDividerWidget), findsNWidgets(3));
       expect(find.text(AppTexts.detailRecallsLabel), findsOneWidget);
-      expect(find.text('2'), findsOneWidget);
+      expect(find.text('2 avisos'), findsOneWidget);
       expect(find.byIcon(Symbols.chevron_right), findsOneWidget);
     });
 

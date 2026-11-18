@@ -33,6 +33,11 @@ class AppColors {
   static const Color engineFuel = Color(0xFF6B6B76);
   static const Color engineBadgeBackground = Color(0xF2FFFFFF);
   static const Color chipBackground = Color(0xFFF1EEE6);
-  static const Color consumptionChipBackground = tint;
-  static const Color consumptionChipText = tintText;
+  // Bloque de consumo de la tarjeta: ícono, cifra y barra de eficiencia.
+  // Estrellas de seguridad NHTSA.
+  static const Color starFilled = Color(0xFFF59E0B);
+  static const Color starEmpty = line;
+  static const Color consumptionAccent = link;
+  static const Color efficiencyBarTrack = line;
+  static const Color efficiencyBarFill = link;
 }

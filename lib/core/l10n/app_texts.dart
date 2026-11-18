@@ -67,7 +67,6 @@ class AppTexts {
   static const String semanticListSeparator = ', ';
   static const String consumptionUnitLabel = 'km/l combinado';
   static const String consumptionUnitShortLabel = 'km/l';
-  static const String consumptionCombinedLabel = 'combinado';
   static const String mixedPowertrainSemanticLabel =
       'Incluye versiones eléctricas, híbridas enchufables o de hidrógeno';
   static const String classAndVersionsSeparator = ' · ';
@@ -95,6 +94,37 @@ class AppTexts {
   static const String detailFuelRowLabel = 'Combustible';
   static const String detailDriveRowLabel = 'Tracción';
   static const String detailRecallsLabel = 'Avisos de seguridad (recalls)';
+  static const String noRecallsLabel = 'Sin avisos';
+  static const String recallsSheetTitle = 'Avisos de seguridad';
+  static const String recallsSourceNote = 'Texto original de NHTSA, en inglés';
+  static const String recallSummaryTitle = 'Resumen';
+  static const String recallConsequenceTitle = 'Consecuencia';
+  static const String recallRemedyTitle = 'Remedio';
+
+  /// Conteo de recalls: singular y plural.
+  static String recallsCountLabel(int count) =>
+      count == 1 ? '1 aviso' : '$count avisos';
+
+  static String recallCampaignLabel(String number) => 'Campaña $number';
+
+  /// Etiqueta de accesibilidad de la fila de recalls.
+  static String recallsRowSemanticLabel(String value) =>
+      '$detailRecallsLabel: $value';
+
+  /// Nota bajo las estrellas cuando el grupo tiene un rango de calificaciones.
+  static String safetyRatedVersionsNote(int count) =>
+      count == 1 ? '1 versión' : '$count versiones';
+
+  /// Etiqueta de accesibilidad de las estrellas: una cifra o un rango.
+  static String safetyRatingSemanticLabel(int min, int max, int ratedCount) =>
+      min == max
+      ? 'Calificación de seguridad NHTSA: $max de 5 estrellas'
+      : 'Calificación de seguridad NHTSA: $min a $max de 5 estrellas, '
+            '${safetyRatedVersionsNote(ratedCount)} calificadas';
+
+  /// Cifra de estrellas: un número o el rango mínimo–máximo.
+  static String safetyFigureLabel(int min, int max) =>
+      min == max ? '$max' : '$min–$max';
   static const String compareWithOtherLabel = 'Comparar con otro';
   static const String addToFavoritesLabel = 'Agregar a favoritos';
   static const String backLabel = 'Volver';

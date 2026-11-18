@@ -7,6 +7,7 @@ import 'package:cars_wheels_app/features/detail/domain/domain.dart';
 import 'package:cars_wheels_app/features/detail/presentation/cubits/cubits.dart';
 import 'package:cars_wheels_app/features/detail/presentation/widgets/widgets.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
+import 'package:cars_wheels_app/features/safety/safety.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 
 /// Pantalla Detalle de un grupo de modelos.
@@ -26,6 +27,11 @@ class DetailPage extends StatelessWidget {
         BlocProvider<DetailGalleryCubit>(
           create: (context) =>
               DetailGalleryCubit(context.read<ResolveModelGalleryUseCase>())
+                ..load(args),
+        ),
+        BlocProvider<DetailSafetyCubit>(
+          create: (context) =>
+              DetailSafetyCubit(context.read<ResolveGroupSafetyUseCase>())
                 ..load(args),
         ),
       ],
@@ -135,6 +141,11 @@ class _LoadedContent extends StatelessWidget {
     final descriptor = context.read<VersionDescriptorBuilder>().describe(
       detail,
     );
+    // Los recalls cargan aparte; solo cambia la fila, no el resto del contenido.
+    final recalls = context
+        .select<DetailSafetyCubit, SafetyLoad<RecallSummaryEntity>>(
+          (cubit) => cubit.state.recalls,
+        );
     return Column(
       children: [
         _entry(
@@ -157,7 +168,16 @@ class _LoadedContent extends StatelessWidget {
           _FadeSwitcher(
             child: KeyedSubtree(
               key: ValueKey(state.selectedIndex),
-              child: DetailStatsCardWidget(detail: detail),
+              child:
+                  BlocSelector<
+                    DetailSafetyCubit,
+                    DetailSafetyState,
+                    SafetyLoad<GroupSafetyEntity>
+                  >(
+                    selector: (state) => state.ratings,
+                    builder: (context, ratings) =>
+                        DetailStatsCardWidget(detail: detail, safety: ratings),
+                  ),
             ),
           ),
         ),
@@ -174,6 +194,10 @@ class _LoadedContent extends StatelessWidget {
                   detail.fuelType,
                 ),
                 driveLabel: context.read<DriveLabeler>().labelFor(detail.drive),
+                recalls: recalls,
+                onRecallsTap: recalls is SafetyData<RecallSummaryEntity>
+                    ? () => showRecallsSheet(context, summary: recalls.value)
+                    : null,
                 beforeRecalls: _entry(
                   4,
                   _FadeSwitcher(

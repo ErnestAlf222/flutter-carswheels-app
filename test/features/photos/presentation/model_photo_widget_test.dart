@@ -29,6 +29,7 @@ void main() {
   Widget host(
     Map<String, PhotoSlot> slots, {
     bool disableAnimations = false,
+    bool showNoPhotoBadge = true,
     Map<String, String> logoUrls = const {},
   }) => MaterialApp(
     builder: (context, child) => MediaQuery(
@@ -45,9 +46,10 @@ void main() {
           value: buildMockBrandLogosCubit(urls: logoUrls),
         ),
       ],
-      child: const Scaffold(
+      child: Scaffold(
         body: Center(
           child: ModelPhotoWidget(
+            showNoPhotoBadge: showNoPhotoBadge,
             brand: 'Honda',
             model: 'Civic 4Dr',
             year: 2020,
@@ -136,6 +138,17 @@ void main() {
   ) async {
     await tester.pumpWidget(host({key: const PhotoMissing()}));
     expectNoPhoto(tester);
+  });
+
+  testWidgets('sin insignia, sin foto deja solo el logo sin cámara tachada', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host({key: const PhotoMissing()}, showNoPhotoBadge: false),
+    );
+    expect(find.byIcon(Symbols.no_photography), findsNothing);
+    expect(find.byIcon(Symbols.directions_car), findsOneWidget);
+    expect(find.bySemanticsLabel(AppTexts.noPhotoSemanticLabel), findsNothing);
   });
 
   testWidgets('Failed muestra el logo completo y la insignia sin foto', (

@@ -1,19 +1,29 @@
 import 'package:flutter/material.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/detail/presentation/cubits/cubits.dart';
+import 'package:cars_wheels_app/features/detail/presentation/widgets/safety_stars_widget.dart';
+import 'package:cars_wheels_app/features/safety/safety.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 
 /// Tarjeta con tres cifras: consumo (o motor), costo anual y seguridad.
 class DetailStatsCardWidget extends StatelessWidget {
-  const DetailStatsCardWidget({super.key, required this.detail});
+  const DetailStatsCardWidget({
+    super.key,
+    required this.detail,
+    this.safety = const SafetyEmpty<GroupSafetyEntity>(),
+  });
 
   final VehicleDetailEntity detail;
+
+  /// Estrellas NHTSA del grupo; cargan aparte y solo afectan su celda.
+  final SafetyLoad<GroupSafetyEntity> safety;
 
   @override
   Widget build(BuildContext context) {
     final cells = [_consumptionCell(), _costCell(), _safetyCell()];
     final semanticLabel = cells
-        .map((cell) => '${cell.figure}, ${cell.caption}')
+        .map((cell) => cell.semanticLabel ?? '${cell.figure}, ${cell.caption}')
         .join(AppTexts.semanticListSeparator);
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -86,11 +96,43 @@ class DetailStatsCardWidget extends StatelessWidget {
     );
   }
 
-  // La seguridad de NHTSA llega en otra parte; por ahora sin dato.
-  _StatData _safetyCell() => const _StatData(
-    figure: AppTexts.noDataLabel,
-    caption: AppTexts.detailSafetyCaption,
-  );
+  // Estrellas NHTSA: esqueleto al cargar y "—" si no hay dato o falló.
+  _StatData _safetyCell() {
+    final current = safety;
+    if (current is SafetyLoading<GroupSafetyEntity>) {
+      return const _StatData(
+        figure: AppTexts.noDataLabel,
+        caption: AppTexts.detailSafetyCaption,
+        isLoading: true,
+        semanticLabel: AppTexts.detailSafetyCaption,
+      );
+    }
+    if (current is SafetyData<GroupSafetyEntity>) {
+      final max = current.value.maxOverall;
+      if (max != null) {
+        final min = current.value.minOverall ?? max;
+        return _StatData(
+          figure: AppTexts.safetyFigureLabel(min, max),
+          caption: AppTexts.detailSafetyCaption,
+          extra: SafetyStarsWidget(
+            stars: max,
+            note: min == max
+                ? null
+                : AppTexts.safetyRatedVersionsNote(current.value.ratedCount),
+          ),
+          semanticLabel: AppTexts.safetyRatingSemanticLabel(
+            min,
+            max,
+            current.value.ratedCount,
+          ),
+        );
+      }
+    }
+    return const _StatData(
+      figure: AppTexts.noDataLabel,
+      caption: AppTexts.detailSafetyCaption,
+    );
+  }
 }
 
 /// Lo que muestra una celda; isLabel indica texto de motor en vez de cifra.
@@ -99,11 +141,23 @@ class _StatData {
     required this.figure,
     required this.caption,
     this.isLabel = false,
+    this.isLoading = false,
+    this.extra,
+    this.semanticLabel,
   });
 
   final String figure;
   final String caption;
   final bool isLabel;
+
+  /// Cifra aún en camino: se dibuja un esqueleto en su lugar.
+  final bool isLoading;
+
+  /// Contenido bajo la cifra, como las estrellas.
+  final Widget? extra;
+
+  /// Etiqueta de accesibilidad propia; sin ella se usan cifra y título.
+  final String? semanticLabel;
 }
 
 /// Una celda: la cifra y su etiqueta debajo.
@@ -119,15 +173,22 @@ class _StatCell extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            data.figure,
-            maxLines: data.isLabel ? 2 : 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: data.isLabel
-                ? AppTextStyles.cardTitle
-                : AppTextStyles.statFigure,
-          ),
+          if (data.isLoading)
+            const SkeletonBarWidget(
+              width: UiConfig.safetySkeletonFigureWidth,
+              height: UiConfig.safetySkeletonFigureHeight,
+            )
+          else
+            Text(
+              data.figure,
+              maxLines: data.isLabel ? 2 : 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: data.isLabel
+                  ? AppTextStyles.cardTitle
+                  : AppTextStyles.statFigure,
+            ),
+          ?data.extra,
           Text(
             data.caption,
             textAlign: TextAlign.center,

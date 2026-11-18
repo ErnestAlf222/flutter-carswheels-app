@@ -21,6 +21,7 @@ class ModelPhotoWidget extends StatelessWidget {
     this.width,
     this.height,
     this.heroTag,
+    this.showNoPhotoBadge = true,
     this.thumbnailUrlBuilder = const ThumbnailUrlBuilder(),
   });
 
@@ -40,6 +41,9 @@ class ModelPhotoWidget extends StatelessWidget {
 
   /// Etiqueta del Hero hacia Detalle; sin ella la foto no vuela.
   final String? heroTag;
+
+  /// Falso en el listado: sin foto queda solo el logo, sin la cámara tachada.
+  final bool showNoPhotoBadge;
   final ThumbnailUrlBuilder thumbnailUrlBuilder;
 
   @override
@@ -70,7 +74,7 @@ class ModelPhotoWidget extends StatelessWidget {
             return slot is PhotoFound
                 ? _withHero(tag, _content(slot.photo, memCacheWidth))
                 : slot is PhotoMissing || slot is PhotoFailed
-                ? _NoPhotoBox(brand: brand)
+                ? _NoPhotoBox(brand: brand, showBadge: showNoPhotoBadge)
                 : _LoadingBox(brand: brand);
           },
         ),
@@ -85,6 +89,7 @@ class ModelPhotoWidget extends StatelessWidget {
       PhotosConfig.listThumbnailWidthPixels,
     ),
     memCacheWidth: memCacheWidth,
+    showNoPhotoBadge: showNoPhotoBadge,
   );
 
   // Envuelve la foto en un Hero solo si hay etiqueta.
@@ -103,11 +108,13 @@ class _PhotoContent extends StatelessWidget {
     required this.brand,
     required this.thumbnailUrl,
     required this.memCacheWidth,
+    required this.showNoPhotoBadge,
   });
 
   final String brand;
   final String thumbnailUrl;
   final int? memCacheWidth;
+  final bool showNoPhotoBadge;
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +133,8 @@ class _PhotoContent extends StatelessWidget {
       fadeInDuration: fade,
       fadeOutDuration: fade,
       placeholder: (context, _) => _LoadingBox(brand: brand),
-      errorWidget: (context, _, _) => _NoPhotoBox(brand: brand),
+      errorWidget: (context, _, _) =>
+          _NoPhotoBox(brand: brand, showBadge: showNoPhotoBadge),
     );
   }
 }
@@ -185,11 +193,12 @@ class _LoadingBox extends StatelessWidget {
   }
 }
 
-/// Sin foto: el logo completo y una insignia en la esquina inferior derecha.
+/// Sin foto: el logo completo y, si se pide, una insignia abajo a la derecha.
 class _NoPhotoBox extends StatelessWidget {
-  const _NoPhotoBox({required this.brand});
+  const _NoPhotoBox({required this.brand, required this.showBadge});
 
   final String brand;
+  final bool showBadge;
 
   @override
   Widget build(BuildContext context) {
@@ -200,7 +209,8 @@ class _NoPhotoBox extends StatelessWidget {
           color: AppColors.tint,
           child: Center(child: _BrandMark(brand: brand)),
         ),
-        const Align(alignment: Alignment.bottomRight, child: _NoPhotoBadge()),
+        if (showBadge)
+          const Align(alignment: Alignment.bottomRight, child: _NoPhotoBadge()),
       ],
     );
   }

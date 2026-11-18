@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../support/brand_logos_test_support.dart';
 import '../../../support/class_translator_test_support.dart';
@@ -25,7 +26,11 @@ void main() {
 
   setUp(useTallPhoneView);
 
-  Widget grid(double textScale, {required Map<String, SummarySlot> slots}) {
+  Widget grid(
+    double textScale, {
+    required Map<String, SummarySlot> slots,
+    Map<String, PhotoSlot> photos = const {},
+  }) {
     final models = _MockModelsCubit();
     return MaterialApp(
       builder: (context, child) => MediaQuery(
@@ -39,7 +44,9 @@ void main() {
         MultiBlocProvider(
           providers: [
             BlocProvider<ModelsCubit>.value(value: models),
-            BlocProvider<PhotosCubit>.value(value: buildMockPhotosCubit()),
+            BlocProvider<PhotosCubit>.value(
+              value: buildMockPhotosCubit(slots: photos),
+            ),
             BlocProvider<SummariesCubit>.value(
               value: buildMockSummariesCubit(slots: slots),
             ),
@@ -151,5 +158,20 @@ void main() {
     expect(find.textContaining('12–15', findRichText: true), findsOneWidget);
     expect(find.textContaining('km/l', findRichText: true), findsOneWidget);
     expect(find.text(AppTexts.electricLabel), findsOneWidget);
+  });
+
+  testWidgets('la tarjeta sin foto muestra solo el logo, sin cámara tachada', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      grid(
+        1.0,
+        slots: const {},
+        photos: {photoKeyFor('Honda', 'Civic', 2020): const PhotoMissing()},
+      ),
+    );
+    await tester.pump();
+    expect(find.byIcon(Symbols.no_photography), findsNothing);
+    expect(find.byIcon(Symbols.directions_car), findsWidgets);
   });
 }

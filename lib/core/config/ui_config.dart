@@ -99,6 +99,16 @@ class UiConfig {
   static const double detailInfoRowVerticalPadding = 10.0;
   static const double detailRecallsTopMargin = 10.0;
   static const int detailSkeletonRowCount = 3;
+  // Seguridad NHTSA en Detalle: estrellas, esqueletos y hoja de recalls.
+  static const int safetyStarCount = 5;
+  static const double safetyStarSize = 14.0;
+  static const double safetyStarGap = 1.0;
+  static const double safetyNoteTopGap = 2.0;
+  static const double safetySkeletonFigureWidth = 40.0;
+  static const double safetySkeletonFigureHeight = 26.0;
+  static const double recallsSkeletonWidth = 72.0;
+  static const double recallsSkeletonHeight = 16.0;
+  static const double recallItemVerticalPadding = 8.0;
   static const double efficiencyCardPadding = 20.0;
   static const double efficiencyGridSpacing = 16.0;
   static const int efficiencyScoreSegmentCount = 10;
