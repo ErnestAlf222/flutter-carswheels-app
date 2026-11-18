@@ -26,8 +26,8 @@ void main() {
     expect(suffix.hasMatch('Compact Cars'), isFalse);
   });
 
-  test('la versión de la clave del resumen es v3', () {
-    expect(VehicleSpecsConfig.summaryCacheKeyVersion, 'v3');
+  test('la versión de la clave del resumen es v4', () {
+    expect(VehicleSpecsConfig.summaryCacheKeyVersion, 'v4');
   });
 
   test('FCV se clasifica como celda de combustible', () {

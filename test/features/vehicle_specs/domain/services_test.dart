@@ -71,6 +71,28 @@ void main() {
       expect(summary.hasPluginHybrid, isFalse);
     });
 
+    test('engineKinds: sin repetir y electrificados primero', () {
+      final summary = builder.build([
+        _record('', 20),
+        _record('Diesel', 30),
+        _record('EV', 0),
+        _record('Plug-in Hybrid', 40),
+        _record('Hybrid', 40),
+        _record('FCV', 0),
+        _record('FFV', 19),
+        _record('', 22),
+      ]);
+      expect(summary.engineKinds, [
+        EngineKind.electric,
+        EngineKind.pluginHybrid,
+        EngineKind.hybrid,
+        EngineKind.hydrogen,
+        EngineKind.diesel,
+        EngineKind.gasoline,
+        EngineKind.flexFuel,
+      ]);
+    });
+
     test('FFV cuenta como combustión', () {
       final summary = builder.build([_record('FFV', 19)]);
       expect(summary.minKmPerLiter, closeTo(_kmPerLiter(19), 1e-9));

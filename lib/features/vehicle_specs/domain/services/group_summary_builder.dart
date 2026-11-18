@@ -1,6 +1,6 @@
 import 'package:cars_wheels_app/core/core.dart';
-import 'package:cars_wheels_app/features/vehicle_specs/domain/entities/group_summary_entity.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/domain/entities/powertrain.dart';
+import 'package:cars_wheels_app/features/vehicle_specs/domain/entities/group_summary_entity.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/domain/entities/vehicle_record_entity.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/domain/services/powertrain_classifier.dart';
 
@@ -16,8 +16,11 @@ class GroupSummaryBuilder {
     if (records.isEmpty) throw ArgumentError(_emptyMessage);
     final kmPerLiter = <double>[];
     final powertrains = <Powertrain>{};
+    final engineKinds = <EngineKind>{};
     for (final record in records) {
       final powertrain = classifier.classify(record.atvType);
+      final engineKind = classifier.engineKindOf(record.atvType);
+      if (engineKind != null) engineKinds.add(engineKind);
       final mpg = record.combinedMpg;
       powertrains.add(powertrain);
       if (powertrain == Powertrain.combustion && mpg != null) {
@@ -36,6 +39,11 @@ class GroupSummaryBuilder {
       hasPluginHybrid: powertrains.contains(Powertrain.pluginHybrid),
       hasFuelCell: powertrains.contains(Powertrain.fuelCell),
       variantCount: records.length,
+      // El orden del enum es la prioridad de la insignia.
+      engineKinds: [
+        for (final kind in EngineKind.values)
+          if (engineKinds.contains(kind)) kind,
+      ],
     );
   }
 

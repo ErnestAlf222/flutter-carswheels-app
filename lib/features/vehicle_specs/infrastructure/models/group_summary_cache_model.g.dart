@@ -18,44 +18,49 @@ const GroupSummaryCacheModelSchema = CollectionSchema(
   name: r'GroupSummaryCacheModel',
   id: -808507630003371402,
   properties: {
-    r'hasElectric': PropertySchema(
+    r'engineKindNames': PropertySchema(
       id: 0,
+      name: r'engineKindNames',
+      type: IsarType.stringList,
+    ),
+    r'hasElectric': PropertySchema(
+      id: 1,
       name: r'hasElectric',
       type: IsarType.bool,
     ),
     r'hasFuelCell': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'hasFuelCell',
       type: IsarType.bool,
     ),
     r'hasPluginHybrid': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'hasPluginHybrid',
       type: IsarType.bool,
     ),
-    r'key': PropertySchema(id: 3, name: r'key', type: IsarType.string),
+    r'key': PropertySchema(id: 4, name: r'key', type: IsarType.string),
     r'maxKmPerLiter': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'maxKmPerLiter',
       type: IsarType.double,
     ),
     r'minKmPerLiter': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'minKmPerLiter',
       type: IsarType.double,
     ),
     r'savedAtMillis': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'savedAtMillis',
       type: IsarType.long,
     ),
     r'variantCount': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'variantCount',
       type: IsarType.long,
     ),
     r'vehicleClass': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'vehicleClass',
       type: IsarType.string,
     ),
@@ -96,6 +101,13 @@ int _groupSummaryCacheModelEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.engineKindNames.length * 3;
+  {
+    for (var i = 0; i < object.engineKindNames.length; i++) {
+      final value = object.engineKindNames[i];
+      bytesCount += value.length * 3;
+    }
+  }
   bytesCount += 3 + object.key.length * 3;
   {
     final value = object.vehicleClass;
@@ -112,15 +124,16 @@ void _groupSummaryCacheModelSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeBool(offsets[0], object.hasElectric);
-  writer.writeBool(offsets[1], object.hasFuelCell);
-  writer.writeBool(offsets[2], object.hasPluginHybrid);
-  writer.writeString(offsets[3], object.key);
-  writer.writeDouble(offsets[4], object.maxKmPerLiter);
-  writer.writeDouble(offsets[5], object.minKmPerLiter);
-  writer.writeLong(offsets[6], object.savedAtMillis);
-  writer.writeLong(offsets[7], object.variantCount);
-  writer.writeString(offsets[8], object.vehicleClass);
+  writer.writeStringList(offsets[0], object.engineKindNames);
+  writer.writeBool(offsets[1], object.hasElectric);
+  writer.writeBool(offsets[2], object.hasFuelCell);
+  writer.writeBool(offsets[3], object.hasPluginHybrid);
+  writer.writeString(offsets[4], object.key);
+  writer.writeDouble(offsets[5], object.maxKmPerLiter);
+  writer.writeDouble(offsets[6], object.minKmPerLiter);
+  writer.writeLong(offsets[7], object.savedAtMillis);
+  writer.writeLong(offsets[8], object.variantCount);
+  writer.writeString(offsets[9], object.vehicleClass);
 }
 
 GroupSummaryCacheModel _groupSummaryCacheModelDeserialize(
@@ -130,16 +143,17 @@ GroupSummaryCacheModel _groupSummaryCacheModelDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = GroupSummaryCacheModel(
-    hasElectric: reader.readBool(offsets[0]),
-    hasFuelCell: reader.readBool(offsets[1]),
-    hasPluginHybrid: reader.readBool(offsets[2]),
+    engineKindNames: reader.readStringList(offsets[0]) ?? const [],
+    hasElectric: reader.readBool(offsets[1]),
+    hasFuelCell: reader.readBool(offsets[2]),
+    hasPluginHybrid: reader.readBool(offsets[3]),
     id: id,
-    key: reader.readString(offsets[3]),
-    maxKmPerLiter: reader.readDoubleOrNull(offsets[4]),
-    minKmPerLiter: reader.readDoubleOrNull(offsets[5]),
-    savedAtMillis: reader.readLong(offsets[6]),
-    variantCount: reader.readLong(offsets[7]),
-    vehicleClass: reader.readStringOrNull(offsets[8]),
+    key: reader.readString(offsets[4]),
+    maxKmPerLiter: reader.readDoubleOrNull(offsets[5]),
+    minKmPerLiter: reader.readDoubleOrNull(offsets[6]),
+    savedAtMillis: reader.readLong(offsets[7]),
+    variantCount: reader.readLong(offsets[8]),
+    vehicleClass: reader.readStringOrNull(offsets[9]),
   );
   return object;
 }
@@ -152,22 +166,24 @@ P _groupSummaryCacheModelDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readBool(offset)) as P;
+      return (reader.readStringList(offset) ?? const []) as P;
     case 1:
       return (reader.readBool(offset)) as P;
     case 2:
       return (reader.readBool(offset)) as P;
     case 3:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 4:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 5:
       return (reader.readDoubleOrNull(offset)) as P;
     case 6:
-      return (reader.readLong(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 7:
       return (reader.readLong(offset)) as P;
     case 8:
+      return (reader.readLong(offset)) as P;
+    case 9:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -420,6 +436,270 @@ extension GroupSummaryCacheModelQueryFilter
           GroupSummaryCacheModel,
           QFilterCondition
         > {
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindNamesElementEqualTo(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'engineKindNames',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindNamesElementGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'engineKindNames',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindNamesElementLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'engineKindNames',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindNamesElementBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'engineKindNames',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindNamesElementStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'engineKindNames',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindNamesElementEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'engineKindNames',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindNamesElementContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'engineKindNames',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindNamesElementMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'engineKindNames',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindNamesElementIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'engineKindNames', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindNamesElementIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'engineKindNames', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindNamesLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'engineKindNames', length, true, length, true);
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindNamesIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'engineKindNames', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindNamesIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'engineKindNames', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindNamesLengthLessThan(int length, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'engineKindNames', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindNamesLengthGreaterThan(int length, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'engineKindNames',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<
+    GroupSummaryCacheModel,
+    GroupSummaryCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindNamesLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'engineKindNames',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
   QueryBuilder<
     GroupSummaryCacheModel,
     GroupSummaryCacheModel,
@@ -1587,6 +1867,13 @@ extension GroupSummaryCacheModelQuerySortThenBy
 extension GroupSummaryCacheModelQueryWhereDistinct
     on QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QDistinct> {
   QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QDistinct>
+  distinctByEngineKindNames() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'engineKindNames');
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, GroupSummaryCacheModel, QDistinct>
   distinctByHasElectric() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'hasElectric');
@@ -1660,6 +1947,13 @@ extension GroupSummaryCacheModelQueryProperty
   QueryBuilder<GroupSummaryCacheModel, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<GroupSummaryCacheModel, List<String>, QQueryOperations>
+  engineKindNamesProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'engineKindNames');
     });
   }
 

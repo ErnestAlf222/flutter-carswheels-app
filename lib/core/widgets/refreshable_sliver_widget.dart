@@ -1,29 +1,29 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import 'package:cars_wheels_app/core/config/config.dart';
 
-/// Atenúa el contenido y bloquea los toques mientras se actualiza.
-class RefreshableContentWidget extends StatelessWidget {
-  const RefreshableContentWidget({
+/// Atenúa un sliver y bloquea los toques mientras se actualiza.
+class RefreshableSliverWidget extends StatelessWidget {
+  const RefreshableSliverWidget({
     super.key,
     required this.isRefreshing,
-    required this.child,
+    required this.sliver,
   });
 
   final bool isRefreshing;
-  final Widget child;
+  final Widget sliver;
 
   @override
   Widget build(BuildContext context) {
     final duration = MediaQuery.of(context).disableAnimations
         ? Duration.zero
         : const Duration(milliseconds: AnimationConfig.dimDurationMilliseconds);
-    return IgnorePointer(
+    return SliverIgnorePointer(
       ignoring: isRefreshing,
-      child: AnimatedOpacity(
+      sliver: SliverAnimatedOpacity(
         opacity: isRefreshing ? UiConfig.dimmedOpacity : 1.0,
         duration: duration,
-        child: child,
+        sliver: sliver,
       ),
     );
   }

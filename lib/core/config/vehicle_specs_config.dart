@@ -51,6 +51,21 @@ class VehicleSpecsConfig {
     'efcv': 'fuelCell',
   };
 
+  // Claves en minúsculas; el valor es el nombre del enum EngineKind.
+  static const Map<String, String> engineKindByAtvType = {
+    '': 'gasoline',
+    'ffv': 'flexFuel',
+    'cng': 'flexFuel',
+    'bifuel (cng)': 'flexFuel',
+    'bifuel (lpg)': 'flexFuel',
+    'diesel': 'diesel',
+    'hybrid': 'hybrid',
+    'ev': 'electric',
+    'plug-in hybrid': 'pluginHybrid',
+    'fcv': 'hydrogen',
+    'efcv': 'hydrogen',
+  };
+
   // Sufijo de tracción al final de la clase; se aplica sin distinguir mayúsculas.
   static const String driveSuffixPattern = r'\s*[-/]?\s*(2WD|4WD)$';
 
@@ -60,8 +75,8 @@ class VehicleSpecsConfig {
   // Registro de depuración de una tracción, combustible o transmisión sin traducción.
   static const String untranslatedTextLogPrefix = 'texto sin traducir: ';
 
-  // Versión de la clave del resumen; 'v3' invalida lo guardado sin hasFuelCell.
-  static const String summaryCacheKeyVersion = 'v3';
+  // Versión de la clave del resumen; 'v4' invalida lo guardado sin engineKinds.
+  static const String summaryCacheKeyVersion = 'v4';
 
   // Provisional: días de vigencia del resumen guardado.
   static const int summaryCacheTimeToLiveDays = 30;

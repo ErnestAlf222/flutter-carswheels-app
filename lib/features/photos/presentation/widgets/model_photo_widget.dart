@@ -16,9 +16,10 @@ class ModelPhotoWidget extends StatelessWidget {
     required this.brand,
     required this.model,
     required this.year,
-    required this.width,
-    required this.height,
     required this.borderRadius,
+    this.borderRadiusGeometry,
+    this.width,
+    this.height,
     this.heroTag,
     this.thumbnailUrlBuilder = const ThumbnailUrlBuilder(),
   });
@@ -29,10 +30,13 @@ class ModelPhotoWidget extends StatelessWidget {
   final String model;
   final int year;
 
-  /// Ancho y alto del recuadro.
-  final double width;
-  final double height;
+  /// Ancho y alto del recuadro; sin ellos ocupa el espacio que le den.
+  final double? width;
+  final double? height;
   final double borderRadius;
+
+  /// Si se da, reemplaza al radio uniforme (p. ej. solo esquinas superiores).
+  final BorderRadius? borderRadiusGeometry;
 
   /// Etiqueta del Hero hacia Detalle; sin ella la foto no vuela.
   final String? heroTag;
@@ -45,60 +49,65 @@ class ModelPhotoWidget extends StatelessWidget {
     );
     return BlocSelector<PhotosCubit, PhotosState, PhotoSlot?>(
       selector: (state) => state.slots[key],
-      builder: (context, slot) {
-        final radius = BorderRadius.circular(borderRadius);
-        final found = slot;
-        final tag = heroTag;
-        return SizedBox(
-          width: width,
-          height: height,
-          child: ClipRRect(
-            borderRadius: radius,
-            child: found is PhotoFound
-                ? _withHero(
-                    tag,
-                    _PhotoContent(
-                      photo: found.photo,
-                      width: width,
-                      brand: brand,
-                      thumbnailUrl: thumbnailUrlBuilder.forUrl(
-                        found.photo.thumbnailUrl,
-                        PhotosConfig.listThumbnailWidthPixels,
-                      ),
-                    ),
-                  )
-                : slot is PhotoMissing || slot is PhotoFailed
-                ? _NoPhotoBox(brand: brand)
-                : _LoadingBox(brand: brand),
-          ),
-        );
-      },
+      builder: (context, slot) => _frame(context, slot),
     );
   }
+
+  Widget _frame(BuildContext context, PhotoSlot? slot) {
+    final radius = borderRadiusGeometry ?? BorderRadius.circular(borderRadius);
+    final tag = heroTag;
+    return SizedBox(
+      width: width,
+      height: height,
+      child: ClipRRect(
+        borderRadius: radius,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final pixelsWide = width ?? constraints.maxWidth;
+            final memCacheWidth = pixelsWide.isFinite
+                ? (pixelsWide * MediaQuery.devicePixelRatioOf(context)).ceil()
+                : null;
+            return slot is PhotoFound
+                ? _withHero(tag, _content(slot.photo, memCacheWidth))
+                : slot is PhotoMissing || slot is PhotoFailed
+                ? _NoPhotoBox(brand: brand)
+                : _LoadingBox(brand: brand);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _content(PhotoEntity photo, int? memCacheWidth) => _PhotoContent(
+    brand: brand,
+    thumbnailUrl: thumbnailUrlBuilder.forUrl(
+      photo.thumbnailUrl,
+      PhotosConfig.listThumbnailWidthPixels,
+    ),
+    memCacheWidth: memCacheWidth,
+  );
+
+  // Envuelve la foto en un Hero solo si hay etiqueta.
+  Widget _withHero(String? tag, Widget child) => tag == null
+      ? child
+      : Hero(
+          tag: tag,
+          flightShuttleBuilder: PhotoHeroShuttle.builder,
+          child: child,
+        );
 }
 
-// Envuelve la foto en un Hero solo si hay etiqueta.
-Widget _withHero(String? tag, Widget child) => tag == null
-    ? child
-    : Hero(
-        tag: tag,
-        flightShuttleBuilder: PhotoHeroShuttle.builder,
-        child: child,
-      );
-
-/// Imagen con fundido y, si es de referencia, su insignia.
+/// Imagen con fundido de entrada.
 class _PhotoContent extends StatelessWidget {
   const _PhotoContent({
-    required this.photo,
-    required this.width,
     required this.brand,
     required this.thumbnailUrl,
+    required this.memCacheWidth,
   });
 
-  final PhotoEntity photo;
-  final double width;
   final String brand;
   final String thumbnailUrl;
+  final int? memCacheWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -108,49 +117,16 @@ class _PhotoContent extends StatelessWidget {
         : const Duration(
             milliseconds: AnimationConfig.fadeDurationMilliseconds,
           );
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        CachedNetworkImage(
-          imageUrl: thumbnailUrl,
-          httpHeaders: PhotosConfig.requestHeaders,
-          fit: BoxFit.cover,
-          alignment: Alignment.center,
-          memCacheWidth: (width * media.devicePixelRatio).ceil(),
-          fadeInDuration: fade,
-          fadeOutDuration: fade,
-          placeholder: (context, _) => _LoadingBox(brand: brand),
-          errorWidget: (context, _, _) => _NoPhotoBox(brand: brand),
-        ),
-        if (photo.isReference)
-          const Align(
-            alignment: Alignment.bottomRight,
-            child: _ReferenceBadge(),
-          ),
-      ],
-    );
-  }
-}
-
-/// Insignia que avisa que la foto no es del año pedido.
-class _ReferenceBadge extends StatelessWidget {
-  const _ReferenceBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label: AppTexts.referencePhotoLabel,
-      child: const DecoratedBox(
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          shape: BoxShape.circle,
-        ),
-        child: Icon(
-          Symbols.info,
-          size: UiConfig.referenceBadgeSize,
-          color: AppColors.tintText,
-        ),
-      ),
+    return CachedNetworkImage(
+      imageUrl: thumbnailUrl,
+      httpHeaders: PhotosConfig.requestHeaders,
+      fit: BoxFit.cover,
+      alignment: Alignment.center,
+      memCacheWidth: memCacheWidth,
+      fadeInDuration: fade,
+      fadeOutDuration: fade,
+      placeholder: (context, _) => _LoadingBox(brand: brand),
+      errorWidget: (context, _, _) => _NoPhotoBox(brand: brand),
     );
   }
 }

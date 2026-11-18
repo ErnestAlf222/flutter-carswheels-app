@@ -5,20 +5,18 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/domain/domain.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/presentation/cubits/cubits.dart';
 
-/// Línea bajo el nombre del modelo con su clase y la cantidad de versiones.
-class ModelClassLineWidget extends StatelessWidget {
-  const ModelClassLineWidget({
+/// Línea con la clase del vehículo; "—" si no hay dato.
+class ModelClassTextWidget extends StatelessWidget {
+  const ModelClassTextWidget({
     super.key,
     required this.brand,
     required this.groupName,
     required this.year,
-    required this.versionsCount,
   });
 
   final String brand;
   final String groupName;
   final int year;
-  final int versionsCount;
 
   @override
   Widget build(BuildContext context) {
@@ -44,42 +42,33 @@ class ModelClassLineWidget extends StatelessWidget {
     );
   }
 
-  // Contenido según el espacio; la llave define cuándo hay fundido.
   Widget _line(SummarySlot? slot, VehicleClassTranslator translator) {
-    final versions = versionsCount > 1
-        ? AppTexts.versionsCountLabel(versionsCount)
-        : null;
-    if (slot is SummaryLoading) {
-      return Row(
-        key: const ValueKey('loading'),
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SkeletonBarWidget(
-            width: UiConfig.summarySkeletonLongBarWidth,
-            height: UiConfig.summarySkeletonBarHeight,
+    if (slot == null || slot is SummaryLoading) {
+      return const Align(
+        key: ValueKey('loading'),
+        alignment: Alignment.centerLeft,
+        child: FractionallySizedBox(
+          widthFactor: ModelGridConfig.skeletonClassBarFraction,
+          child: SkeletonBarWidget(
+            width: double.infinity,
+            height: ModelGridConfig.skeletonClassBarHeight,
           ),
-          if (versions != null) ...[
-            const SizedBox(width: AppSpacing.xs),
-            Flexible(child: _caption(versions)),
-          ],
-        ],
+        ),
       );
     }
-    final vehicleClass = slot is SummaryFound
+    final label = slot is SummaryFound
         ? translator.labelFor(slot.summary.vehicleClass)
         : null;
-    final parts = <String>[?vehicleClass, ?versions];
-    if (parts.isEmpty) return const SizedBox.shrink(key: ValueKey('empty'));
-    return KeyedSubtree(
-      key: ValueKey(parts.join()),
-      child: _caption(parts.join(AppTexts.classAndVersionsSeparator)),
+    final text = label ?? AppTexts.missingValueLabel;
+    return Align(
+      key: ValueKey(text),
+      alignment: Alignment.centerLeft,
+      child: Text(
+        text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: AppTextStyles.modelClass,
+      ),
     );
   }
-
-  Widget _caption(String text) => Text(
-    text,
-    maxLines: 1,
-    overflow: TextOverflow.ellipsis,
-    style: AppTextStyles.caption,
-  );
 }

@@ -43,8 +43,31 @@ class AppTexts {
   static const String electricLabel = 'Eléctrico';
   static const String pluginHybridLabel = 'Híbrido enchufable';
   static const String hydrogenLabel = 'Hidrógeno';
+  static const String gasolineLabel = 'Gasolina';
+  static const String dieselLabel = 'Diésel';
+  static const String hybridLabel = 'Híbrido';
+  static const String flexFuelLabel = 'Flex-fuel o gas natural';
+  static const String missingValueLabel = '—';
+
+  /// Etiqueta de cada tipo de motorización; la clave es el nombre del enum.
+  static const Map<String, String> engineKindLabels = {
+    'electric': electricLabel,
+    'pluginHybrid': pluginHybridLabel,
+    'hybrid': hybridLabel,
+    'hydrogen': hydrogenLabel,
+    'diesel': dieselLabel,
+    'gasoline': gasolineLabel,
+    'flexFuel': flexFuelLabel,
+  };
+
+  /// Etiqueta de accesibilidad de la insignia con los tipos de motorización.
+  static String engineBadgeSemanticLabel(List<String> labels) =>
+      'Motorización: ${labels.join(semanticListSeparator)}';
+
   static const String semanticListSeparator = ', ';
   static const String consumptionUnitLabel = 'km/l combinado';
+  static const String consumptionUnitShortLabel = 'km/l';
+  static const String consumptionCombinedLabel = 'combinado';
   static const String mixedPowertrainSemanticLabel =
       'Incluye versiones eléctricas, híbridas enchufables o de hidrógeno';
   static const String classAndVersionsSeparator = ' · ';

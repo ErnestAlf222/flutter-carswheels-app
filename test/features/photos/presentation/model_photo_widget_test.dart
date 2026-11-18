@@ -180,13 +180,12 @@ void main() {
     expect(image.fadeInDuration, Duration.zero);
   });
 
-  testWidgets('una foto de referencia muestra la insignia con su etiqueta', (
+  testWidgets('una foto de referencia no muestra insignia en el listado', (
     tester,
   ) async {
     await tester.pumpWidget(host({key: PhotoFound(_photo(isReference: true))}));
-    final icon = tester.widget<Icon>(find.byIcon(Symbols.info));
-    expect(icon.size, UiConfig.referenceBadgeSize);
-    expect(find.bySemanticsLabel(AppTexts.referencePhotoLabel), findsOneWidget);
+    expect(find.byIcon(Symbols.info), findsNothing);
+    expect(find.bySemanticsLabel(AppTexts.referencePhotoLabel), findsNothing);
   });
 
   testWidgets('el error de carga de la imagen muestra el respaldo', (

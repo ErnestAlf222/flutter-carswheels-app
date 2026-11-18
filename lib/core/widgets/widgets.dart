@@ -12,6 +12,6 @@ export 'inline_message_widget.dart';
 export 'photo_hero_shuttle.dart';
 export 'photo_placeholder_widget.dart';
 export 'placeholder_page_widget.dart';
-export 'refreshable_content_widget.dart';
+export 'refreshable_sliver_widget.dart';
 export 'section_loader_overlay_widget.dart';
 export 'skeleton_bar_widget.dart';

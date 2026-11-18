@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:cars_wheels_app/features/vehicle_specs/domain/entities/powertrain.dart';
+
 /// Resumen de un grupo de modelos calculado con todas sus variantes leídas.
 class GroupSummaryEntity extends Equatable {
   const GroupSummaryEntity({
@@ -10,6 +12,7 @@ class GroupSummaryEntity extends Equatable {
     required this.hasPluginHybrid,
     required this.variantCount,
     this.hasFuelCell = false,
+    this.engineKinds = const [],
   });
 
   /// Clase original en inglés más frecuente; la traducción se hace al mostrarla.
@@ -25,6 +28,9 @@ class GroupSummaryEntity extends Equatable {
   /// Cuántas variantes se leyeron.
   final int variantCount;
 
+  /// Tipos de motorización presentes, sin repetir y en orden de prioridad.
+  final List<EngineKind> engineKinds;
+
   @override
   List<Object?> get props => [
     vehicleClass,
@@ -34,5 +40,6 @@ class GroupSummaryEntity extends Equatable {
     hasPluginHybrid,
     hasFuelCell,
     variantCount,
+    engineKinds,
   ];
 }

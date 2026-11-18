@@ -52,6 +52,30 @@ class AppTextStyles {
     fontSize: 12,
     color: AppColors.subtle,
   );
+  static final TextStyle modelName = GoogleFonts.outfit(
+    fontWeight: FontWeight.w700,
+    fontSize: 16,
+    height: 1.2,
+    color: AppColors.ink,
+  );
+  static final TextStyle modelClass = GoogleFonts.inter(
+    fontWeight: FontWeight.w500,
+    fontSize: 12,
+    height: 1.2,
+    color: AppColors.subtle,
+  );
+  static final TextStyle gridConsumptionFigure = GoogleFonts.outfit(
+    fontWeight: FontWeight.w800,
+    fontSize: 20,
+    height: 1.2,
+    color: AppColors.consumptionChipText,
+  );
+  static final TextStyle gridConsumptionUnit = GoogleFonts.inter(
+    fontWeight: FontWeight.w600,
+    fontSize: 11,
+    height: 1.2,
+    color: AppColors.consumptionChipText,
+  );
   static final TextStyle photoChipLabel = GoogleFonts.inter(
     fontWeight: FontWeight.w600,
     fontSize: 11,

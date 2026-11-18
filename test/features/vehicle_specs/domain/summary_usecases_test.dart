@@ -107,8 +107,8 @@ void main() {
 
   test('la clave de caché lleva la versión', () async {
     await run();
-    expect(cache.entries.keys.single, startsWith('v3|'));
-    expect(VehicleSpecsConfig.summaryCacheKeyVersion, 'v3');
+    expect(cache.entries.keys.single, startsWith('v4|'));
+    expect(VehicleSpecsConfig.summaryCacheKeyVersion, 'v4');
   });
 
   test('una entrada con otra versión de clave se ignora', () async {

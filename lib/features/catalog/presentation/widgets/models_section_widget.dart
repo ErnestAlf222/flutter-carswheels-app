@@ -4,10 +4,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/catalog/domain/domain.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/cubits/cubits.dart';
-import 'package:cars_wheels_app/features/catalog/presentation/widgets/model_card_skeleton_widget.dart';
-import 'package:cars_wheels_app/features/catalog/presentation/widgets/model_card_widget.dart';
+import 'package:cars_wheels_app/features/catalog/presentation/widgets/model_grid_card_skeleton_widget.dart';
+import 'package:cars_wheels_app/features/catalog/presentation/widgets/model_grid_card_widget.dart';
+import 'package:cars_wheels_app/features/catalog/presentation/widgets/model_grid_metrics.dart';
 
-/// Sección con el nombre de la marca y la lista de sus modelos.
+/// Sliver con el nombre de la marca y la cuadrícula de sus modelos.
 class ModelsSectionWidget extends StatelessWidget {
   const ModelsSectionWidget({
     super.key,
@@ -25,56 +26,65 @@ class ModelsSectionWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final current = state;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                brandName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.sectionTitle,
-              ),
+    return SliverMainAxisGroup(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.m),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    brandName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.sectionTitle,
+                  ),
+                ),
+                if (current is ModelsLoaded)
+                  Text(
+                    AppTexts.modelsCountLabel(current.groups.length),
+                    style: AppTextStyles.caption,
+                  ),
+              ],
             ),
-            if (current is ModelsLoaded)
-              Text(
-                AppTexts.modelsCountLabel(current.groups.length),
-                style: AppTextStyles.caption,
-              ),
-          ],
+          ),
         ),
-        const SizedBox(height: AppSpacing.m),
-        _FadeSwitcher(child: _body(context, current)),
+        _FadeIn(
+          key: ValueKey(_bodyKey(current)),
+          sliver: _body(context, current),
+        ),
       ],
     );
   }
 
-  // Contenido según el estado; la llave define cuándo hay fundido.
+  // Llave del contenido; al cambiar, el nuevo contenido entra con fundido.
+  String _bodyKey(ModelsState current) => switch (current) {
+    ModelsInitial() => 'initial',
+    ModelsLoading() => 'loading',
+    ModelsError() => 'error',
+    ModelsLoaded(:final groups) when groups.isEmpty => 'empty',
+    ModelsLoaded() => '${current.year}-${current.brand}',
+  };
+
   Widget _body(BuildContext context, ModelsState current) => switch (current) {
-    ModelsInitial() => const SizedBox.shrink(key: ValueKey('initial')),
-    ModelsLoading() => const _SkeletonList(key: ValueKey('loading')),
-    ModelsError() => ErrorStateWidget(
-      key: const ValueKey('error'),
-      onRetry: context.read<ModelsCubit>().retry,
+    ModelsInitial() => const SliverToBoxAdapter(child: SizedBox.shrink()),
+    ModelsLoading() => const _SkeletonGrid(),
+    ModelsError() => SliverToBoxAdapter(
+      child: ErrorStateWidget(onRetry: context.read<ModelsCubit>().retry),
     ),
-    ModelsLoaded(:final groups) when groups.isEmpty => const EmptyStateWidget(
-      key: ValueKey('empty'),
+    ModelsLoaded(:final groups) when groups.isEmpty => const SliverToBoxAdapter(
+      child: EmptyStateWidget(),
     ),
-    ModelsLoaded() => _LoadedList(
-      key: ValueKey('${current.year}-${current.brand}'),
-      state: current,
-      onGroupTap: onGroupTap,
-    ),
+    ModelsLoaded() => _LoadedGrid(state: current, onGroupTap: onGroupTap),
   };
 }
 
-/// Fundido de toda la columna al cambiar de contenido.
-class _FadeSwitcher extends StatelessWidget {
-  const _FadeSwitcher({required this.child});
+/// Fundido de entrada del contenido de un sliver; se reinicia al cambiar su llave.
+class _FadeIn extends StatelessWidget {
+  const _FadeIn({super.key, required this.sliver});
 
-  final Widget child;
+  final Widget sliver;
 
   @override
   Widget build(BuildContext context) {
@@ -83,37 +93,60 @@ class _FadeSwitcher extends StatelessWidget {
         : const Duration(
             milliseconds: AnimationConfig.fadeDurationMilliseconds,
           );
-    return AnimatedSwitcher(
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: 1),
       duration: duration,
-      layoutBuilder: (current, previous) => Stack(
-        alignment: Alignment.topCenter,
-        children: [...previous, ?current],
-      ),
-      child: child,
+      builder: (context, opacity, child) =>
+          SliverOpacity(opacity: opacity, sliver: child),
+      child: sliver,
+    );
+  }
+}
+
+/// Sliver de cuadrícula cuyo alto de celda sale del ancho y de la escala de texto.
+class _ModelGridSliver extends StatelessWidget {
+  const _ModelGridSliver({required this.delegate});
+
+  final SliverChildDelegate delegate;
+
+  @override
+  Widget build(BuildContext context) {
+    final scaler = MediaQuery.textScalerOf(context);
+    return SliverLayoutBuilder(
+      builder: (context, constraints) {
+        final width = ModelGridMetrics.cellWidth(constraints.crossAxisExtent);
+        return SliverGrid(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: ModelGridConfig.columns,
+            crossAxisSpacing: ModelGridConfig.crossAxisSpacing,
+            mainAxisSpacing: ModelGridConfig.mainAxisSpacing,
+            mainAxisExtent: ModelGridMetrics.cellHeight(width, scaler),
+          ),
+          delegate: delegate,
+        );
+      },
     );
   }
 }
 
 /// Esqueletos que ocupan el lugar de las tarjetas mientras carga.
-class _SkeletonList extends StatelessWidget {
-  const _SkeletonList({super.key});
+class _SkeletonGrid extends StatelessWidget {
+  const _SkeletonGrid();
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        for (int index = 0; index < UiConfig.skeletonCardCount; index++) ...[
-          if (index > 0) const SizedBox(height: AppSpacing.s),
-          const ModelCardSkeletonWidget(),
-        ],
-      ],
+    return _ModelGridSliver(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) => const ModelGridCardSkeletonWidget(),
+        childCount: ModelGridConfig.skeletonCardCount,
+      ),
     );
   }
 }
 
-/// Tarjetas visibles, atenuadas mientras se refresca la lista.
-class _LoadedList extends StatelessWidget {
-  const _LoadedList({super.key, required this.state, this.onGroupTap});
+/// Tarjetas visibles de la cuadrícula; solo se construyen las que se ven.
+class _LoadedGrid extends StatelessWidget {
+  const _LoadedGrid({required this.state, this.onGroupTap});
 
   final ModelsLoaded state;
   final ValueChanged<ModelGroupEntity>? onGroupTap;
@@ -121,33 +154,30 @@ class _LoadedList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final failure = state.refreshFailure;
-    return Column(
-      children: [
+    return SliverMainAxisGroup(
+      slivers: [
         if (failure != null)
-          InlineMessageWidget(
-            message: AppTexts.refreshFailedLabel,
-            actionLabel: AppTexts.retryButtonLabel,
-            onAction: context.read<ModelsCubit>().retry,
+          SliverToBoxAdapter(
+            child: InlineMessageWidget(
+              message: AppTexts.refreshFailedLabel,
+              actionLabel: AppTexts.retryButtonLabel,
+              onAction: context.read<ModelsCubit>().retry,
+            ),
           ),
-        RefreshableContentWidget(
-          isRefreshing: state.isRefreshing,
-          child: Column(
-            children: [
-              for (int index = 0; index < state.visibleCount; index++) ...[
-                if (index > 0) const SizedBox(height: AppSpacing.s),
-                ModelCardWidget(
-                  group: state.groups[index],
-                  brand: state.brand,
-                  year: state.year,
-                  index: index,
-                  onTap: onGroupTap == null
-                      ? null
-                      : () => onGroupTap!(state.groups[index]),
-                  // La primera página entra con el fundido de la columna.
-                  animateEntry: index >= CatalogConfig.defaultPageSize,
-                ),
-              ],
-            ],
+        _ModelGridSliver(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) => ModelGridCardWidget(
+              group: state.groups[index],
+              brand: state.brand,
+              year: state.year,
+              index: index,
+              onTap: onGroupTap == null
+                  ? null
+                  : () => onGroupTap!(state.groups[index]),
+              // La primera página entra con el fundido de la sección.
+              animateEntry: index >= CatalogConfig.defaultPageSize,
+            ),
+            childCount: state.visibleCount,
           ),
         ),
       ],

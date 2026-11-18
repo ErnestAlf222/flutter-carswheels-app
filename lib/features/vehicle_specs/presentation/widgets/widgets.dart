@@ -1,3 +1,4 @@
 // Widgets de resumen de modelo
-export 'model_class_line_widget.dart';
-export 'model_consumption_widget.dart';
+export 'engine_badge_widget.dart';
+export 'model_class_text_widget.dart';
+export 'model_consumption_chip_widget.dart';

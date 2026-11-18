@@ -293,36 +293,40 @@ class _LoadedContentState extends State<_LoadedContent>
               ),
             ),
           ),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.xl,
-              AppSpacing.m,
-              AppSpacing.xl,
-              0,
-            ),
-            child: RefreshableContentWidget(
-              isRefreshing: state.isRefreshing,
-              child: hasBrands
-                  ? BlocBuilder<ModelsCubit, ModelsState>(
-                      builder: (context, modelsState) => ModelsSectionWidget(
-                        brandName: state.brands[state.selectedIndex].name,
-                        state: modelsState,
-                        onGroupTap: modelsState is ModelsLoaded
-                            ? (group) => HomePage._openDetail(
-                                context,
-                                modelsState,
-                                group,
-                              )
-                            : null,
-                      ),
-                    )
-                  : const EmptyStateWidget(),
-            ),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.xl,
+            AppSpacing.m,
+            AppSpacing.xl,
+            0,
+          ),
+          sliver: RefreshableSliverWidget(
+            isRefreshing: state.isRefreshing,
+            sliver: hasBrands
+                ? BlocBuilder<ModelsCubit, ModelsState>(
+                    builder: (context, modelsState) => ModelsSectionWidget(
+                      brandName: state.brands[state.selectedIndex].name,
+                      state: modelsState,
+                      onGroupTap: modelsState is ModelsLoaded
+                          ? (group) => HomePage._openDetail(
+                              context,
+                              modelsState,
+                              group,
+                            )
+                          : null,
+                    ),
+                  )
+                : const SliverToBoxAdapter(child: EmptyStateWidget()),
           ),
         ),
-        const SliverToBoxAdapter(
-          child: SizedBox(height: UiConfig.navClearance),
+        // Deja la última fila por encima del menú flotante y el área segura.
+        SliverToBoxAdapter(
+          child: SizedBox(
+            height:
+                NavConfig.footprint +
+                MediaQuery.paddingOf(context).bottom +
+                ModelGridConfig.listBottomGap,
+          ),
         ),
       ],
     );

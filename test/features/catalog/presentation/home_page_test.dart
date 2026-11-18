@@ -15,6 +15,7 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../../support/class_translator_test_support.dart';
 import '../../../support/photos_test_support.dart';
+import '../../../support/tall_view_test_support.dart';
 import '../../../support/summaries_test_support.dart';
 
 class _MockCatalogCubit extends MockCubit<CatalogState>
@@ -81,6 +82,7 @@ void main() {
   });
 
   setUp(() {
+    useTallPhoneView();
     catalogCubit = _MockCatalogCubit();
     modelsCubit = _MockModelsCubit();
     photosCubit = buildMockPhotosCubit();
@@ -154,7 +156,7 @@ void main() {
     expect(find.byType(YearSelectorWidget), findsNWidgets(2));
     expect(find.text('2026'), findsNWidgets(2));
     expect(find.byType(ModelsSectionWidget), findsOneWidget);
-    expect(find.byType(ModelCardWidget), findsNWidgets(3));
+    expect(find.byType(ModelGridCardWidget), findsNWidgets(3));
     expect(find.text('3 modelos'), findsOneWidget);
   });
 
@@ -178,12 +180,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(AppLoader), findsNothing);
     expect(find.byType(BrandCarouselWidget), findsOneWidget);
-    expect(find.byType(ModelCardWidget), findsNWidgets(3));
-    final dimmed = tester.widget<AnimatedOpacity>(
+    expect(find.byType(ModelGridCardWidget), findsNWidgets(3));
+    final dimmed = tester.widget<SliverAnimatedOpacity>(
       find
           .descendant(
-            of: find.byType(RefreshableContentWidget),
-            matching: find.byType(AnimatedOpacity),
+            of: find.byType(RefreshableSliverWidget),
+            matching: find.byType(SliverAnimatedOpacity),
           )
           .first,
     );
@@ -546,8 +548,8 @@ void main() {
       await pumpHome(tester, catalog: _loaded(), models: const ModelsLoading());
       expect(find.byType(AppLoader), findsNothing);
       expect(
-        find.byType(ModelCardSkeletonWidget),
-        findsNWidgets(UiConfig.skeletonCardCount),
+        find.byType(ModelGridCardSkeletonWidget),
+        findsNWidgets(ModelGridConfig.skeletonCardCount),
       );
     });
 
@@ -561,7 +563,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.byType(AppLoader), findsNothing);
-      expect(find.byType(ModelCardWidget), findsNWidgets(3));
+      expect(find.byType(ModelGridCardWidget), findsNWidgets(3));
     });
 
     testWidgets('fallo al refrescar modelos muestra mensaje y reintenta', (
@@ -616,6 +618,7 @@ void main() {
   });
 
   group('carga por páginas', () {
+    setUp(() => useTallPhoneView(height: 800));
     testWidgets('llegar al final con hasMore llama a loadMore', (tester) async {
       await pumpHome(tester, catalog: _loaded(), models: _models(30, 10));
       await tester.pumpAndSettle();
@@ -640,6 +643,34 @@ void main() {
       await tester.drag(find.byType(CustomScrollView), const Offset(0, -20));
       await tester.pump();
       verifyNever(() => modelsCubit.loadMore());
+    });
+  });
+
+  group('tarjetas del listado', () {
+    testWidgets('la última fila se desplaza por encima del menú flotante', (
+      tester,
+    ) async {
+      useTallPhoneView(height: 800);
+      await pumpHome(tester, catalog: _loaded(), models: _models(10, 10));
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -9000));
+      await tester.pumpAndSettle();
+      final last = tester.getBottomLeft(find.byType(ModelGridCardWidget).last);
+      expect(last.dy, lessThanOrEqualTo(800 - NavConfig.footprint));
+    });
+
+    testWidgets('no existe controlador ni ámbito de rotación de fotos', (
+      tester,
+    ) async {
+      await pumpHome(tester, catalog: _loaded(), models: _models(3, 3));
+      await tester.pumpAndSettle();
+      expect(find.byType(ModelPhotoWidget), findsNWidgets(3));
+      expect(
+        find.byWidgetPredicate(
+          (widget) => widget.runtimeType.toString().contains('PhotoRotation'),
+        ),
+        findsNothing,
+      );
     });
   });
 }

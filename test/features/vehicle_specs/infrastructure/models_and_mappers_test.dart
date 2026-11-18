@@ -129,6 +129,7 @@ void main() {
         hasElectric: true,
         hasPluginHybrid: true,
         hasFuelCell: true,
+        engineKinds: [EngineKind.electric, EngineKind.diesel],
         variantCount: 4,
       ),
       savedAt: DateTime.fromMillisecondsSinceEpoch(1700000000000),
@@ -139,6 +140,7 @@ void main() {
       expect(model.key, 'clave');
       expect(model.variantCount, 4);
       expect(model.hasFuelCell, isTrue);
+      expect(model.engineKindNames, ['electric', 'diesel']);
       expect(model.savedAtMillis, 1700000000000);
       expect(CachedSummaryMapper.toEntity(model), entity);
     });

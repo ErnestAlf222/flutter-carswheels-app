@@ -17,6 +17,7 @@ import '../../../support/brand_logos_test_support.dart';
 import '../../../support/class_translator_test_support.dart';
 import '../../../support/detail_test_support.dart';
 import '../../../support/photos_test_support.dart';
+import '../../../support/tall_view_test_support.dart';
 import '../../../support/summaries_test_support.dart';
 
 class _MockCatalogCubit extends MockCubit<CatalogState>
@@ -52,6 +53,7 @@ void main() {
   late List<String> events;
 
   Future<void> pumpHome(WidgetTester tester, {required PhotoSlot? slot}) async {
+    useTallPhoneView();
     pushedExtras = [];
     events = [];
     final catalog = _MockCatalogCubit();
@@ -142,7 +144,7 @@ void main() {
   ) async {
     final photo = testPhoto();
     await pumpHome(tester, slot: PhotoFound(photo));
-    await tester.tap(find.byType(ModelCardWidget).first);
+    await tester.tap(find.byType(ModelGridCardWidget).first);
     await tester.pumpAndSettle();
     expect(find.text('pantalla detalle'), findsOneWidget);
     expect(pushedExtras, [
@@ -161,7 +163,7 @@ void main() {
     tester,
   ) async {
     await pumpHome(tester, slot: const PhotoLoading());
-    await tester.tap(find.byType(ModelCardWidget).last);
+    await tester.tap(find.byType(ModelGridCardWidget).last);
     await tester.pumpAndSettle();
     final args = pushedExtras.single! as DetailArgsEntity;
     expect(args.groupName, 'Camry');
@@ -176,7 +178,7 @@ void main() {
     final photoWidget = tester.widget<ModelPhotoWidget>(
       find
           .descendant(
-            of: find.byType(ModelCardWidget).first,
+            of: find.byType(ModelGridCardWidget).first,
             matching: find.byType(ModelPhotoWidget),
           )
           .first,
@@ -190,14 +192,14 @@ void main() {
   ) async {
     final photo = testPhoto();
     await pumpHome(tester, slot: PhotoFound(photo));
-    await tester.tap(find.byType(ModelCardWidget).first);
+    await tester.tap(find.byType(ModelGridCardWidget).first);
     await tester.pumpAndSettle();
     expect(events, ['prefetch:${photo.sourceUrl}', 'push']);
   });
 
   testWidgets('sin foto no se precarga nada', (tester) async {
     await pumpHome(tester, slot: const PhotoLoading());
-    await tester.tap(find.byType(ModelCardWidget).first);
+    await tester.tap(find.byType(ModelGridCardWidget).first);
     await tester.pumpAndSettle();
     expect(events, ['push']);
   });

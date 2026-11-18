@@ -24,4 +24,15 @@ class AppColors {
   static const Color photoChipBackground = Color(0x73000000);
   static const Color photoViewerBackground = Color(0xFF0E0E12);
   static const Color photoViewerCreditText = Color(0xD9FFFFFF);
+  // Insignias de motorización y chips de la tarjeta de modelo.
+  static const Color engineElectric = Color(0xFF16A34A);
+  static const Color enginePluginHybrid = Color(0xFF0D9488);
+  static const Color engineHybrid = Color(0xFF65A30D);
+  static const Color engineHydrogen = Color(0xFF2563EB);
+  static const Color engineDiesel = Color(0xFFD97706);
+  static const Color engineFuel = Color(0xFF6B6B76);
+  static const Color engineBadgeBackground = Color(0xF2FFFFFF);
+  static const Color chipBackground = Color(0xFFF1EEE6);
+  static const Color consumptionChipBackground = tint;
+  static const Color consumptionChipText = tintText;
 }

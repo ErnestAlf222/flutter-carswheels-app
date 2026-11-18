@@ -7,6 +7,7 @@ import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mocktail/mocktail.dart';
@@ -14,6 +15,7 @@ import 'package:mocktail/mocktail.dart';
 import '../../../support/brand_logos_test_support.dart';
 import '../../../support/class_translator_test_support.dart';
 import '../../../support/photos_test_support.dart';
+import '../../../support/tall_view_test_support.dart';
 import '../../../support/summaries_test_support.dart';
 
 class _MockModelsCubit extends MockCubit<ModelsState> implements ModelsCubit {}
@@ -35,6 +37,7 @@ void main() {
   });
 
   setUp(() {
+    useTallPhoneView();
     modelsCubit = _MockModelsCubit();
     photosCubit = buildMockPhotosCubit();
     when(() => modelsCubit.state).thenReturn(const ModelsInitial());
@@ -56,8 +59,8 @@ void main() {
           ),
         ],
         child: Scaffold(
-          body: SingleChildScrollView(
-            child: ModelsSectionWidget(brandName: 'Honda', state: state),
+          body: CustomScrollView(
+            slivers: [ModelsSectionWidget(brandName: 'Honda', state: state)],
           ),
         ),
       ),
@@ -67,7 +70,7 @@ void main() {
   testWidgets('initial muestra solo el nombre de la marca', (tester) async {
     await tester.pumpWidget(section(const ModelsInitial()));
     expect(find.text('Honda'), findsOneWidget);
-    expect(find.byType(ModelCardWidget), findsNothing);
+    expect(find.byType(ModelGridCardWidget), findsNothing);
     expect(find.byType(AppLoader), findsNothing);
     expect(find.textContaining('modelo'), findsNothing);
   });
@@ -78,8 +81,8 @@ void main() {
     await tester.pumpWidget(section(const ModelsLoading()));
     expect(find.byType(AppLoader), findsNothing);
     expect(
-      find.byType(ModelCardSkeletonWidget),
-      findsNWidgets(UiConfig.skeletonCardCount),
+      find.byType(ModelGridCardSkeletonWidget),
+      findsNWidgets(ModelGridConfig.skeletonCardCount),
     );
     expect(find.textContaining('modelo'), findsNothing);
   });
@@ -99,17 +102,40 @@ void main() {
     refreshFailure: failure,
   );
 
-  testWidgets('refrescando atenúa las tarjetas y no muestra loader', (
+  testWidgets('refrescando mantiene las tarjetas y no muestra loader', (
     tester,
   ) async {
     await tester.pumpWidget(section(loaded(isRefreshing: true)));
     await tester.pumpAndSettle();
     expect(find.byType(AppLoader), findsNothing);
-    expect(find.byType(ModelCardWidget), findsNWidgets(3));
-    final refreshable = tester.widget<RefreshableContentWidget>(
-      find.byType(RefreshableContentWidget),
+    expect(find.byType(ModelGridCardWidget), findsNWidgets(3));
+  });
+
+  testWidgets('la cuadrícula tiene 2 columnas', (tester) async {
+    await tester.pumpWidget(section(loaded(total: 4)));
+    await tester.pumpAndSettle();
+    final grid = tester.widget<SliverGrid>(find.byType(SliverGrid));
+    final delegate =
+        grid.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount;
+    expect(delegate.crossAxisCount, 2);
+    final firstLeft = tester.getTopLeft(find.byType(ModelGridCardWidget).at(0));
+    final secondLeft = tester.getTopLeft(
+      find.byType(ModelGridCardWidget).at(1),
     );
-    expect(refreshable.isRefreshing, isTrue);
+    final thirdLeft = tester.getTopLeft(find.byType(ModelGridCardWidget).at(2));
+    expect(secondLeft.dy, firstLeft.dy);
+    expect(secondLeft.dx, greaterThan(firstLeft.dx));
+    expect(thirdLeft.dx, firstLeft.dx);
+    expect(thirdLeft.dy, greaterThan(firstLeft.dy));
+  });
+
+  testWidgets('el listado no contiene el indicador de foto de referencia', (
+    tester,
+  ) async {
+    await tester.pumpWidget(section(loaded()));
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel(AppTexts.referencePhotoLabel), findsNothing);
+    expect(find.byIcon(Symbols.info), findsNothing);
   });
 
   testWidgets('el fallo de refresco muestra mensaje y llama a retry', (
@@ -132,11 +158,11 @@ void main() {
     expect(find.byType(AnimatedEntryWidget), findsNothing);
     await tester.pumpWidget(section(loaded(brand: 'Audi')));
     await tester.pump();
-    // Durante el fundido conviven la lista anterior y la nueva.
-    expect(find.byType(AnimatedSwitcher), findsWidgets);
+    // La lista nueva entra con el fundido de la sección.
+    expect(find.byType(SliverOpacity), findsOneWidget);
     expect(find.byType(AnimatedEntryWidget), findsNothing);
     await tester.pumpAndSettle();
-    expect(find.byType(ModelCardWidget), findsNWidgets(3));
+    expect(find.byType(ModelGridCardWidget), findsNWidgets(3));
   });
 
   testWidgets('las tarjetas añadidas por loadMore conservan su entrada', (
@@ -205,7 +231,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('1 modelo'), findsOneWidget);
-    expect(find.byType(ModelCardWidget), findsOneWidget);
+    expect(find.byType(ModelGridCardWidget), findsOneWidget);
   });
 
   testWidgets('muestra solo visibleCount tarjetas y el total en el conteo', (
@@ -224,7 +250,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('51 modelos'), findsOneWidget);
     expect(
-      find.byType(ModelCardWidget, skipOffstage: false),
+      find.byType(ModelGridCardWidget, skipOffstage: false),
       findsNWidgets(10),
     );
   });

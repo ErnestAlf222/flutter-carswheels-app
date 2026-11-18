@@ -1,4 +1,5 @@
 import 'package:cars_wheels_app/features/vehicle_specs/domain/entities/cached_summary_entity.dart';
+import 'package:cars_wheels_app/features/vehicle_specs/domain/entities/powertrain.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/domain/entities/group_summary_entity.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/infrastructure/models/group_summary_cache_model.dart';
 
@@ -16,6 +17,9 @@ class CachedSummaryMapper {
         hasPluginHybrid: model.hasPluginHybrid,
         hasFuelCell: model.hasFuelCell,
         variantCount: model.variantCount,
+        engineKinds: [
+          for (final name in model.engineKindNames) ?EngineKind.fromName(name),
+        ],
       ),
       savedAt: DateTime.fromMillisecondsSinceEpoch(model.savedAtMillis),
     );
@@ -35,6 +39,7 @@ class CachedSummaryMapper {
       hasPluginHybrid: summary.hasPluginHybrid,
       hasFuelCell: summary.hasFuelCell,
       variantCount: summary.variantCount,
+      engineKindNames: [for (final kind in summary.engineKinds) kind.name],
       savedAtMillis: entity.savedAt.millisecondsSinceEpoch,
     );
   }

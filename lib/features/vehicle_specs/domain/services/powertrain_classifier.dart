@@ -15,4 +15,11 @@ class PowertrainClassifier {
       orElse: () => Powertrain.other,
     );
   }
+
+  /// Tipo de motorización para la insignia; nulo si el atvType no se conoce.
+  EngineKind? engineKindOf(String atvType) {
+    final name =
+        VehicleSpecsConfig.engineKindByAtvType[atvType.trim().toLowerCase()];
+    return name == null ? null : EngineKind.fromName(name);
+  }
 }

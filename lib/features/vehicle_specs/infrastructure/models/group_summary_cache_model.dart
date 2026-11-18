@@ -15,6 +15,7 @@ class GroupSummaryCacheModel {
     required this.hasFuelCell,
     required this.variantCount,
     required this.savedAtMillis,
+    this.engineKindNames = const [],
     this.id = Isar.autoIncrement,
   });
 
@@ -32,4 +33,7 @@ class GroupSummaryCacheModel {
   final bool hasFuelCell;
   final int variantCount;
   final int savedAtMillis;
+
+  /// Nombres de los EngineKind presentes, en orden de prioridad.
+  final List<String> engineKindNames;
 }
