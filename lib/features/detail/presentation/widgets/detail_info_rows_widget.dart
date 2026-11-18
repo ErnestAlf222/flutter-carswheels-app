@@ -127,11 +127,13 @@ class _RecallsRow extends StatelessWidget {
             )
           else
             Text(value, style: AppTextStyles.recallsValue),
-          const Icon(
-            Symbols.chevron_right,
-            size: UiConfig.iconSize,
-            color: AppColors.subtle,
-          ),
+          // El chevron solo aparece si la fila es tocable.
+          if (tappable)
+            const Icon(
+              Symbols.chevron_right,
+              size: UiConfig.iconSize,
+              color: AppColors.subtle,
+            ),
         ],
       ),
     );

@@ -53,6 +53,37 @@ void main() {
       ]);
     });
 
+    test('alias: GTI y GLI apuntan al nombre de familia de NHTSA', () {
+      expect(matcher.match('Volkswagen', 'GTI', volkswagen2024Models), [
+        'GOLF GTI',
+      ]);
+      expect(matcher.match('Volkswagen', 'GLI', volkswagen2024Models), [
+        'JETTA GLI',
+      ]);
+    });
+
+    test('alias: BMW i4, M3 y M2 apuntan a su carrocería única', () {
+      expect(matcher.match('BMW', 'i4', bmw2024Models), ['I4 GRAN COUPE']);
+      expect(matcher.match('BMW', 'M3', bmw2024Models), ['M3 SEDAN']);
+      expect(matcher.match('BMW', 'M2', bmw2024Models), ['M2 COUPE']);
+    });
+
+    test('alias: híbridos únicos de Toyota y Ranger SuperCrew', () {
+      expect(matcher.match('Toyota', 'Sienna', toyotaHybrid2024Models), [
+        'SIENNA HYBRID',
+      ]);
+      expect(matcher.match('Toyota', 'Crown', toyotaHybrid2024Models), [
+        'CROWN HYBRID',
+      ]);
+      expect(matcher.match('Ford', 'Ranger', fordRanger2024Models), [
+        'RANGER (SUPER CREW)',
+      ]);
+    });
+
+    test('ambiguo sin alias: BMW M4 (cupé y convertible) no se empareja', () {
+      expect(matcher.match('BMW', 'M4', bmw2024Models), isEmpty);
+    });
+
     test('el alias no aplica si NHTSA no lista ese nombre', () {
       expect(matcher.match('Honda', 'Civic', toyota2024Models), isEmpty);
     });
@@ -120,7 +151,7 @@ void main() {
   test('SafetyKeyBuilder versiona y normaliza la clave', () {
     expect(
       const SafetyKeyBuilder().build('ratings', 2024, 'Mercedes-Benz', 'C 300'),
-      'v1|ratings|2024|mercedesbenz|c300',
+      'v2|ratings|2024|mercedesbenz|c300',
     );
   });
 }

@@ -224,11 +224,12 @@ void main() {
     ) async {
       await tester.pumpWidget(
         detailHost(
-          const DetailInfoRowsWidget(
+          DetailInfoRowsWidget(
             classLabel: 'Compacto',
             fuelLabel: 'Gasolina regular',
             driveLabel: 'Tracción delantera',
-            recalls: SafetyData(
+            onRecallsTap: () {},
+            recalls: const SafetyData(
               RecallSummaryEntity(
                 recalls: [
                   RecallEntity(campaignNumber: 'A'),
@@ -247,6 +248,24 @@ void main() {
       expect(find.text(AppTexts.detailRecallsLabel), findsOneWidget);
       expect(find.text('2 avisos'), findsOneWidget);
       expect(find.byIcon(Symbols.chevron_right), findsOneWidget);
+    });
+
+    testWidgets('sin avisos tocables no hay chevron en la fila de recalls', (
+      tester,
+    ) async {
+      const cases = <SafetyLoad<RecallSummaryEntity>>[
+        SafetyEmpty(),
+        SafetyFailed(NetworkFailure('sin red')),
+        SafetyData(RecallSummaryEntity(recalls: [])),
+      ];
+      for (final recalls in cases) {
+        await tester.pumpWidget(
+          detailHost(
+            DetailInfoRowsWidget(recalls: recalls, onRecallsTap: () {}),
+          ),
+        );
+        expect(find.byIcon(Symbols.chevron_right), findsNothing);
+      }
     });
 
     testWidgets('los valores nulos muestran sin dato', (tester) async {

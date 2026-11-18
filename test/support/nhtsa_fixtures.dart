@@ -151,3 +151,47 @@ const Map<String, dynamic> noRecallsBodyJson = {
   'Message': 'Results returned successfully',
   'results': <Object?>[],
 };
+
+/// Modelos reales de Volkswagen 2024 en la API de calificaciones de NHTSA.
+const List<String> volkswagen2024Models = [
+  'ATLAS',
+  'ATLAS CROSS SPORT',
+  'GOLF GTI',
+  'GOLF R',
+  'ID.4',
+  'JETTA',
+  'JETTA GLI',
+  'TAOS',
+  'TIGUAN',
+];
+
+/// Modelos reales de BMW 2024 en la API de calificaciones de NHTSA.
+const List<String> bmw2024Models = [
+  '2 SERIES COUPE',
+  '3 SERIES HYBRID SEDAN',
+  '3 SERIES SEDAN',
+  '4 SERIES CONVERTIBLE',
+  'I4 GRAN COUPE',
+  'I7 SEDAN',
+  'IX',
+  'M2 COUPE',
+  'M3 SEDAN',
+  'M4 CONVERTIBLE',
+  'M4 COUPE',
+  'X5',
+];
+
+/// Modelos reales de Ford 2024 de NHTSA donde Ranger solo tiene SuperCrew.
+const List<String> fordRanger2024Models = [
+  'MAVERICK',
+  'MUSTANG',
+  'RANGER (SUPER CREW)',
+];
+
+/// Modelos reales de Toyota 2024 híbridos de NHTSA (Sienna y Crown).
+const List<String> toyotaHybrid2024Models = [
+  'CROWN HYBRID',
+  'SIENNA HYBRID',
+  'SEQUOIA HYBRID',
+  'VENZA HYBRID',
+];

@@ -60,8 +60,8 @@ class SafetyConfig {
   // Fecha de recall dd/MM/yyyy; se comprobó con días mayores a 12.
   static const String recallDatePattern = r'^(\d{2})/(\d{2})/(\d{4})$';
 
-  // Claves versionadas: subir la versión invalida lo guardado.
-  static const String cacheKeyVersion = 'v1';
+  // Claves versionadas: subir la versión invalida lo guardado (v2: alias nuevos).
+  static const String cacheKeyVersion = 'v2';
   static const String cacheKeySeparator = '|';
   static const String ratingsKeyKind = 'ratings';
   static const String recallsKeyKind = 'recalls';
@@ -102,5 +102,26 @@ class SafetyConfig {
     ],
     'bmw|330i': ['3 SERIES SEDAN'],
     'mercedesbenz|c300': ['C-CLASS'],
+    // Híbridos únicos en FuelEconomy 2024 (atvType Hybrid) y en NHTSA.
+    'toyota|crown': ['CROWN HYBRID'],
+    'toyota|sequoia': ['SEQUOIA HYBRID'],
+    'toyota|sienna': ['SIENNA HYBRID'],
+    'toyota|venza': ['VENZA HYBRID'],
+    'honda|prologue': ['PROLOGUE EV'],
+    // NHTSA solo lista la versión SuperCrew de 2024.
+    'ford|ranger': ['RANGER (SUPER CREW)'],
+    // NHTSA antepone la familia: Jetta GLI y Golf GTI.
+    'volkswagen|gli': ['JETTA GLI'],
+    'volkswagen|gti': ['GOLF GTI'],
+    // Todas las variantes de FuelEconomy comparten la carrocería del nombre NHTSA.
+    'bmw|m2': ['M2 COUPE'],
+    'bmw|m3': ['M3 SEDAN'],
+    'bmw|i4': ['I4 GRAN COUPE'],
+    'bmw|i7': ['I7 SEDAN'],
+    'audi|s6': ['S6 SEDAN'],
+    'audi|rs6': ['RS 6 AVANT'],
+    // vPIC y NHTSA solo listan la versión larga (LWB) en 2024.
+    'audi|a8': ['A8 LWB'],
+    'audi|s8': ['S8 LWB'],
   };
 }
