@@ -7,6 +7,7 @@ export 'entities/search_scope_entity.dart';
 // Fuentes de datos
 export 'datasources/recent_searches_datasource.dart';
 export 'datasources/search_catalog_source.dart';
+export 'datasources/search_context_source.dart';
 // Servicios
 export 'services/search_index.dart';
 export 'services/search_index_store.dart';
@@ -16,6 +17,8 @@ export 'services/search_tokenizer.dart';
 export 'usecases/add_recent_search_usecase.dart';
 export 'usecases/build_search_index_usecase.dart';
 export 'usecases/clear_recent_searches_usecase.dart';
+export 'usecases/get_brand_groups_usecase.dart';
 export 'usecases/get_recent_searches_usecase.dart';
+export 'usecases/get_top_brands_usecase.dart';
 export 'usecases/remove_recent_search_usecase.dart';
 export 'usecases/search_catalog_usecase.dart';

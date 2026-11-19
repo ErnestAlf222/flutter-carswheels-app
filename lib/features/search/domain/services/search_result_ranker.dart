@@ -17,7 +17,7 @@ class RankedSearchEntry {
 }
 
 /// Ordena las coincidencias: grupo exacto, prefijo de grupo y marca; dentro de
-/// cada nivel, alfabético. Corta al máximo de resultados.
+/// cada nivel, alfabético. Corta al máximo de resultados (nulo: sin corte).
 class SearchResultRanker {
   const SearchResultRanker({required this.sortStrategy});
 
@@ -27,13 +27,14 @@ class SearchResultRanker {
     required List<SearchEntryEntity> matches,
     required String query,
     required SearchScopeEntity scope,
+    int? limit = SearchConfig.maxResults,
   }) {
     final normalizedQuery = TextNormalizer.normalize(query);
     final ranked = sortStrategy.sort([
       for (final entry in matches) _rankOf(entry, normalizedQuery),
     ], _compare);
     return [
-      for (final item in ranked.take(SearchConfig.maxResults))
+      for (final item in limit == null ? ranked : ranked.take(limit))
         SearchResultEntity(
           brand: item.entry.brand,
           groupName: item.entry.groupName,

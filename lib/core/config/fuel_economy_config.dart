@@ -2,6 +2,9 @@
 class FuelEconomyConfig {
   const FuelEconomyConfig._();
 
+  // Año con el que arranca EE. UU.: el más reciente (2027) trae catálogo parcial.
+  static const int defaultYear = 2026;
+
   static const String fuelEconomySourceLabel = 'fuel_economy';
   static const String menuYearPath = '/menu/year';
   static const String menuMakePath = '/menu/make';

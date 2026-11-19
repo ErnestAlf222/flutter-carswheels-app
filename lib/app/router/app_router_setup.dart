@@ -1,11 +1,14 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:cars_wheels_app/app/market_catalog/market_search_detail_args_builder.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/compare/compare.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/favorites/favorites.dart';
+import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/navigation/navigation.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/search/search.dart';
@@ -29,6 +32,27 @@ CustomTransitionPage<void> _flowPage(GoRouterState state, Widget child) =>
       transitionsBuilder: AppPageTransition.flowRouteTransition,
     );
 
+/// Abre Detalle desde un resultado de búsqueda, por la ruta de flujo.
+Future<void> openSearchResultInDetail(
+  BuildContext context,
+  SearchResultEntity result,
+) async {
+  final router = GoRouter.of(context);
+  final builder = MarketSearchDetailArgsBuilder(
+    getModelGroups: context.read<GetModelGroupsUseCase>(),
+    currentMarket: () => context.read<MarketCubit>().market,
+  );
+  final args = await builder.build(result);
+  if (args == null || !context.mounted) return;
+  await router.push<void>(RoutesConfig.detail, extra: args);
+}
+
+/// Cambia a la sección de búsqueda con el teclado enfocado.
+void openSearchFromHome(BuildContext context) {
+  context.read<SearchCubit>().requestFocus();
+  context.go(RoutesConfig.search);
+}
+
 /// Crea el router: un marco con las cinco pantallas principales.
 GoRouter buildAppRouter() => GoRouter(
   initialLocation: RoutesConfig.home,
@@ -39,11 +63,15 @@ GoRouter buildAppRouter() => GoRouter(
       routes: [
         GoRoute(
           path: RoutesConfig.home,
-          pageBuilder: (context, state) => _page(state, const HomePage()),
+          pageBuilder: (context, state) =>
+              _page(state, const HomePage(onSearchTap: openSearchFromHome)),
         ),
         GoRoute(
           path: RoutesConfig.search,
-          pageBuilder: (context, state) => _page(state, const SearchPage()),
+          pageBuilder: (context, state) => _page(
+            state,
+            const SearchPage(onOpenResult: openSearchResultInDetail),
+          ),
         ),
         GoRoute(
           path: RoutesConfig.compare,

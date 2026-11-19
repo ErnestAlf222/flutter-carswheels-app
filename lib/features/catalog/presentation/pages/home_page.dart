@@ -16,7 +16,10 @@ import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 
 /// Pantalla de inicio con el carrusel de marcas y sus modelos.
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  const HomePage({super.key, required this.onSearchTap});
+
+  /// Lleva a la sección de búsqueda con el teclado enfocado; lo define la capa app.
+  final void Function(BuildContext context) onSearchTap;
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +83,10 @@ class HomePage extends StatelessWidget {
                     ),
                   ],
                 ),
-                CatalogLoaded() => _LoadedContent(state: state),
+                CatalogLoaded() => _LoadedContent(
+                  state: state,
+                  onSearchTap: () => onSearchTap(context),
+                ),
               },
             ),
           ),
@@ -226,9 +232,10 @@ class HomePage extends StatelessWidget {
 
 /// Contenido de la pantalla con las marcas cargadas.
 class _LoadedContent extends StatefulWidget {
-  const _LoadedContent({required this.state});
+  const _LoadedContent({required this.state, required this.onSearchTap});
 
   final CatalogLoaded state;
+  final VoidCallback onSearchTap;
 
   @override
   State<_LoadedContent> createState() => _LoadedContentState();
@@ -247,6 +254,9 @@ class _LoadedContentState extends State<_LoadedContent>
     return CustomScrollView(
       slivers: [
         const SliverToBoxAdapter(child: _TitleRow()),
+        SliverToBoxAdapter(
+          child: HomeSearchBarWidget(onTap: widget.onSearchTap),
+        ),
         if (hasBrands)
           SliverPersistentHeader(
             pinned: true,

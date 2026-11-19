@@ -9,6 +9,7 @@ import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/navigation/navigation.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
+import 'package:cars_wheels_app/features/search/search.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,6 +21,7 @@ import 'package:mocktail/mocktail.dart';
 
 import '../support/detail_test_support.dart';
 import '../support/market_test_support.dart';
+import '../support/search_test_support.dart';
 
 class _MockLoad extends Mock implements LoadGroupDetailsUseCase {}
 
@@ -91,6 +93,7 @@ Widget _blocs(
       BlocProvider<LogoPrecacheCubit>.value(value: precache),
       BlocProvider<MarketCubit>.value(value: buildMarketCubit()),
       BlocProvider<SectionLoaderCubit>(create: (_) => SectionLoaderCubit()),
+      BlocProvider<SearchCubit>.value(value: SearchHarness().cubit),
     ],
     child: MaterialApp.router(routerConfig: router),
   );
@@ -112,11 +115,11 @@ void main() {
       ),
     );
     await tester.pump();
-    const expected = {
-      RoutesConfig.search: AppTexts.searchPageTitle,
-      RoutesConfig.compare: AppTexts.comparePageTitle,
-      RoutesConfig.favorites: AppTexts.favoritesPageTitle,
-      RoutesConfig.settings: AppTexts.settingsPageTitle,
+    final expected = {
+      RoutesConfig.search: find.byType(SearchPage),
+      RoutesConfig.compare: find.text(AppTexts.comparePageTitle),
+      RoutesConfig.favorites: find.text(AppTexts.favoritesPageTitle),
+      RoutesConfig.settings: find.text(AppTexts.settingsPageTitle),
     };
     for (final entry in expected.entries) {
       router.go(entry.key);
@@ -127,7 +130,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text(entry.value), findsOneWidget);
+      expect(entry.value, findsOneWidget);
     }
   });
 
@@ -146,7 +149,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text(AppTexts.searchPageTitle), findsOneWidget);
+    expect(find.byType(SearchPage), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

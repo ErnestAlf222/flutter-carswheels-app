@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:cars_wheels_app/app/app_dependencies.dart';
+import 'package:cars_wheels_app/app/market_catalog/market_search_context_source.dart';
 import 'package:cars_wheels_app/app/router/app_router_setup.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
@@ -13,8 +14,14 @@ import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/navigation/navigation.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
+import 'package:cars_wheels_app/features/search/search.dart';
 import 'package:cars_wheels_app/features/safety/safety.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
+
+/// Año con el que arranca cada mercado; si no está disponible, el más reciente.
+int preferredYearFor(Market market) => market == Market.mexico
+    ? ConueeConfig.defaultYear
+    : FuelEconomyConfig.defaultYear;
 
 /// Widget raíz de la app.
 class App extends StatefulWidget {
@@ -105,10 +112,7 @@ class _AppState extends State<App> {
               final cubit = CatalogCubit(
                 getAvailableYears: context.read<GetAvailableYearsUseCase>(),
                 getBrands: context.read<GetBrandsUseCase>(),
-                // En México arranca en el año por defecto de CONUEE.
-                preferredYear: () => market.market == Market.mexico
-                    ? ConueeConfig.defaultYear
-                    : null,
+                preferredYear: () => preferredYearFor(market.market),
               );
               // Primero se restaura el mercado guardado y luego se carga.
               unawaited(
@@ -137,6 +141,23 @@ class _AppState extends State<App> {
               cancelPendingSummaries:
                   _dependencies.cancelPendingSummariesUseCase,
               keyBuilder: _dependencies.summaryKeyBuilder,
+            ),
+          ),
+          // A nivel de app: la consulta y los resultados sobreviven al cambio de sección.
+          BlocProvider<SearchCubit>(
+            create: (context) => SearchCubit(
+              contextSource: MarketSearchContextSource(
+                market: context.read<MarketCubit>(),
+                catalog: context.read<CatalogCubit>(),
+              ),
+              buildIndex: _dependencies.buildSearchIndexUseCase,
+              searchCatalog: _dependencies.searchCatalogUseCase,
+              getBrandGroups: _dependencies.getBrandGroupsUseCase,
+              getTopBrands: _dependencies.getTopBrandsUseCase,
+              addRecent: _dependencies.addRecentSearchUseCase,
+              getRecents: _dependencies.getRecentSearchesUseCase,
+              removeRecent: _dependencies.removeRecentSearchUseCase,
+              clearRecents: _dependencies.clearRecentSearchesUseCase,
             ),
           ),
           BlocProvider<LogoPrecacheCubit>(create: (_) => LogoPrecacheCubit()),

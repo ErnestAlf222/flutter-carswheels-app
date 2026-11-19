@@ -124,6 +124,7 @@ void main() {
     WidgetTester tester, {
     required CatalogState catalog,
     ModelsState models = const ModelsInitial(),
+    void Function(BuildContext)? onSearchTap,
   }) async {
     whenListen(catalogCubit, catalogEvents.stream, initialState: catalog);
     whenListen(modelsCubit, modelsEvents.stream, initialState: models);
@@ -144,7 +145,7 @@ void main() {
               BlocProvider<LogoPrecacheCubit>.value(value: precacheCubit),
               BlocProvider<MarketCubit>.value(value: marketCubit),
             ],
-            child: const HomePage(),
+            child: HomePage(onSearchTap: onSearchTap ?? (_) {}),
           ),
         ),
       ),
@@ -164,6 +165,28 @@ void main() {
     expect(find.byType(ModelsSectionWidget), findsOneWidget);
     expect(find.byType(ModelGridCardWidget), findsNWidgets(3));
     expect(find.text('3 modelos'), findsOneWidget);
+  });
+
+  testWidgets('la barra de búsqueda va entre el encabezado y el carrusel', (
+    tester,
+  ) async {
+    final taps = <int>[];
+    await pumpHome(
+      tester,
+      catalog: _loaded(),
+      models: _models(3, 3),
+      onSearchTap: (_) => taps.add(1),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text(AppTexts.searchHomeBarLabel), findsOneWidget);
+    expect(find.byType(TextField), findsNothing);
+    final barTop = tester.getTopLeft(find.byType(HomeSearchBarWidget)).dy;
+    final titleTop = tester.getTopLeft(find.text(AppConfig.appName)).dy;
+    final carouselTop = tester.getTopLeft(find.byType(BrandCarouselWidget)).dy;
+    expect(titleTop, lessThan(barTop));
+    expect(barTop, lessThan(carouselTop));
+    await tester.tap(find.byType(HomeSearchBarWidget));
+    expect(taps, hasLength(1));
   });
 
   testWidgets('loading muestra el AppLoader y no hay selector de año', (

@@ -34,6 +34,9 @@ class FakeSearchCatalogSource implements SearchCatalogSource {
 
   final Map<String, List<String>> groupsByBrand;
   final Set<String> failingBrands = {};
+
+  /// Si es verdadero, pedir las marcas falla (sin conexión).
+  bool failBrands = false;
   final List<String> groupRequests = [];
   final List<SearchScopeEntity> scopes = [];
   int brandRequests = 0;
@@ -47,6 +50,7 @@ class FakeSearchCatalogSource implements SearchCatalogSource {
   Future<List<String>> fetchBrands(SearchScopeEntity scope) async {
     brandRequests++;
     scopes.add(scope);
+    if (failBrands) throw StateError('sin conexión');
     return groupsByBrand.keys.toList();
   }
 
@@ -80,4 +84,103 @@ class FakeRecentSearches implements RecentSearchesDatasource {
   Future<void> replaceAll(List<RecentSearchEntity> searches) async {
     stored = List.of(searches);
   }
+}
+
+/// Contexto falso: el alcance lo fija la prueba y cada cambio se anuncia.
+class FakeSearchContextSource implements SearchContextSource {
+  FakeSearchContextSource([this._scope]);
+
+  SearchScopeEntity? _scope;
+  final StreamController<SearchScopeEntity?> _changes =
+      StreamController<SearchScopeEntity?>.broadcast(sync: true);
+  bool closed = false;
+
+  @override
+  SearchScopeEntity? get scope => _scope;
+
+  @override
+  Stream<SearchScopeEntity?> get scopeChanges => _changes.stream;
+
+  /// Cambia el alcance y lo anuncia.
+  void change(SearchScopeEntity? scope) {
+    _scope = scope;
+    _changes.add(scope);
+  }
+
+  @override
+  Future<void> close() async {
+    closed = true;
+    await _changes.close();
+  }
+}
+
+/// Todo lo que arma un SearchCubit de prueba, a la vista de la prueba.
+class SearchHarness {
+  SearchHarness({
+    Map<String, List<String>>? groupsByBrand,
+    this.initialScope = usScope,
+    this.debounce = const Duration(milliseconds: 300),
+    this.clock,
+  }) : source = FakeSearchCatalogSource(
+         groupsByBrand ??
+             {
+               'Toyota': ['Camry', 'Corolla', 'RAV4'],
+               'Honda': ['Accord', 'Civic'],
+               'Hyundai': ['Ioniq 5', 'Elantra'],
+             },
+       ),
+       recents = FakeRecentSearches() {
+    store = SearchIndexStore();
+    build = BuildSearchIndexUseCase(
+      source: source,
+      store: store,
+      sortStrategy: postingSort,
+    );
+  }
+
+  // Se crea al primer uso: así queda en la zona de reloj falso de la prueba.
+  late final SearchCubit cubit = _buildCubit();
+
+  SearchCubit _buildCubit() {
+    return SearchCubit(
+      contextSource: context,
+      buildIndex: build,
+      searchCatalog: SearchCatalogUseCase(
+        store: store,
+        ranker: const SearchResultRanker(sortStrategy: rankedSort),
+      ),
+      getBrandGroups: GetBrandGroupsUseCase(
+        store: store,
+        ranker: const SearchResultRanker(sortStrategy: rankedSort),
+      ),
+      getTopBrands: GetTopBrandsUseCase(
+        store: store,
+        sortStrategy: const AdaptiveSortStrategy<BrandGroupCount>(
+          smallListStrategy: BubbleSortStrategy<BrandGroupCount>(),
+          largeListStrategy: ShellSortStrategy<BrandGroupCount>(),
+        ),
+      ),
+      addRecent: AddRecentSearchUseCase(
+        datasource: recents,
+        clock: clock ?? DateTime.now,
+      ),
+      getRecents: GetRecentSearchesUseCase(recents),
+      removeRecent: RemoveRecentSearchUseCase(recents),
+      clearRecents: ClearRecentSearchesUseCase(recents),
+      debounce: debounce,
+    );
+  }
+
+  final Duration debounce;
+  final DateTime Function()? clock;
+  final FakeSearchCatalogSource source;
+  final SearchScopeEntity? initialScope;
+
+  // Se crea al primer uso, dentro de la zona de reloj falso de la prueba.
+  late final FakeSearchContextSource context = FakeSearchContextSource(
+    initialScope,
+  );
+  final FakeRecentSearches recents;
+  late final SearchIndexStore store;
+  late final BuildSearchIndexUseCase build;
 }

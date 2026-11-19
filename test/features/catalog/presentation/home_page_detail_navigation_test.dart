@@ -124,7 +124,7 @@ void main() {
                   value: buildMarketCubit(initial: market),
                 ),
               ],
-              child: const HomePage(),
+              child: HomePage(onSearchTap: (_) {}),
             ),
           ),
         ),

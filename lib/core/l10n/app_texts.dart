@@ -15,7 +15,6 @@ class AppTexts {
   static const String expandPhotoSemanticLabel = 'Ver foto en grande';
   static const String photoViewerCloseLabel = 'Cerrar';
   static const String homePageTitle = 'Pantalla Inicio';
-  static const String searchPageTitle = 'Pantalla Buscar';
   static const String comparePageTitle = 'Pantalla Comparar';
   static const String favoritesPageTitle = 'Pantalla Favoritos';
   static const String settingsPageTitle = 'Pantalla Ajustes';
@@ -55,6 +54,11 @@ class AppTexts {
   static const String marketMexicoLabel = 'México';
   static const String marketSelectorSemanticLabel = 'Mercado del catálogo';
   static String marketOptionSemanticLabel(String market) => 'Mercado $market';
+
+  /// Nombre del mercado a partir de su código guardado.
+  static String marketLabelOf(String code) => code == MarketConfig.mexicoCode
+      ? marketMexicoLabel
+      : marketUnitedStatesLabel;
 
   /// Atribución obligatoria (CC BY 4.0); Detalle de México y créditos la reutilizan.
   static const String conueeAttribution =
@@ -250,4 +254,47 @@ class AppTexts {
     );
     return '\$$grouped';
   }
+
+  // Búsqueda.
+  static const String searchPageTitle = 'Buscar';
+  static const String searchFieldHint = 'Buscar marca o modelo';
+  static const String searchFieldSemanticLabel = 'Campo de búsqueda';
+  static const String searchClearSemanticLabel = 'Borrar búsqueda';
+  static const String searchHomeBarLabel = 'Buscar marca o modelo';
+  static const String searchHomeBarSemanticLabel =
+      'Abrir la búsqueda de marcas y modelos';
+  static const String searchPreparingLabel = 'Preparando la búsqueda…';
+  static const String searchPartialMessage =
+      'Faltaron algunas marcas en la búsqueda';
+  static const String searchRecentsTitle = 'Recientes';
+  static const String searchClearAllLabel = 'Borrar todo';
+  static const String searchQuickBrandsTitle = 'Marcas';
+  static const String searchIdleHint =
+      'Escribe una marca o un modelo para empezar';
+  static const String searchNoResultsSuggestion =
+      'Revisa la ortografía o prueba con menos letras';
+  static String searchContextChipLabel(String market, int year) =>
+      '$market · $year';
+  static String searchContextSemanticLabel(String market, int year) =>
+      'Buscando en $market, año $year';
+  static String searchNoResultsTitle(String query) =>
+      'Sin resultados para "$query"';
+  static String searchNoResultsScope(String market, int year) =>
+      'Se buscó en $market, año $year';
+  static String searchRecentSemanticLabel(String text) =>
+      'Repetir la búsqueda $text';
+  static String searchRecentRemoveSemanticLabel(String text) =>
+      'Borrar la búsqueda reciente $text';
+  static String searchBrandRowSemanticLabel(String brand, int year) =>
+      'Marca $brand, año $year';
+  static String searchGroupRowSemanticLabel(
+    String group,
+    String brand,
+    int year,
+  ) => 'Modelo $group de $brand, año $year';
+  static String searchQuickBrandSemanticLabel(String brand) =>
+      'Ver los modelos de $brand';
+  static String searchResultSubtitle(String brand, int year) =>
+      '$brand · $year';
+  static const String searchBrandRowSubtitle = 'Ver sus modelos';
 }
