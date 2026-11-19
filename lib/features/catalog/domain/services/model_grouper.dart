@@ -65,7 +65,7 @@ class ModelGrouper {
     );
     final spaced = cleaned.isEmpty ? _split(name) : cleaned;
     if (spaced.isEmpty) return (words: [name], isProtected: false);
-    final words = _removeInline(spaced);
+    final words = _cutAtClause(_removeInline(spaced));
     final tokens = <List<String>>[
       for (final token in [
         ...ModelGroupingConfig.variantTrailingTokens,
@@ -114,6 +114,19 @@ class ModelGrouper {
       );
     }
     return words;
+  }
+
+  // Corta desde la primera palabra (que no sea la inicial) de variantCutPatterns.
+  static List<String> _cutAtClause(List<String> words) {
+    final patterns = [
+      for (final pattern in ModelGroupingConfig.variantCutPatterns)
+        RegExp(pattern, caseSensitive: false),
+    ];
+    final cut = words.indexWhere(
+      (word) => patterns.any((pattern) => pattern.hasMatch(word)),
+      1,
+    );
+    return cut < 0 ? words : words.sublist(0, cut);
   }
 
   // Quita las palabras de variantInlineTokens de cualquier posición; nunca deja vacío.

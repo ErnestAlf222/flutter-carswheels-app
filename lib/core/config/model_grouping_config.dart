@@ -50,6 +50,16 @@ class ModelGroupingConfig {
   // Palabras que se quitan de cualquier posición; Audi 2027: 'Q6 Sportback e-tron'.
   static const List<String> variantInlineTokens = ['Sportback'];
 
+  // Patrones (sin distinguir mayúsculas) de UNA palabra que abre una descripción
+  // de variante; se quita desde esa palabra hasta el final, salvo si es la primera.
+  // Toyota 2027: 'Camry HEV AWD LE', 'Camry HEV FF SE/XLE/XSE' (sin 'Camry' base);
+  // Land Rover 2027: 'Range Rover P400 MHEV'; Lucid 2027: 'Air Pure RWD with 19 inch
+  // wheels'; Nissan 2027: 'Sentra with Normal/Eco Modes'.
+  static const List<String> variantCutPatterns = [
+    r'^(hev|phev|mhev|bev)$',
+    r'^(with|w/.*)$',
+  ];
+
   // Bases que absorben todo nombre que empieza con ellas; clave = marca normalizada.
   static const Map<String, List<String>> absorbingModelBases = {
     // Ford 2020: 'F150 Pickup 4WD', 'Transit T150 Wagon 2WD FFV', 'Transit Connect Van'.

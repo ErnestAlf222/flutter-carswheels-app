@@ -75,8 +75,8 @@ class VehicleSpecsConfig {
   // Registro de depuración de una tracción, combustible o transmisión sin traducción.
   static const String untranslatedTextLogPrefix = 'texto sin traducir: ';
 
-  // Versión de la clave del resumen; 'v4' invalida lo guardado sin engineKinds.
-  static const String summaryCacheKeyVersion = 'v4';
+  // Versión de la clave del resumen; 'v5' invalida los grupos con el agrupado previo a HEV/with.
+  static const String summaryCacheKeyVersion = 'v5';
 
   // Provisional: días de vigencia del resumen guardado.
   static const int summaryCacheTimeToLiveDays = 30;

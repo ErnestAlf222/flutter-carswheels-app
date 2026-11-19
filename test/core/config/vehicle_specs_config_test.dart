@@ -27,7 +27,7 @@ void main() {
   });
 
   test('la versión de la clave del resumen es v4', () {
-    expect(VehicleSpecsConfig.summaryCacheKeyVersion, 'v4');
+    expect(VehicleSpecsConfig.summaryCacheKeyVersion, 'v5');
   });
 
   test('FCV se clasifica como celda de combustible', () {

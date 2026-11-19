@@ -293,4 +293,66 @@ void main() {
     expect(groups.map((g) => g.name), ['Model 3']);
     expect(groups.single.variants.length, 3);
   });
+  group('Nomenclatura de 2027', () {
+    test('Toyota: Camry HEV sin base se une en un solo grupo', () {
+      final groups = _group('Toyota', [
+        'Camry HEV AWD LE',
+        'Camry HEV AWD SE/XLE',
+        'Camry HEV AWD XSE',
+        'Camry HEV FF LE',
+        'Camry HEV FF SE/XLE/XSE',
+        'Corolla',
+      ]);
+      expect(groups.map((g) => g.name), ['Camry', 'Corolla']);
+      expect(_find(groups, 'Camry').variants.length, 5);
+    });
+
+    test('Lincoln: Corsair HEV AWD queda como Corsair', () {
+      final groups = _group('Lincoln', ['Corsair HEV AWD']);
+      expect(groups.map((g) => g.name), ['Corsair']);
+    });
+
+    test('Land Rover: MHEV se corta y respeta las familias protegidas', () {
+      final groups = _group('Land Rover', [
+        'Defender 110 MHEV',
+        'Defender 110 P300 MHEV',
+        'Defender 110 Trophy MHEV',
+        'Range Rover MHEV',
+        'Range Rover P400 LWB MHEV',
+        'Range Rover Sport MHEV',
+        'Range Rover Sport P400 MHEV',
+      ]);
+      expect(groups.map((g) => g.name), [
+        'Defender 110',
+        'Range Rover',
+        'Range Rover Sport',
+      ]);
+      expect(_find(groups, 'Defender 110').variants.length, 3);
+      expect(_find(groups, 'Range Rover Sport').variants.length, 2);
+    });
+
+    test('Lucid y Nissan: la descripción con "with" no crea grupos', () {
+      expect(
+        _group('Lucid', [
+          'Air Pure RWD with 19 inch wheels',
+          'Air Pure RWD with 20 inch wheels',
+          'Gravity GT w/20F21R wheels',
+          'Gravity GT w/21F22R wheels',
+        ]).map((g) => g.name),
+        ['Air Pure', 'Gravity GT'],
+      );
+      expect(
+        _group('Nissan', [
+          'Sentra SR',
+          'Sentra with Normal/Eco Modes',
+          'Sentra with Sport/Normal/Eco Modes',
+        ]).map((g) => g.name),
+        ['Sentra'],
+      );
+    });
+
+    test('un nombre que empieza con la palabra de corte no queda vacío', () {
+      expect(_group('X', ['HEV Base']).map((g) => g.name), ['HEV Base']);
+    });
+  });
 }
