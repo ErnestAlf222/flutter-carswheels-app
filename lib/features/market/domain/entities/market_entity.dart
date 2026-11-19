@@ -2,13 +2,19 @@ import 'package:cars_wheels_app/core/core.dart';
 
 /// Mercado del que sale el catálogo.
 enum Market {
-  unitedStates(MarketConfig.unitedStatesCode),
-  mexico(MarketConfig.mexicoCode);
+  unitedStates(MarketConfig.unitedStatesCode, MarketConfig.unitedStatesFlag),
+  mexico(MarketConfig.mexicoCode, MarketConfig.mexicoFlag);
 
-  const Market(this.code);
+  const Market(this.code, this.flag);
 
   /// Código guardado en disco.
   final String code;
+
+  /// Emoji de la bandera del mercado.
+  final String flag;
+
+  /// El otro mercado: el selector alterna entre los dos.
+  Market get other => this == unitedStates ? mexico : unitedStates;
 
   /// Mercado por defecto de la app.
   static Market get defaultMarket => fromCode(MarketConfig.defaultMarketCode)!;

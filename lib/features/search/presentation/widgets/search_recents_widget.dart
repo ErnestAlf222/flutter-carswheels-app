@@ -4,7 +4,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/search/domain/domain.dart';
 
-/// Búsquedas recientes en una sola fila horizontal de chips y "Borrar todo".
+/// Búsquedas recientes como filas planas con "Borrar todo".
 class SearchRecentsWidget extends StatelessWidget {
   const SearchRecentsWidget({
     super.key,
@@ -47,35 +47,21 @@ class SearchRecentsWidget extends StatelessWidget {
             ],
           ),
         ),
-        SizedBox(
-          height: SearchConfig.recentChipHeight,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(
-              horizontal: UiConfig.pageHorizontalPadding,
-            ),
-            itemCount: recents.length,
-            separatorBuilder: (_, _) =>
-                const SizedBox(width: SearchConfig.recentChipGap),
-            itemBuilder: (context, index) {
-              final recent = recents[index];
-              return _RecentChip(
-                key: ValueKey(recent.key),
-                recent: recent,
-                onSelect: () => onSelect(recent),
-                onRemove: () => onRemove(recent),
-              );
-            },
+        for (final recent in recents)
+          _RecentRow(
+            key: ValueKey(recent.key),
+            recent: recent,
+            onSelect: () => onSelect(recent),
+            onRemove: () => onRemove(recent),
           ),
-        ),
       ],
     );
   }
 }
 
-/// Chip de una reciente: reloj, texto y una "x" pequeña para borrarla.
-class _RecentChip extends StatelessWidget {
-  const _RecentChip({
+/// Fila plana de una reciente: reloj, texto, "x" para borrarla y línea inferior.
+class _RecentRow extends StatelessWidget {
+  const _RecentRow({
     super.key,
     required this.recent,
     required this.onSelect,
@@ -88,42 +74,33 @@ class _RecentChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(AppRadii.pill);
     return Container(
-      constraints: const BoxConstraints(
-        maxWidth: SearchConfig.recentChipMaxWidth,
+      height: SearchConfig.recentRowHeight,
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.outline)),
       ),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: radius,
-        border: Border.all(color: AppColors.outline),
+      padding: const EdgeInsets.symmetric(
+        horizontal: UiConfig.pageHorizontalPadding,
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Flexible(
+          Expanded(
             child: Semantics(
               button: true,
               label: AppTexts.searchRecentSemanticLabel(recent.text),
               excludeSemantics: true,
               child: InkWell(
                 onTap: onSelect,
-                borderRadius: radius,
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    left: SearchConfig.chipHorizontalPadding,
-                    right: AppSpacing.xs / 2,
-                  ),
+                child: SizedBox.expand(
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(
                         Symbols.history,
                         size: SearchConfig.recentIconSize,
                         color: AppColors.mutedText,
                       ),
-                      const SizedBox(width: AppSpacing.xs / 2),
-                      Flexible(
+                      const SizedBox(width: AppSpacing.m),
+                      Expanded(
                         child: Text(
                           recent.text,
                           maxLines: 1,
@@ -147,7 +124,7 @@ class _RecentChip extends StatelessWidget {
               radius: SearchConfig.recentRemoveSize / 2,
               child: const SizedBox(
                 width: SearchConfig.recentRemoveSize,
-                height: SearchConfig.recentChipHeight,
+                height: SearchConfig.recentRowHeight,
                 child: Icon(
                   Symbols.close,
                   size: SearchConfig.recentRemoveIconSize,

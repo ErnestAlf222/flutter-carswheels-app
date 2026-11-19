@@ -5,7 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/widgets/brand_carousel_widget.dart';
-import 'package:cars_wheels_app/features/catalog/presentation/widgets/year_selector_widget.dart';
+import 'package:cars_wheels_app/features/market/market.dart';
 
 /// Encabezado fijo y flotante: se encoge de la fila de marcas a una barra.
 class BrandHeaderDelegate extends SliverPersistentHeaderDelegate {
@@ -18,8 +18,7 @@ class BrandHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.brandName,
     required this.isRefreshing,
     required this.snapDuration,
-    required this.onOlderYear,
-    required this.onNewerYear,
+    required this.onYearSelected,
     this.topInset = 0,
     this.vsync,
   });
@@ -32,8 +31,7 @@ class BrandHeaderDelegate extends SliverPersistentHeaderDelegate {
   final String brandName;
   final bool isRefreshing;
   final Duration snapDuration;
-  final VoidCallback onOlderYear;
-  final VoidCallback onNewerYear;
+  final ValueChanged<int> onYearSelected;
 
   /// Área segura superior: la barra compacta queda por debajo de ella.
   final double topInset;
@@ -104,13 +102,10 @@ class BrandHeaderDelegate extends SliverPersistentHeaderDelegate {
   }
 
   Widget _yearSelector() {
-    final yearIndex = availableYears.indexOf(year);
-    return YearSelectorWidget(
+    return MarketYearSelectorWidget(
+      years: availableYears,
       year: year,
-      canShowOlder: yearIndex < availableYears.length - 1,
-      canShowNewer: yearIndex > 0,
-      onOlder: onOlderYear,
-      onNewer: onNewerYear,
+      onYearSelected: onYearSelected,
     );
   }
 
@@ -180,8 +175,7 @@ class BrandHeaderDelegate extends SliverPersistentHeaderDelegate {
         brandName != oldDelegate.brandName ||
         isRefreshing != oldDelegate.isRefreshing ||
         snapDuration != oldDelegate.snapDuration ||
-        onOlderYear != oldDelegate.onOlderYear ||
-        onNewerYear != oldDelegate.onNewerYear ||
+        onYearSelected != oldDelegate.onYearSelected ||
         topInset != oldDelegate.topInset;
   }
 }

@@ -15,9 +15,25 @@ class MarketConfig {
   // Separador de la parte del mercado en las claves de resumen.
   static const String keyScopeSeparator = '|';
 
-  // Selector segmentado del encabezado.
-  static const double selectorHeight = 36.0;
-  static const double selectorSegmentMinWidth = 64.0;
-  static const double selectorSegmentHorizontalPadding = 12.0;
-  static const double selectorPadding = 3.0;
+  // Emoji de bandera de cada mercado.
+  static const String unitedStatesFlag = '\u{1F1FA}\u{1F1F8}';
+  static const String mexicoFlag = '\u{1F1F2}\u{1F1FD}';
+
+  // Selector de mercado y año: píldora tinta con bandera, año y chevron.
+  static const double selectorHeight = 40.0;
+  static const double selectorBorderWidth = 1.0;
+  static const double selectorPadding = 4.0;
+  static const double flagCircleSize = 32.0;
+  static const double flagFontSize = 18.0;
+  static const double yearZoneHorizontalPadding = 8.0;
+  static const double chevronSize = 18.0;
+
+  // Panel de años anclado bajo el selector.
+  static const double yearPanelGap = 6.0;
+  static const double yearPanelWidth = 104.0;
+  static const double yearPanelMaxHeight = 220.0;
+  static const double yearPanelItemHeight = 44.0;
+  static const double yearPanelVerticalPadding = 6.0;
+  static const double yearPanelItemRadius = 12.0;
+  static const double yearPanelScaleBegin = 0.92;
 }

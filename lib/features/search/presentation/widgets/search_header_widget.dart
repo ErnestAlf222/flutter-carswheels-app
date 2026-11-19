@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
-import 'package:cars_wheels_app/features/search/domain/domain.dart';
-import 'package:cars_wheels_app/features/search/presentation/widgets/search_context_chip_widget.dart';
 import 'package:cars_wheels_app/features/search/presentation/widgets/search_field_widget.dart';
 
-/// Encabezado compacto: título, contexto y el campo a caballo sobre el borde.
+/// Encabezado compacto: título, selector de mercado y año, y el campo a caballo sobre el borde.
 class SearchHeaderWidget extends StatelessWidget {
   const SearchHeaderWidget({
     super.key,
-    required this.scope,
+    required this.selectorBuilder,
     required this.controller,
     required this.focusNode,
     required this.onChanged,
@@ -17,7 +15,7 @@ class SearchHeaderWidget extends StatelessWidget {
     required this.onClear,
   });
 
-  final SearchScopeEntity? scope;
+  final WidgetBuilder selectorBuilder;
   final TextEditingController controller;
   final FocusNode focusNode;
   final ValueChanged<String> onChanged;
@@ -27,7 +25,6 @@ class SearchHeaderWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final topInset = MediaQuery.paddingOf(context).top;
-    final current = scope;
     return Stack(
       children: [
         Padding(
@@ -52,11 +49,7 @@ class SearchHeaderWidget extends StatelessWidget {
                         style: AppTextStyles.onDarkScreenTitle,
                       ),
                     ),
-                    if (current != null)
-                      SearchContextChipWidget(
-                        marketCode: current.marketCode,
-                        year: current.year,
-                      ),
+                    selectorBuilder(context),
                   ],
                 ),
               ),

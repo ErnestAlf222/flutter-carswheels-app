@@ -29,10 +29,14 @@ class SearchPage extends StatefulWidget {
     super.key,
     required this.onOpenResult,
     required this.resultsGridBuilder,
+    required this.selectorBuilder,
   });
 
   final SearchResultOpener onOpenResult;
   final SearchResultsGridBuilder resultsGridBuilder;
+
+  /// Selector de mercado y año del encabezado; lo implementa la capa app.
+  final WidgetBuilder selectorBuilder;
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -110,7 +114,7 @@ class _SearchPageState extends State<SearchPage> {
               slivers: [
                 SliverToBoxAdapter(
                   child: SearchHeaderWidget(
-                    scope: state.scope,
+                    selectorBuilder: widget.selectorBuilder,
                     controller: _controller,
                     focusNode: _focusNode,
                     onChanged: cubit.onQueryChanged,

@@ -9,8 +9,6 @@ class AppColors {
   static const Color inkSoft = Color(0xFF1B1F27);
   static const Color mutedText = Color(0xFF5F6673);
   static const Color mutedOnDark = Color(0xB3FFFFFF);
-  // Píldora translúcida sobre el encabezado oscuro.
-  static const Color onDarkPill = Color(0x29FFFFFF);
   static const Color onDark = Color(0xFFFFFFFF);
   // Amarillo: relleno con tinta encima, o texto e ícono solo sobre oscuro.
   static const Color accent = Color(0xFFFFD60A);

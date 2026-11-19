@@ -94,6 +94,9 @@ Widget _wrap(
   ),
 );
 
+// Selector de prueba: un texto reconocible en el encabezado.
+Widget _selector(BuildContext context) => const Text('selector-de-prueba');
+
 // Sin animaciones: las pruebas avanzan el reloj a mano.
 Widget _noAnimations(BuildContext context, Widget? child) => MediaQuery(
   data: MediaQuery.of(context).copyWith(disableAnimations: true),
@@ -111,6 +114,7 @@ Widget _page(
     home: SearchPage(
       onOpenResult: onOpen ?? (_, _) {},
       resultsGridBuilder: buildSearchResultsGrid,
+      selectorBuilder: _selector,
     ),
   ),
   cards: cards ?? _CardCubits(),
@@ -156,7 +160,7 @@ void main() {
     GoogleFonts.config.allowRuntimeFetching = false;
   });
 
-  _test('encabezado con título, contexto y campo; estado inicial vacío', (
+  _test('encabezado con título, selector y campo; estado inicial vacío', (
     tester,
   ) async {
     final harness = SearchHarness();
@@ -164,7 +168,8 @@ void main() {
     await _settle(tester);
     expect(find.byType(HeroHeaderWidget), findsOneWidget);
     expect(find.text(AppTexts.searchPageTitle), findsOneWidget);
-    expect(find.text('EE. UU. · 2025'), findsOneWidget);
+    // El selector de mercado y año lo pone la capa app en el encabezado.
+    expect(find.text('selector-de-prueba'), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
     // Sin recientes: explorar por marca (el texto amable es para antes del índice).
     expect(
@@ -611,32 +616,33 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  _test('recientes: una fila horizontal con reloj y "x"; sin lista vertical', (
-    tester,
-  ) async {
-    final harness = SearchHarness();
-    harness.recents.stored = [_recent('Civic'), _recent('Camry')];
-    await tester.pumpWidget(_page(harness));
-    await _settle(tester);
-    expect(find.text(AppTexts.searchRecentsTitle), findsOneWidget);
-    expect(find.text(AppTexts.searchClearAllLabel), findsOneWidget);
-    expect(find.byIcon(Symbols.history), findsNWidgets(2));
-    expect(find.byIcon(Symbols.close), findsNWidgets(2));
-    // Mismo renglón: los dos chips están a la misma altura.
-    expect(
-      tester.getTopLeft(find.text('Civic')).dy,
-      tester.getTopLeft(find.text('Camry')).dy,
-    );
-    final row = tester.widget<ListView>(
-      find.descendant(
-        of: find.byType(SearchRecentsWidget),
-        matching: find.byType(ListView),
-      ),
-    );
-    expect(row.scrollDirection, Axis.horizontal);
-    expect(find.text(AppTexts.searchIdleHint), findsNothing);
-    await tester.pumpWidget(const SizedBox());
-  });
+  _test(
+    'recientes: filas planas con reloj y "x", sin chips ni lista horizontal',
+    (tester) async {
+      final harness = SearchHarness();
+      harness.recents.stored = [_recent('Civic'), _recent('Camry')];
+      await tester.pumpWidget(_page(harness));
+      await _settle(tester);
+      expect(find.text(AppTexts.searchRecentsTitle), findsOneWidget);
+      expect(find.text(AppTexts.searchClearAllLabel), findsOneWidget);
+      expect(find.byIcon(Symbols.history), findsNWidgets(2));
+      expect(find.byIcon(Symbols.close), findsNWidgets(2));
+      // Filas planas: una debajo de otra, sin lista horizontal.
+      expect(
+        tester.getTopLeft(find.text('Camry')).dy,
+        greaterThan(tester.getTopLeft(find.text('Civic')).dy),
+      );
+      expect(
+        find.descendant(
+          of: find.byType(SearchRecentsWidget),
+          matching: find.byType(ListView),
+        ),
+        findsNothing,
+      );
+      expect(find.text(AppTexts.searchIdleHint), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
 
   _test('borrar una reciente y borrar todo', (tester) async {
     final harness = SearchHarness();
@@ -757,6 +763,7 @@ void main() {
           builder: (_, _) => const SearchPage(
             onOpenResult: openSearchResultInDetail,
             resultsGridBuilder: buildSearchResultsGrid,
+            selectorBuilder: _selector,
           ),
         ),
         GoRoute(
@@ -814,6 +821,7 @@ void main() {
           builder: (_, _) => SearchPage(
             onOpenResult: (_, _) {},
             resultsGridBuilder: buildSearchResultsGrid,
+            selectorBuilder: _selector,
           ),
         ),
       ],

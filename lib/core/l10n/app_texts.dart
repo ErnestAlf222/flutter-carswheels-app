@@ -32,9 +32,6 @@ class AppTexts {
   static const String previousBrandsLabel = 'Marcas anteriores';
   static const String nextBrandsLabel = 'Marcas siguientes';
 
-  static const String olderYearLabel = 'Año anterior';
-  static const String newerYearLabel = 'Año siguiente';
-
   static String modelsCountLabel(int count) =>
       count == 1 ? '1 modelo' : '$count modelos';
 
@@ -56,8 +53,9 @@ class AppTexts {
   static const String fuelListSeparator = ' · ';
   static const String marketUnitedStatesLabel = 'EE. UU.';
   static const String marketMexicoLabel = 'México';
-  static const String marketSelectorSemanticLabel = 'Mercado del catálogo';
-  static String marketOptionSemanticLabel(String market) => 'Mercado $market';
+  static const String switchToMexicoLabel = 'Cambiar a México';
+  static const String switchToUnitedStatesLabel = 'Cambiar a Estados Unidos';
+  static const String pickYearLabel = 'Elegir año';
 
   /// Nombre del mercado a partir de su código guardado.
   static String marketLabelOf(String code) => code == MarketConfig.mexicoCode
@@ -313,10 +311,6 @@ class AppTexts {
     String brand,
     int year,
   ) => '$group, $brand, año $year';
-  static String searchContextChipLabel(String market, int year) =>
-      '$market · $year';
-  static String searchContextSemanticLabel(String market, int year) =>
-      'Buscando en $market, año $year';
   static String searchNoResultsTitle(String query) =>
       'Sin resultados para "$query"';
   static String searchNoResultsForBrandTitle(String brand) =>

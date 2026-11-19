@@ -249,7 +249,9 @@ class _LoadedContentState extends State<_LoadedContent>
         : const Duration(milliseconds: AnimationConfig.headerSnapMilliseconds);
     return CustomScrollView(
       slivers: [
-        SliverToBoxAdapter(child: _HomeHeader(onSearchTap: widget.onSearchTap)),
+        SliverToBoxAdapter(
+          child: _HomeHeader(state: state, onSearchTap: widget.onSearchTap),
+        ),
         if (hasBrands)
           SliverPersistentHeader(
             pinned: true,
@@ -264,8 +266,7 @@ class _LoadedContentState extends State<_LoadedContent>
               isRefreshing: state.isRefreshing,
               snapDuration: snapDuration,
               topInset: MediaQuery.paddingOf(context).top,
-              onOlderYear: cubit.showOlderYear,
-              onNewerYear: cubit.showNewerYear,
+              onYearSelected: cubit.selectYear,
               vsync: this,
             ),
           )
@@ -336,7 +337,10 @@ class _LoadedContentState extends State<_LoadedContent>
 
 /// Encabezado tinta: wordmark, selector de mercado y barra de búsqueda a caballo.
 class _HomeHeader extends StatelessWidget {
-  const _HomeHeader({this.onSearchTap});
+  const _HomeHeader({this.state, this.onSearchTap});
+
+  /// Catálogo cargado; nulo mientras carga o falla (solo se ve la bandera).
+  final CatalogLoaded? state;
 
   /// Nulo mientras no hay marcas cargadas: entonces no se muestra la barra.
   final VoidCallback? onSearchTap;
@@ -376,7 +380,11 @@ class _HomeHeader extends StatelessWidget {
                 semanticsLabel: AppConfig.appName,
               ),
             ),
-            const MarketSelectorWidget(onDark: true),
+            MarketYearSelectorWidget(
+              years: state?.availableYears ?? const [],
+              year: state?.year,
+              onYearSelected: context.read<CatalogCubit>().selectYear,
+            ),
           ],
         ),
       ),
@@ -408,8 +416,6 @@ class _BrandsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cubit = context.read<CatalogCubit>();
-    final yearIndex = state.availableYears.indexOf(state.year);
     return Row(
       children: [
         Expanded(
@@ -418,12 +424,10 @@ class _BrandsHeader extends StatelessWidget {
             style: AppTextStyles.sectionTitle,
           ),
         ),
-        YearSelectorWidget(
+        MarketYearSelectorWidget(
+          years: state.availableYears,
           year: state.year,
-          canShowOlder: yearIndex < state.availableYears.length - 1,
-          canShowNewer: yearIndex > 0,
-          onOlder: cubit.showOlderYear,
-          onNewer: cubit.showNewerYear,
+          onYearSelected: context.read<CatalogCubit>().selectYear,
         ),
       ],
     );

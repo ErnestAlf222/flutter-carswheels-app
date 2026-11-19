@@ -114,21 +114,6 @@ class CatalogCubit extends Cubit<CatalogState> {
     return index < 0 ? 0 : index;
   }
 
-  /// Pasa al año anterior (más antiguo); se detiene en el extremo.
-  Future<void> showOlderYear() => _moveYear(1);
-
-  /// Pasa al año siguiente (más reciente); se detiene en el extremo.
-  Future<void> showNewerYear() => _moveYear(-1);
-
-  // Mueve el año dentro de la lista descendente sin dar la vuelta.
-  Future<void> _moveYear(int step) async {
-    final current = state;
-    if (current is! CatalogLoaded) return;
-    final targetIndex = current.availableYears.indexOf(current.year) + step;
-    if (targetIndex < 0 || targetIndex >= current.availableYears.length) return;
-    await selectYear(current.availableYears[targetIndex]);
-  }
-
   /// Marca como seleccionada la marca en [index]; ignora índices inválidos.
   void selectBrand(int index) {
     final current = state;

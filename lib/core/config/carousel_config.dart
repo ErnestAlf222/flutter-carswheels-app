@@ -9,10 +9,6 @@ class CarouselConfig {
   static const double arrowIconSize = 18.0;
   static const double arrowTouchTargetSize = 48.0;
   static const double selectedRingWidth = 2.0;
-  static const double yearSelectorHeight = 48.0;
-  static const double yearTextMinWidth = 56.0;
-  // Opacidad de una flecha deshabilitada.
-  static const double disabledArrowOpacity = 0.4;
   // Fundido de la fila al mover la ventana de marcas.
   static const int shiftFadeMilliseconds = 150;
   // Máximo de logos que se precargan.

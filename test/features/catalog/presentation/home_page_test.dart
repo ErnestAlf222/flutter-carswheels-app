@@ -108,8 +108,7 @@ void main() {
     when(() => modelsCubit.loadMore()).thenReturn(null);
     when(() => modelsCubit.retry()).thenAnswer((_) async {});
     when(() => catalogCubit.retry()).thenAnswer((_) async {});
-    when(() => catalogCubit.showOlderYear()).thenAnswer((_) async {});
-    when(() => catalogCubit.showNewerYear()).thenAnswer((_) async {});
+    when(() => catalogCubit.selectYear(any())).thenAnswer((_) async {});
   });
 
   tearDown(() {
@@ -159,8 +158,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(BrandCarouselWidget), findsOneWidget);
     // El encabezado tiene una copia expandida y otra compacta.
-    expect(find.byType(YearSelectorWidget), findsNWidgets(2));
-    expect(find.text('2026'), findsNWidgets(2));
+    // Encabezado de Inicio, copia expandida y copia compacta de marcas.
+    expect(find.byType(MarketYearSelectorWidget), findsNWidgets(3));
+    expect(find.text('2026'), findsNWidgets(3));
     expect(find.byType(ModelsSectionWidget), findsOneWidget);
     expect(find.byType(ModelGridCardWidget), findsNWidgets(3));
     expect(find.text('3 modelos'), findsOneWidget);
@@ -194,14 +194,11 @@ void main() {
     final header = find.byType(HeroHeaderWidget);
     expect(header, findsOneWidget);
     expect(
-      find.descendant(of: header, matching: find.byType(MarketSelectorWidget)),
+      find.descendant(
+        of: header,
+        matching: find.byType(MarketYearSelectorWidget),
+      ),
       findsOneWidget,
-    );
-    expect(
-      tester
-          .widget<MarketSelectorWidget>(find.byType(MarketSelectorWidget))
-          .onDark,
-      isTrue,
     );
     // La barra de búsqueda sobresale por el borde inferior del encabezado.
     final bar = tester.getRect(find.byType(HomeSearchBarWidget));
@@ -215,7 +212,7 @@ void main() {
   ) async {
     await pumpHome(tester, catalog: const CatalogLoading());
     expect(find.byType(AppLoader), findsOneWidget);
-    expect(find.byType(YearSelectorWidget), findsNothing);
+    expect(find.text('2026'), findsNothing);
     expect(find.byType(ModelsSectionWidget), findsNothing);
   });
 
@@ -323,12 +320,12 @@ void main() {
       catalog: const CatalogError(NetworkFailure('sin red')),
     );
     expect(find.byType(ErrorStateWidget), findsOneWidget);
-    expect(find.byType(MarketSelectorWidget), findsOneWidget);
-    await tester.tap(find.text(AppTexts.marketMexicoLabel));
+    expect(find.byType(MarketYearSelectorWidget), findsOneWidget);
+    await tester.tap(find.text(Market.unitedStates.flag));
     await tester.pump();
     expect(marketCubit.market, Market.mexico);
     // Poder volver a EE. UU. sin red es el motivo del selector.
-    await tester.tap(find.text(AppTexts.marketUnitedStatesLabel));
+    await tester.tap(find.text(Market.mexico.flag));
     await tester.pump();
     expect(marketCubit.market, Market.unitedStates);
   });
@@ -337,7 +334,7 @@ void main() {
     tester,
   ) async {
     await pumpHome(tester, catalog: const CatalogLoading());
-    expect(find.byType(MarketSelectorWidget), findsOneWidget);
+    expect(find.byType(MarketYearSelectorWidget), findsOneWidget);
   });
 
   testWidgets('sin marcas muestra el estado vacío y no carga modelos', (
@@ -348,19 +345,15 @@ void main() {
     expect(find.byType(ModelsSectionWidget), findsNothing);
   });
 
-  testWidgets('tocar año anterior llama a showOlderYear', (tester) async {
-    await pumpHome(tester, catalog: _loaded());
-    await tester.tap(find.bySemanticsLabel(AppTexts.olderYearLabel));
-    verify(() => catalogCubit.showOlderYear()).called(1);
-    verifyNever(() => catalogCubit.showNewerYear());
-  });
-
-  testWidgets('en el año más reciente la flecha siguiente no responde', (
+  testWidgets('elegir un año en el selector llama a selectYear', (
     tester,
   ) async {
     await pumpHome(tester, catalog: _loaded());
-    await tester.tap(find.bySemanticsLabel(AppTexts.newerYearLabel));
-    verifyNever(() => catalogCubit.showNewerYear());
+    await tester.tap(find.bySemanticsLabel(AppTexts.pickYearLabel).first);
+    await tester.pump();
+    await tester.tap(find.text('2024'));
+    await tester.pump();
+    verify(() => catalogCubit.selectYear(2024)).called(1);
   });
 
   testWidgets('cambiar solo windowStart no carga modelos', (tester) async {

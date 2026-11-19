@@ -90,6 +90,7 @@ class SearchConfig {
   // Secciones, sugerencias y otros años.
   static const double sectionTitleGap = 8.0;
   static const double suggestionChipGap = 8.0;
+  static const double suggestionChipHeight = 40.0;
   static const double otherYearRowHeight = 64.0;
   static const double otherYearLogoCircleSize = 44.0;
   static const double otherYearLogoSize = 28.0;
@@ -97,10 +98,8 @@ class SearchConfig {
   static const double otherYearChipVerticalPadding = 4.0;
   static const double emptyTopGap = 40.0;
 
-  // Recientes: una fila horizontal de chips.
-  static const double recentChipHeight = 40.0;
-  static const double recentChipGap = 8.0;
-  static const double recentChipMaxWidth = 220.0;
+  // Recientes: filas planas con línea inferior.
+  static const double recentRowHeight = 52.0;
   static const double recentRemoveSize = 28.0;
   static const double recentIconSize = 18.0;
   static const double recentRemoveIconSize = 16.0;

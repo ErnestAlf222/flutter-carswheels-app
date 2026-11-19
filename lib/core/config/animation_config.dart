@@ -10,6 +10,8 @@ class AnimationConfig {
   // Provisional.
   static const int pageTransitionMilliseconds = 300;
   static const int dimDurationMilliseconds = 150;
+  // Despliegue del panel de años y giro del chevron.
+  static const int yearPanelMilliseconds = 160;
   static const int skeletonPulseMilliseconds = 1200;
   static const int sectionLoaderVisibleMilliseconds = 400;
   static const int sectionLoaderFadeMilliseconds = 150;

@@ -37,7 +37,7 @@ class SearchSuggestionsWidget extends StatelessWidget {
                 borderRadius: radius,
                 onTap: () => onSelect(suggestion),
                 child: Container(
-                  height: SearchConfig.recentChipHeight,
+                  height: SearchConfig.suggestionChipHeight,
                   alignment: Alignment.center,
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.m),
                   child: Text(

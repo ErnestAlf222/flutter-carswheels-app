@@ -2,11 +2,14 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
+import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mocktail/mocktail.dart';
+
+import '../../../support/market_test_support.dart';
 
 class _MockCatalogCubit extends MockCubit<CatalogState>
     implements CatalogCubit {}
@@ -17,7 +20,7 @@ class _MockBrandLogosCubit extends MockCubit<BrandLogosState>
 const _maxShrink = UiConfig.headerExpandedHeight - UiConfig.headerCompactHeight;
 const _brandName = 'Marca0';
 
-void _noop() {}
+void _noop(int _) {}
 
 BrandHeaderDelegate _delegate({
   int year = 2026,
@@ -27,7 +30,7 @@ BrandHeaderDelegate _delegate({
   Duration snapDuration = const Duration(
     milliseconds: AnimationConfig.headerSnapMilliseconds,
   ),
-  VoidCallback? onOlderYear,
+  ValueChanged<int>? onYearSelected,
 }) => BrandHeaderDelegate(
   year: year,
   availableYears: const [2026, 2025, 2024],
@@ -37,13 +40,13 @@ BrandHeaderDelegate _delegate({
   brandName: _brandName,
   isRefreshing: isRefreshing,
   snapDuration: snapDuration,
-  onOlderYear: onOlderYear ?? _noop,
-  onNewerYear: _noop,
+  onYearSelected: onYearSelected ?? _noop,
 );
 
 void main() {
   late _MockCatalogCubit catalogCubit;
   late _MockBrandLogosCubit logosCubit;
+  late MarketCubit marketCubit;
 
   setUpAll(() {
     GoogleFonts.config.allowRuntimeFetching = false;
@@ -52,6 +55,8 @@ void main() {
   setUp(() {
     catalogCubit = _MockCatalogCubit();
     logosCubit = _MockBrandLogosCubit();
+    marketCubit = buildMarketCubit();
+    addTearDown(marketCubit.close);
     whenListen(
       catalogCubit,
       const Stream<CatalogState>.empty(),
@@ -85,6 +90,7 @@ void main() {
           providers: [
             BlocProvider<CatalogCubit>.value(value: catalogCubit),
             BlocProvider<BrandLogosCubit>.value(value: logosCubit),
+            BlocProvider<MarketCubit>.value(value: marketCubit),
           ],
           child: Scaffold(
             body: Builder(
@@ -155,17 +161,20 @@ void main() {
     expect(opacityAbove(tester, compactTitle()), closeTo(0.5, 0.001));
   });
 
-  testWidgets('el selector de año de la barra compacta llama a onOlderYear', (
+  testWidgets('elegir un año en el selector de la barra compacta lo notifica', (
     tester,
   ) async {
     final calls = <int>[];
     await pumpDelegate(
       tester,
-      _delegate(onOlderYear: () => calls.add(1)),
+      _delegate(onYearSelected: calls.add),
       _maxShrink,
     );
-    await tester.tap(find.bySemanticsLabel(AppTexts.olderYearLabel).last);
-    expect(calls, hasLength(1));
+    await tester.tap(find.bySemanticsLabel(AppTexts.pickYearLabel).last);
+    await tester.pump();
+    await tester.tap(find.text('2025'));
+    await tester.pump();
+    expect(calls, [2025]);
   });
 
   test('las extensiones salen de la configuración', () {
@@ -193,6 +202,6 @@ void main() {
     expect(base.shouldRebuild(_delegate(windowStart: 1)), isTrue);
     expect(base.shouldRebuild(_delegate(isRefreshing: true)), isTrue);
     expect(base.shouldRebuild(_delegate(snapDuration: Duration.zero)), isTrue);
-    expect(base.shouldRebuild(_delegate(onOlderYear: () {})), isTrue);
+    expect(base.shouldRebuild(_delegate(onYearSelected: (_) {})), isTrue);
   });
 }
