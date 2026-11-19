@@ -37,7 +37,7 @@ void main() {
   });
 
   testWidgets(
-    'es una sola píldora tinta suave con borde y ítem activo amarillo',
+    'es una sola píldora tinta con sombra suave y ítem activo amarillo',
     (tester) async {
       await tester.pumpWidget(build(visible: true, onSelected: (_) {}));
       final decorations = tester
@@ -50,12 +50,12 @@ void main() {
       final pills = tester
           .widgetList<Container>(find.byType(Container))
           .where(
-            (c) => (c.decoration as BoxDecoration?)?.color == AppColors.inkSoft,
+            (c) => (c.decoration as BoxDecoration?)?.color == AppColors.ink,
           );
       expect(pills, hasLength(1));
       final pill = pills.single.decoration! as BoxDecoration;
-      expect(pill.boxShadow, isNull);
-      expect(pill.border, isNotNull);
+      expect(pill.boxShadow, AppShadows.navBar);
+      expect(pill.border, isNull);
       final active = tester.widget<Icon>(find.byIcon(Symbols.home));
       expect(active.color, AppColors.ink);
       final inactive = tester.widget<Icon>(find.byIcon(Symbols.search));

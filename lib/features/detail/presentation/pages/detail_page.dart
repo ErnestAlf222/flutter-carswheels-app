@@ -39,26 +39,9 @@ class DetailPage extends StatelessWidget {
           ),
       ],
       child: Scaffold(
-        // Capa del fondo blanco; la ola y el contenido van encima.
-        backgroundColor: AppColors.background,
+        backgroundColor: AppColors.surface,
         body: Stack(
           children: [
-            // Capa del fondo: la ola, detrás del contenido y de la barra.
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: IgnorePointer(
-                child: ExcludeSemantics(
-                  child: WaveFooterWidget(
-                    shape: WaveConfig.detailFooterWave,
-                    height: UiConfig.detailFooterHeight(
-                      MediaQuery.paddingOf(context).bottom,
-                    ),
-                  ),
-                ),
-              ),
-            ),
             CustomScrollView(
               slivers: [
                 SliverPersistentHeader(
@@ -131,13 +114,11 @@ class _DetailBody extends StatelessWidget {
             _FadeSwitcher(child: _content(context, state)),
             if (isMexico && loaded != null)
               _entry(5, const DetailAttributionWidget()),
-            // Deja el final por encima de la ola inferior y su barra.
+            // Deja el final por encima de la barra inferior y el área segura.
             SizedBox(
               height:
-                  UiConfig.detailFooterHeight(
-                    MediaQuery.paddingOf(context).bottom,
-                  ) +
-                  UiConfig.detailContentBottomGap,
+                  UiConfig.detailBottomClearance +
+                  MediaQuery.paddingOf(context).bottom,
             ),
           ],
         );

@@ -1,5 +1,3 @@
-import 'package:cars_wheels_app/core/config/wave_config.dart';
-
 /// Medidas generales de interfaz.
 class UiConfig {
   const UiConfig._();
@@ -101,14 +99,9 @@ class UiConfig {
   static const double detailBottomBarHeight = 60.0;
   static const double detailBottomBarInset = 20.0;
   static const double detailBottomBarGap = 12.0;
-  // Alto de la ola de Detalle: barra de acciones, área segura y la curva.
-  static double detailFooterHeight(double safeBottom) =>
-      detailBottomBarHeight +
-      2 * detailBottomBarInset +
-      WaveConfig.detailFooterAmplitude +
-      safeBottom;
-  // Holgura entre el final del contenido y la ola de Detalle.
-  static const double detailContentBottomGap = 16.0;
+  static const double detailBottomClearance = 140.0;
+  // Alto del degradado de la veladura que se funde sobre el contenido.
+  static const double detailBottomVeilHeight = 48.0;
   static const double detailSheetMaxHeightFraction = 0.6;
   static const double detailSheetHandleWidth = 40.0;
   static const double detailSheetHandleHeight = 4.0;

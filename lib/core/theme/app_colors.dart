@@ -22,6 +22,7 @@ class AppColors {
   static const Color chipBackground = Color(0xFFF1EEE6);
   static const Color dashedLine = Color(0xFFD3CCBB);
   static const Color shadow = Color(0x140F1115);
+  static const Color navShadow = Color(0x590F1115);
   // Barra inferior: ícono inactivo.
   static const Color navInactive = Color(0xA6FFFFFF);
   // Fotos: puntos del carrusel, cápsulas y botones sobre la foto.

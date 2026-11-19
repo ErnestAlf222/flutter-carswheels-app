@@ -4,9 +4,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/detail/presentation/widgets/detail_circle_button_widget.dart';
 
-/// Barra de acciones de Detalle: tinta sólida con el corazón y comparar.
-///
-/// Cubre la parte lisa de la ola; la banda curva queda detrás del contenido.
+/// Barra fija inferior con el corazón y el botón de comparar.
 class DetailBottomBarWidget extends StatelessWidget {
   const DetailBottomBarWidget({super.key, required this.onCompare});
 
@@ -14,16 +12,27 @@ class DetailBottomBarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final safeBottom = MediaQuery.paddingOf(context).bottom;
-    return ColoredBox(
-      color: AppColors.ink,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          UiConfig.detailBottomBarInset,
-          UiConfig.detailBottomBarInset,
-          UiConfig.detailBottomBarInset,
-          UiConfig.detailBottomBarInset + safeBottom,
+    // Veladura: el contenido se funde antes de llegar a los botones.
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(gradient: AppGradients.detailBottomVeil),
+          child: const SizedBox(
+            width: double.infinity,
+            height: UiConfig.detailBottomVeilHeight,
+          ),
         ),
+        ColoredBox(color: AppColors.surface, child: _bar()),
+      ],
+    );
+  }
+
+  Widget _bar() {
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.all(UiConfig.detailBottomBarInset),
         child: Row(
           children: [
             const DetailCircleButtonWidget(
@@ -31,7 +40,6 @@ class DetailBottomBarWidget extends StatelessWidget {
               size: UiConfig.detailBottomBarHeight,
               iconSize: UiConfig.iconSize,
               semanticLabel: AppTexts.addToFavoritesLabel,
-              onDark: true,
             ),
             const SizedBox(width: UiConfig.detailBottomBarGap),
             Expanded(

@@ -41,12 +41,10 @@ void main() {
         milliseconds: AnimationConfig.sectionLoaderFadeMilliseconds,
       ),
     );
-    final layer = find
-        .descendant(
-          of: find.byType(SectionLoaderOverlay),
-          matching: find.byType(ColoredBox),
-        )
-        .first;
+    final layer = find.descendant(
+      of: find.byType(SectionLoaderOverlay),
+      matching: find.byType(ColoredBox),
+    );
     expect(tester.widget<ColoredBox>(layer).color, AppColors.background);
     expect(tester.getSize(layer), tester.getSize(find.byType(Scaffold)));
     expect(find.byType(ClipOval), findsNothing);

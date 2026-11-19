@@ -15,32 +15,30 @@ class DetailInfoRowWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SolidBackgroundWidget(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: UiConfig.detailInfoRowVerticalPadding,
-            ),
-            child: Row(
-              children: [
-                Text(label, style: AppTextStyles.infoLabel),
-                const SizedBox(width: AppSpacing.m),
-                Expanded(
-                  child: Text(
-                    value ?? AppTexts.noDataLabel,
-                    textAlign: TextAlign.end,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.infoValue,
-                  ),
-                ),
-              ],
-            ),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: UiConfig.detailInfoRowVerticalPadding,
           ),
-          const DashedDividerWidget(),
-        ],
-      ),
+          child: Row(
+            children: [
+              Text(label, style: AppTextStyles.infoLabel),
+              const SizedBox(width: AppSpacing.m),
+              Expanded(
+                child: Text(
+                  value ?? AppTexts.noDataLabel,
+                  textAlign: TextAlign.end,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.infoValue,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const DashedDividerWidget(),
+      ],
     );
   }
 }

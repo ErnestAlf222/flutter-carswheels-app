@@ -15,12 +15,10 @@ class DetailAttributionWidget extends StatelessWidget {
         UiConfig.detailInfoSideMargin,
         0,
       ),
-      child: SolidBackgroundWidget(
-        child: Text(
-          AppTexts.conueeAttribution,
-          textAlign: TextAlign.center,
-          style: AppTextStyles.attributionNote,
-        ),
+      child: Text(
+        AppTexts.conueeAttribution,
+        textAlign: TextAlign.center,
+        style: AppTextStyles.attributionNote,
       ),
     );
   }

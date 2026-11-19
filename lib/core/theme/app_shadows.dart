@@ -10,6 +10,15 @@ class AppShadows {
     BoxShadow(color: AppColors.shadow, blurRadius: 24, offset: Offset(0, 8)),
   ];
 
+  // Sombra de la píldora flotante de la barra inferior.
+  static const List<BoxShadow> navBar = [
+    BoxShadow(
+      color: AppColors.navShadow,
+      blurRadius: 24,
+      offset: Offset(0, 10),
+    ),
+  ];
+
   // Sombra del encabezado fijo; solo se muestra al estar encogido.
   static const List<BoxShadow> headerBottom = [
     BoxShadow(color: AppColors.shadow, blurRadius: 12, offset: Offset(0, 4)),

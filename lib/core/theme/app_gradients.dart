@@ -21,4 +21,11 @@ class AppGradients {
       AppColors.ink.withValues(alpha: HeaderConfig.photoOverlayBottomOpacity),
     ],
   );
+
+  // Veladura bajo la barra inferior de Detalle: del blanco transparente al sólido.
+  static final LinearGradient detailBottomVeil = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [AppColors.surface.withValues(alpha: 0), AppColors.surface],
+  );
 }

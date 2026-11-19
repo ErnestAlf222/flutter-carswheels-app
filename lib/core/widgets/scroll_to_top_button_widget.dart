@@ -86,7 +86,8 @@ class _ScrollToTopButtonState extends State<ScrollToTopButton>
     return Positioned(
       right: ScrollConfig.topButtonRightMargin,
       bottom:
-          NavConfig.waveFootprint(MediaQuery.paddingOf(context).bottom) +
+          NavConfig.footprint +
+          MediaQuery.paddingOf(context).bottom +
           ScrollConfig.topButtonNavGap,
       child: ValueListenableBuilder<bool>(
         valueListenable: _past,

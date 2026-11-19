@@ -5,7 +5,6 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:cars_wheels_app/core/config/config.dart';
 import 'package:cars_wheels_app/core/l10n/l10n.dart';
 import 'package:cars_wheels_app/core/theme/theme.dart';
-import 'package:cars_wheels_app/core/widgets/solid_background_widget.dart';
 
 /// Estado vacío con icono y mensaje.
 class EmptyStateWidget extends StatelessWidget {
@@ -18,19 +17,17 @@ class EmptyStateWidget extends StatelessWidget {
         duration: const Duration(
           milliseconds: AnimationConfig.fadeDurationMilliseconds,
         ),
-        child: SolidBackgroundWidget(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Symbols.search_off,
-                size: UiConfig.iconSize,
-                color: AppColors.mutedText,
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(AppTexts.emptyStateTitle, style: AppTextStyles.bodyStrong),
-            ],
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Symbols.search_off,
+              size: UiConfig.iconSize,
+              color: AppColors.mutedText,
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(AppTexts.emptyStateTitle, style: AppTextStyles.bodyStrong),
+          ],
         ),
       ),
     );

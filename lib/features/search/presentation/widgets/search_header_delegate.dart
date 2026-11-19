@@ -32,9 +32,6 @@ class SearchHeaderDelegate extends SliverPersistentHeaderDelegate {
       HeaderConfig.contentTopPadding +
       SearchConfig.headerTitleRowHeight;
 
-  // Banda curva al pie de la banda tinta: el campo nunca la toca.
-  static const double _amplitude = WaveConfig.searchHeaderAmplitude;
-
   @override
   double get maxExtent =>
       _titleBottom +
@@ -43,10 +40,7 @@ class SearchHeaderDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   double get minExtent =>
-      topInset +
-      2 * SearchConfig.pinnedBandPadding +
-      SearchConfig.fieldHeight +
-      _amplitude;
+      topInset + 2 * SearchConfig.pinnedBandPadding + SearchConfig.fieldHeight;
 
   @override
   Widget build(
@@ -72,11 +66,9 @@ class SearchHeaderDelegate extends SliverPersistentHeaderDelegate {
         children: [
           HeroHeaderWidget(
             padding: EdgeInsets.zero,
-            shape: WaveConfig.searchHeaderWave,
             child: SizedBox(
               width: double.infinity,
-              // La amplitud de la curva ya la suma el encabezado.
-              height: bandHeight - _amplitude,
+              height: bandHeight,
               child: Stack(
                 children: [
                   Positioned(
@@ -117,7 +109,7 @@ class SearchHeaderDelegate extends SliverPersistentHeaderDelegate {
           Positioned(
             left: 0,
             right: 0,
-            bottom: (SearchConfig.pinnedBandPadding + _amplitude) * progress,
+            bottom: SearchConfig.pinnedBandPadding * progress,
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: UiConfig.pageHorizontalPadding,
