@@ -3,18 +3,14 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 
-/// Píldora de año (acción secundaria): solo borde fino; abre el panel de años.
-class MarketYearPillWidget extends StatefulWidget {
-  const MarketYearPillWidget({
+/// Segmento del año dentro de la píldora unida; abre el panel de años.
+class MarketYearSegmentWidget extends StatefulWidget {
+  const MarketYearSegmentWidget({
     super.key,
     required this.years,
     required this.year,
     required this.onYearSelected,
-    this.onLight = false,
   });
-
-  /// Sobre fondo claro: borde y texto en tinta en vez de claros.
-  final bool onLight;
 
   /// Años del mercado activo, del más reciente al más antiguo.
   final List<int> years;
@@ -25,10 +21,11 @@ class MarketYearPillWidget extends StatefulWidget {
   final ValueChanged<int> onYearSelected;
 
   @override
-  State<MarketYearPillWidget> createState() => _MarketYearPillWidgetState();
+  State<MarketYearSegmentWidget> createState() =>
+      _MarketYearSegmentWidgetState();
 }
 
-class _MarketYearPillWidgetState extends State<MarketYearPillWidget> {
+class _MarketYearSegmentWidgetState extends State<MarketYearSegmentWidget> {
   // Recursos del framework y notificador del panel abierto (sin campos mutables).
   final OverlayPortalController _portal = OverlayPortalController();
   final LayerLink _link = LayerLink();
@@ -72,22 +69,11 @@ class _MarketYearPillWidgetState extends State<MarketYearPillWidget> {
       child: OverlayPortal(
         controller: _portal,
         overlayChildBuilder: _buildOverlay,
-        child: Container(
-          height: MarketConfig.selectorHeight,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadii.pill),
-            border: Border.all(
-              color: widget.onLight ? AppColors.ink : AppColors.mutedOnDark,
-              width: MarketConfig.selectorBorderWidth,
-            ),
-          ),
-          child: _YearZone(
-            year: widget.year,
-            color: widget.onLight ? AppColors.ink : AppColors.onDark,
-            open: _open,
-            duration: _duration(context),
-            onTap: _toggle,
-          ),
+        child: _YearZone(
+          year: widget.year,
+          open: _open,
+          duration: _duration(context),
+          onTap: _toggle,
         ),
       ),
     );
@@ -130,14 +116,12 @@ class _MarketYearPillWidgetState extends State<MarketYearPillWidget> {
 class _YearZone extends StatelessWidget {
   const _YearZone({
     required this.year,
-    required this.color,
     required this.open,
     required this.duration,
     required this.onTap,
   });
 
   final int year;
-  final Color color;
   final ValueNotifier<bool> open;
   final Duration duration;
   final VoidCallback onTap;
@@ -153,32 +137,40 @@ class _YearZone extends StatelessWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.only(
-            left: MarketConfig.yearZoneHorizontalPadding,
-            right: MarketConfig.yearZoneHorizontalPadding / 2,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minWidth: MarketConfig.yearTouchMinWidth,
+            minHeight: MarketConfig.flagTouchSize,
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                year.toString(),
-                style: AppTextStyles.bodyStrong.copyWith(color: color),
-              ),
-              ValueListenableBuilder<bool>(
-                valueListenable: open,
-                builder: (context, isOpen, child) => AnimatedRotation(
-                  turns: isOpen ? 0.5 : 0,
-                  duration: duration,
-                  child: child,
+          child: Padding(
+            padding: const EdgeInsets.only(
+              left: MarketConfig.yearZoneHorizontalPadding,
+              right: MarketConfig.yearZoneHorizontalPadding / 2,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  year.toString(),
+                  style: AppTextStyles.bodyStrong.copyWith(
+                    color: AppColors.onDark,
+                  ),
                 ),
-                child: Icon(
-                  Symbols.keyboard_arrow_down,
-                  size: MarketConfig.chevronSize,
-                  color: color,
+                ValueListenableBuilder<bool>(
+                  valueListenable: open,
+                  builder: (context, isOpen, child) => AnimatedRotation(
+                    turns: isOpen ? 0.5 : 0,
+                    duration: duration,
+                    child: child,
+                  ),
+                  child: const Icon(
+                    Symbols.keyboard_arrow_down,
+                    size: MarketConfig.chevronSize,
+                    color: AppColors.onDark,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

@@ -365,12 +365,13 @@ void main() {
       expect(File(path).existsSync(), isFalse, reason: path);
     }
   });
-  group('disposición', () {
-    Future<void> pumpAt360(
+  group('píldora unida', () {
+    Future<void> pumpRow(
       WidgetTester tester,
-      MarketCubit cubit,
-      MarketSelectorLayout layout,
-    ) async {
+      MarketCubit cubit, {
+      required String title,
+      required TextStyle style,
+    }) async {
       tester.view.physicalSize = const Size(360, 640);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
@@ -384,13 +385,19 @@ void main() {
           home: BlocProvider<MarketCubit>.value(
             value: cubit,
             child: Scaffold(
-              body: Align(
-                alignment: Alignment.topRight,
-                child: MarketYearSelectorWidget(
-                  years: _years,
-                  year: 2026,
-                  layout: layout,
-                  onYearSelected: (_) {},
+              body: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: UiConfig.pageHorizontalPadding,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(child: Text(title, style: style)),
+                    MarketYearSelectorWidget(
+                      years: _years,
+                      year: 2026,
+                      onYearSelected: (_) {},
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -400,31 +407,90 @@ void main() {
       await tester.pump();
     }
 
-    testWidgets('apilado: banderas arriba, año debajo, sin encimarse', (
+    void expectNoOverlap(WidgetTester tester, String title) {
+      final titleRect = tester.getRect(find.text(title));
+      final pill = tester.getRect(find.byType(MarketYearSelectorWidget));
+      final flags = tester.getRect(find.byType(MarketSwitchWidget));
+      final year = tester.getRect(find.byType(MarketYearSegmentWidget));
+      expect(titleRect.right, lessThanOrEqualTo(pill.left));
+      expect(
+        flags.right + MarketConfig.dividerGap,
+        lessThanOrEqualTo(year.left),
+      );
+      expect(pill.height, MarketConfig.selectorHeight);
+      expect(pill.right, lessThanOrEqualTo(360));
+      expect(flags.left, greaterThanOrEqualTo(pill.left));
+      expect(year.right, lessThanOrEqualTo(pill.right));
+      expect(tester.takeException(), isNull);
+    }
+
+    testWidgets('con el wordmark de Inicio a 360 dp y texto 1.3 no se encima', (
       tester,
     ) async {
       final cubit = buildMarketCubit();
       addTearDown(cubit.close);
-      await pumpAt360(tester, cubit, MarketSelectorLayout.stacked);
-      final flags = tester.getRect(find.byType(MarketSwitchWidget));
-      final pill = tester.getRect(find.byType(MarketYearPillWidget));
-      expect(flags.overlaps(pill), isFalse);
-      expect(pill.top - flags.bottom, MarketConfig.stackedGap);
-      expect(flags.right, pill.right);
-      expect(tester.takeException(), isNull);
+      const title = AppTexts.wordmarkFirst + AppTexts.wordmarkSecond;
+      await pumpRow(
+        tester,
+        cubit,
+        title: title,
+        style: AppTextStyles.onDarkWordmark,
+      );
+      expectNoOverlap(tester, title);
     });
 
-    testWidgets('en fila: separados en horizontal y sin encimarse', (
+    testWidgets('con el título de Buscar a 360 dp y texto 1.3 no se encima', (
       tester,
     ) async {
       final cubit = buildMarketCubit();
       addTearDown(cubit.close);
-      await pumpAt360(tester, cubit, MarketSelectorLayout.row);
+      await pumpRow(
+        tester,
+        cubit,
+        title: AppTexts.searchPageTitle,
+        style: AppTextStyles.onDarkScreenTitle,
+      );
+      expectNoOverlap(tester, AppTexts.searchPageTitle);
+    });
+
+    testWidgets('es una sola fila: banderas, raya y año a la misma altura', (
+      tester,
+    ) async {
+      final cubit = buildMarketCubit();
+      addTearDown(cubit.close);
+      await tester.pumpWidget(_host(cubit, onYearSelected: (_) {}));
+      await tester.pump();
+      final pill = tester.getRect(find.byType(MarketYearSelectorWidget));
       final flags = tester.getRect(find.byType(MarketSwitchWidget));
-      final pill = tester.getRect(find.byType(MarketYearPillWidget));
-      expect(flags.overlaps(pill), isFalse);
-      expect(pill.left - flags.right, MarketConfig.selectorGap);
-      expect(tester.takeException(), isNull);
+      final year = tester.getRect(find.byType(MarketYearSegmentWidget));
+      expect(flags.center.dy, closeTo(pill.center.dy, 0.5));
+      expect(year.center.dy, closeTo(pill.center.dy, 0.5));
+      expect(year.left, greaterThan(flags.right));
+    });
+
+    testWidgets('el segmento del año tiene al menos 44 px de área táctil', (
+      tester,
+    ) async {
+      final cubit = buildMarketCubit();
+      addTearDown(cubit.close);
+      await tester.pumpWidget(_host(cubit, onYearSelected: (_) {}));
+      await tester.pump();
+      final year = tester.getSize(find.byType(MarketYearSegmentWidget));
+      expect(year.width, greaterThanOrEqualTo(MarketConfig.yearTouchMinWidth));
+      expect(year.height, greaterThanOrEqualTo(MarketConfig.flagTouchSize));
+    });
+
+    testWidgets('las dos banderas no se tocan entre sí', (tester) async {
+      final cubit = buildMarketCubit();
+      addTearDown(cubit.close);
+      await tester.pumpWidget(_host(cubit, onYearSelected: (_) {}));
+      await tester.pump();
+      final first = tester.getRect(find.text(Market.mexico.flag));
+      final second = tester.getRect(find.text(Market.unitedStates.flag));
+      expect(
+        second.left - first.right,
+        greaterThanOrEqualTo(MarketConfig.flagGap),
+      );
     });
   });
 }

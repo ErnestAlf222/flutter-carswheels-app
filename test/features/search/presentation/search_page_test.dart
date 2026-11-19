@@ -859,6 +859,67 @@ void main() {
     expect(harness.cubit.state.indexStatus?.phase, SearchIndexPhase.ready);
     await tester.pumpWidget(const SizedBox());
   });
+  group('buscador fijo', () {
+    Future<void> openWithResults(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(360, 420);
+      await tester.pumpWidget(_page(SearchHarness()));
+      await _settle(tester);
+      await _type(tester, 'toyota');
+    }
+
+    // Salto directo: arrastrar a mano cierra el teclado por diseño.
+    void scrollTo(WidgetTester tester, double offset) => tester
+        .widget<CustomScrollView>(find.byType(CustomScrollView))
+        .controller!
+        .jumpTo(offset);
+
+    double fieldTop(WidgetTester tester) =>
+        tester.getTopLeft(find.byType(SearchFieldWidget)).dy;
+
+    testWidgets('tras bajar el campo sigue arriba y al volver reaparece todo', (
+      tester,
+    ) async {
+      addTearDown(tester.view.reset);
+      tester.view.devicePixelRatio = 1;
+      await openWithResults(tester);
+      expect(find.text(AppTexts.searchPageTitle), findsOneWidget);
+      final topBefore = fieldTop(tester);
+      scrollTo(tester, 600);
+      await tester.pump();
+      expect(find.byType(SearchFieldWidget), findsOneWidget);
+      // El campo queda dentro de la banda fija, pegado arriba.
+      expect(fieldTop(tester), SearchConfig.pinnedBandPadding);
+      expect(fieldTop(tester), lessThan(topBefore));
+      scrollTo(tester, 0);
+      await tester.pump();
+      expect(fieldTop(tester), topBefore);
+      final title = tester.getRect(find.text(AppTexts.searchPageTitle));
+      expect(title.top, greaterThanOrEqualTo(0));
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('el campo conserva foco y texto al colapsar y expandir', (
+      tester,
+    ) async {
+      addTearDown(tester.view.reset);
+      tester.view.devicePixelRatio = 1;
+      await openWithResults(tester);
+      await tester.tap(find.byType(TextField));
+      await tester.pump();
+      final field = tester.widget<TextField>(find.byType(TextField));
+      expect(field.focusNode!.hasFocus, isTrue);
+      scrollTo(tester, 600);
+      await tester.pump();
+      expect(field.focusNode!.hasFocus, isTrue);
+      expect(find.text('toyota'), findsOneWidget);
+      scrollTo(tester, 0);
+      await tester.pump();
+      expect(field.focusNode!.hasFocus, isTrue);
+      expect(find.text('toyota'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    });
+  });
+
   group('estado conservado', () {
     GoRouter buildRouter() => GoRouter(
       initialLocation: '/search',

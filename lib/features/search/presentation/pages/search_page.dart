@@ -121,8 +121,10 @@ class _SearchPageState extends State<SearchPage> {
                     keyboardDismissBehavior:
                         ScrollViewKeyboardDismissBehavior.onDrag,
                     slivers: [
-                      SliverToBoxAdapter(
-                        child: SearchHeaderWidget(
+                      SliverPersistentHeader(
+                        pinned: true,
+                        delegate: SearchHeaderDelegate(
+                          topInset: MediaQuery.paddingOf(context).top,
                           selectorBuilder: widget.selectorBuilder,
                           controller: _controller,
                           focusNode: _focusNode,

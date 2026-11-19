@@ -22,20 +22,24 @@ class MarketConfig {
   // Orden fijo de las banderas del interruptor (códigos de mercado).
   static const List<String> switchOrderCodes = [mexicoCode, unitedStatesCode];
 
-  // Interruptor de mercado: píldora tinta con las dos banderas y un disco amarillo.
-  static const double selectorHeight = 44.0;
+  // Píldora unida: banderas, raya vertical y año en una sola fila tinta.
   static const double selectorBorderWidth = 1.0;
   static const double flagTouchSize = 44.0; // Área táctil mínima por bandera.
+  static const double selectorHeight = flagTouchSize + 2 * selectorBorderWidth;
+  static const double selectorInnerPadding =
+      2.0; // Entre el borde y el contenido.
+  static const double flagGap = 4.0; // Hueco entre las dos banderas.
   static const double flagDiscSize = 34.0;
   static const double flagFontSize = 18.0;
   static const double inactiveFlagOpacity = 0.45;
-  static const double selectorGap =
-      8.0; // En fila (barra compacta): entre interruptor y píldora de año.
-  static const double stackedGap = 8.0; // Apilado: entre interruptor y año.
-  static const double stackedHeight = selectorHeight * 2 + stackedGap;
+  static const double dividerGap = 6.0; // A cada lado de la raya.
+  static const double dividerWidth = 1.0;
+  static const double dividerHeight = 22.0;
+  static const double dividerOpacity = 0.6;
 
-  // Píldora de año: solo borde fino, con el año y el chevron.
-  static const double yearZoneHorizontalPadding = 14.0;
+  // Segmento del año: año y chevron, con área táctil mínima.
+  static const double yearTouchMinWidth = 44.0;
+  static const double yearZoneHorizontalPadding = 10.0;
   static const double chevronSize = 18.0;
 
   // Panel de años anclado bajo el selector.

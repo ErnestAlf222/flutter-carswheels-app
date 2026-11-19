@@ -107,8 +107,6 @@ class BrandHeaderDelegate extends SliverPersistentHeaderDelegate {
       years: availableYears,
       year: year,
       onYearSelected: onYearSelected,
-      onLight: true,
-      layout: MarketSelectorLayout.row,
     );
   }
 

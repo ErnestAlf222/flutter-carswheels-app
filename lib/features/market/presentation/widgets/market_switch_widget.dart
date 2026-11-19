@@ -5,7 +5,7 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/market/domain/entities/market_entity.dart';
 import 'package:cars_wheels_app/features/market/presentation/cubits/cubits.dart';
 
-/// Interruptor de mercado: dos banderas siempre visibles y un disco amarillo que se desliza.
+/// Segmento de banderas: dos banderas siempre visibles y un disco amarillo que se desliza.
 class MarketSwitchWidget extends StatelessWidget {
   const MarketSwitchWidget({super.key});
 
@@ -23,18 +23,12 @@ class MarketSwitchWidget extends StatelessWidget {
       selector: (state) => state.market,
       builder: (context, active) {
         const slot = MarketConfig.flagTouchSize;
+        const stride = slot + MarketConfig.flagGap;
         final activeIndex = order.indexOf(active);
-        return Container(
-          width: slot * order.length + 2 * MarketConfig.selectorBorderWidth,
-          height: MarketConfig.selectorHeight,
-          decoration: BoxDecoration(
-            color: AppColors.ink,
-            borderRadius: BorderRadius.circular(AppRadii.pill),
-            border: Border.all(
-              color: AppColors.mutedOnDark,
-              width: MarketConfig.selectorBorderWidth,
-            ),
-          ),
+        return SizedBox(
+          width:
+              slot * order.length + MarketConfig.flagGap * (order.length - 1),
+          height: slot,
           child: Stack(
             children: [
               AnimatedPositioned(
@@ -42,12 +36,9 @@ class MarketSwitchWidget extends StatelessWidget {
                 duration: duration,
                 curve: Curves.easeOut,
                 left:
-                    slot * activeIndex + (slot - MarketConfig.flagDiscSize) / 2,
-                top:
-                    (MarketConfig.selectorHeight -
-                        MarketConfig.flagDiscSize -
-                        2 * MarketConfig.selectorBorderWidth) /
-                    2,
+                    stride * activeIndex +
+                    (slot - MarketConfig.flagDiscSize) / 2,
+                top: (slot - MarketConfig.flagDiscSize) / 2,
                 child: Container(
                   width: MarketConfig.flagDiscSize,
                   height: MarketConfig.flagDiscSize,
@@ -57,20 +48,18 @@ class MarketSwitchWidget extends StatelessWidget {
                   ),
                 ),
               ),
-              Positioned(
-                left: 0,
-                top: 0,
-                child: Row(
-                  children: [
-                    for (final market in order)
-                      _FlagSlot(
-                        market: market,
-                        active: market == active,
-                        duration: duration,
-                        onTap: () => context.read<MarketCubit>().select(market),
-                      ),
+              Row(
+                children: [
+                  for (final (index, market) in order.indexed) ...[
+                    if (index > 0) const SizedBox(width: MarketConfig.flagGap),
+                    _FlagSlot(
+                      market: market,
+                      active: market == active,
+                      duration: duration,
+                      onTap: () => context.read<MarketCubit>().select(market),
+                    ),
                   ],
-                ),
+                ],
               ),
             ],
           ),

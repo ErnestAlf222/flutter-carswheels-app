@@ -59,7 +59,9 @@ class SearchConfig {
   static const int animatedResultCount = 8;
 
   // Encabezado compacto: alto de la fila del título; el campo sobresale la mitad de su alto.
-  static const double headerTitleRowHeight = MarketConfig.stackedHeight;
+  static const double headerTitleRowHeight = MarketConfig.selectorHeight;
+  static const double pinnedBandPadding =
+      12.0; // Arriba y abajo del campo en la banda fija.
   static const double fieldHeight = 56.0;
   static const double fieldOverlap = fieldHeight / 2;
   static const double fieldIconSize = 22.0;

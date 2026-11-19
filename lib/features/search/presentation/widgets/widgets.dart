@@ -2,7 +2,7 @@
 export 'search_brand_item_widget.dart';
 export 'search_brand_row_widget.dart';
 export 'search_field_widget.dart';
-export 'search_header_widget.dart';
+export 'search_header_delegate.dart';
 export 'search_idle_hint_widget.dart';
 export 'search_no_results_widget.dart';
 export 'search_other_year_row_widget.dart';
