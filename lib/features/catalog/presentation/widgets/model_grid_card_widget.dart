@@ -189,6 +189,9 @@ class _Tappable extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: radius,
+        border: const Border.fromBorderSide(
+          BorderSide(color: AppColors.outline, width: UiConfig.cardBorderWidth),
+        ),
         boxShadow: AppShadows.soft,
       ),
       child: callback == null

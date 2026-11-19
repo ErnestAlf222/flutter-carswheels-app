@@ -1,3 +1,5 @@
+import 'package:flutter/animation.dart';
+
 /// Tiempos de las animaciones.
 class AnimationConfig {
   const AnimationConfig._();
@@ -11,6 +13,9 @@ class AnimationConfig {
   static const int skeletonPulseMilliseconds = 1200;
   static const int sectionLoaderVisibleMilliseconds = 400;
   static const int sectionLoaderFadeMilliseconds = 150;
+  // Carrito del loader: un recorrido completo por ciclo, con ease en bucle.
+  static const int loaderCycleMilliseconds = 1600;
+  static const Curve loaderCurve = Curves.easeInOut;
   // Rebote del encabezado fijo al volver a expandirse.
   static const int headerSnapMilliseconds = 320;
   // Fracciones del encogimiento en que el contenido expandido se desvanece.

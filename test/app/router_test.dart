@@ -319,9 +319,20 @@ void main() {
     testWidgets('sin extra también redirige a inicio', (tester) async {
       final router = buildAppRouter();
       addTearDown(router.dispose);
-      await tester.pumpWidget(_app(router));
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(disableAnimations: true),
+          child: _app(router),
+        ),
+      );
       await tester.pump();
       router.go(RoutesConfig.detail);
+      await tester.pump();
+      await tester.pump(
+        const Duration(
+          milliseconds: AnimationConfig.sectionLoaderVisibleMilliseconds,
+        ),
+      );
       await tester.pumpAndSettle();
       expect(find.byType(DetailPage), findsNothing);
       expect(router.state.uri.path, RoutesConfig.home);

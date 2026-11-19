@@ -2,8 +2,14 @@
 class UiConfig {
   const UiConfig._();
 
-  // Valor provisional.
-  static const double loaderSize = 96.0;
+  // Loader del carrito: pista y carrito en pantalla completa y en línea.
+  static const double loaderTrackWidth = 120.0;
+  static const double loaderCarSize = 40.0;
+  static const double loaderCompactTrackWidth = 96.0;
+  static const double loaderCompactCarSize = 24.0;
+  static const double loaderRoadThickness = 2.0;
+  // Borde de 1 px que separa las tarjetas del fondo blanco.
+  static const double cardBorderWidth = 1.0;
   static const double iconSize = 24.0;
   static const double primaryButtonHeight = 60.0;
   static const double compactButtonHeight = 40.0;
@@ -30,7 +36,6 @@ class UiConfig {
   // Opacidad del contenido mientras se actualiza.
   static const double dimmedOpacity = 0.55;
   static const int skeletonCardCount = 3;
-  static const double sectionLoaderSize = 120.0;
   // Barras del esqueleto de tarjeta: alto y ancho relativo al espacio libre.
   static const double skeletonBarHeight = 14.0;
   static const double skeletonLongBarFraction = 0.7;

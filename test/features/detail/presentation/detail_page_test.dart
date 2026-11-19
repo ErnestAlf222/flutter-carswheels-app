@@ -565,10 +565,6 @@ void main() {
         tester.widgetList<ColoredBox>(bar).map((box) => box.color),
         contains(AppColors.surface),
       );
-      expect(
-        tester.widgetList<ColoredBox>(bar).map((box) => box.color),
-        isNot(contains(AppColors.background)),
-      );
     },
   );
 

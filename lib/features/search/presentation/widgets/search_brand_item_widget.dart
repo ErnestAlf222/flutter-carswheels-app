@@ -36,6 +36,12 @@ class SearchBrandItemWidget extends StatelessWidget {
                 decoration: const BoxDecoration(
                   color: AppColors.surface,
                   shape: BoxShape.circle,
+                  border: Border.fromBorderSide(
+                    BorderSide(
+                      color: AppColors.outline,
+                      width: UiConfig.cardBorderWidth,
+                    ),
+                  ),
                   boxShadow: AppShadows.soft,
                 ),
                 child: BrandLogoWidget(

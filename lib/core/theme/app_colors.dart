@@ -1,6 +1,6 @@
 import 'package:flutter/painting.dart';
 
-/// Paleta de colores de la app: negro tinta, amarillo señal y blanco cálido.
+/// Paleta de colores de la app: negro tinta, amarillo señal y blanco.
 class AppColors {
   const AppColors._();
 
@@ -17,7 +17,7 @@ class AppColors {
   static const Color accentPressed = Color(0xFFF2C800);
   static const Color accentTint = Color(0xFFFFF6C2);
   // Superficies.
-  static const Color background = Color(0xFFF5F4EF);
+  static const Color background = Color(0xFFFFFFFF);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color outline = Color(0xFFE7E5DE);
   static const Color photoPlaceholder = Color(0xFFECEAE3);

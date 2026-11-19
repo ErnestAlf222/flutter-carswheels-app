@@ -30,6 +30,12 @@ class SearchFieldWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadii.pill),
+          border: const Border.fromBorderSide(
+            BorderSide(
+              color: AppColors.outline,
+              width: UiConfig.cardBorderWidth,
+            ),
+          ),
           boxShadow: AppShadows.soft,
         ),
         padding: const EdgeInsets.only(left: AppSpacing.m),

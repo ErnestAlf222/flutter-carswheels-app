@@ -37,16 +37,7 @@ class _LoaderLayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const SizedBox.expand(
-      child: ColoredBox(
-        color: AppColors.background,
-        child: Center(
-          child: SizedBox(
-            width: UiConfig.sectionLoaderSize,
-            height: UiConfig.sectionLoaderSize,
-            child: AppLoader(),
-          ),
-        ),
-      ),
+      child: ColoredBox(color: AppColors.background, child: AppLoader()),
     );
   }
 }

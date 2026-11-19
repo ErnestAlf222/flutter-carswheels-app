@@ -9,6 +9,7 @@ class AppTexts {
   static const String retryButtonLabel = 'Reintentar';
   static const String refreshFailedLabel = 'No se pudo actualizar';
   static const String referencePhotoLabel = 'Foto de referencia';
+  static const String loaderSemanticLabel = 'Cargando';
   static const String photoLoadingLabel = 'Cargando foto…';
   static const String noPhotoTitle = 'Aún no hay foto de este modelo';
   static const String noPhotoSemanticLabel = 'Sin foto';

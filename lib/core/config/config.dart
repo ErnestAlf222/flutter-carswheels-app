@@ -3,7 +3,6 @@ export 'algorithms_config.dart';
 export 'animation_config.dart';
 export 'api_config.dart';
 export 'app_config.dart';
-export 'assets_config.dart';
 export 'carousel_config.dart';
 export 'catalog_config.dart';
 export 'conuee_config.dart';

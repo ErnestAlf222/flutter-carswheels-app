@@ -67,15 +67,11 @@ class SearchOtherYearsWidget extends StatelessWidget {
         const SearchSectionHeaderWidget(title: AppTexts.searchOtherYearsTitle),
         const SizedBox(height: SearchConfig.sectionTitleGap),
         if (status.isBuilding) ...[
-          Semantics(
-            label: AppTexts.searchOtherYearsProgressLabel(status.checkedYears),
-            excludeSemantics: true,
-            child: LinearProgressIndicator(
-              key: const ValueKey('search-other-years-progress'),
-              value: status.progress,
-              minHeight: SearchConfig.progressHeight,
-              color: AppColors.accent,
-              backgroundColor: AppColors.outline,
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: AppSpacing.s),
+            child: AppLoader(
+              key: ValueKey('search-other-years-loader'),
+              compact: true,
             ),
           ),
           Row(

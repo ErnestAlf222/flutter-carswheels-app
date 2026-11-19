@@ -28,6 +28,12 @@ class HomeSearchBarWidget extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.m),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(AppRadii.pill),
+                border: const Border.fromBorderSide(
+                  BorderSide(
+                    color: AppColors.outline,
+                    width: UiConfig.cardBorderWidth,
+                  ),
+                ),
                 boxShadow: AppShadows.soft,
               ),
               child: Row(

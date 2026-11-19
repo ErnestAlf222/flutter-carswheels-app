@@ -37,6 +37,12 @@ class BrandTileWidget extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(AppRadii.tile),
+                border: const Border.fromBorderSide(
+                  BorderSide(
+                    color: AppColors.outline,
+                    width: UiConfig.cardBorderWidth,
+                  ),
+                ),
                 boxShadow: selected
                     ? [
                         AppShadows.selectedRing(

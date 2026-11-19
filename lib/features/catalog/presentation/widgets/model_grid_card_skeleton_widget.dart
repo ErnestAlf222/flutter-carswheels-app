@@ -14,6 +14,9 @@ class ModelGridCardSkeletonWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadii.card),
+        border: const Border.fromBorderSide(
+          BorderSide(color: AppColors.outline, width: UiConfig.cardBorderWidth),
+        ),
         boxShadow: AppShadows.soft,
       ),
       child: Column(

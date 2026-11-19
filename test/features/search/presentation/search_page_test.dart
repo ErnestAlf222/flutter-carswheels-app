@@ -550,7 +550,7 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  _test('otros años en marcha: barra fina y "Cancelar"', (tester) async {
+  _test('otros años en marcha: loader compacto y "Cancelar"', (tester) async {
     final harness = SearchHarness();
     await tester.pumpWidget(_page(harness));
     await _settle(tester);
@@ -559,14 +559,14 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('search-other-years-link')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
-    const progressKey = ValueKey('search-other-years-progress');
-    expect(find.byKey(progressKey), findsOneWidget);
-    final bar = tester.widget<LinearProgressIndicator>(find.byKey(progressKey));
-    expect(bar.minHeight, SearchConfig.progressHeight);
+    const loaderKey = ValueKey('search-other-years-loader');
+    expect(find.byKey(loaderKey), findsOneWidget);
+    expect(tester.widget<AppLoader>(find.byKey(loaderKey)).compact, isTrue);
+    expect(find.byType(LinearProgressIndicator), findsNothing);
     await tester.tap(find.byKey(const ValueKey('search-other-years-cancel')));
     harness.source.gate!.complete();
     await _settle(tester);
-    expect(find.byKey(progressKey), findsNothing);
+    expect(find.byKey(loaderKey), findsNothing);
     expect(harness.cubit.state.otherYears, isNull);
     await tester.pumpWidget(const SizedBox());
   });
