@@ -19,13 +19,21 @@ class MarketConfig {
   static const String unitedStatesFlag = '\u{1F1FA}\u{1F1F8}';
   static const String mexicoFlag = '\u{1F1F2}\u{1F1FD}';
 
-  // Selector de mercado y año: píldora tinta con bandera, año y chevron.
-  static const double selectorHeight = 40.0;
+  // Orden fijo de las banderas del interruptor (códigos de mercado).
+  static const List<String> switchOrderCodes = [mexicoCode, unitedStatesCode];
+
+  // Interruptor de mercado: píldora tinta con las dos banderas y un disco amarillo.
+  static const double selectorHeight = 44.0;
   static const double selectorBorderWidth = 1.0;
-  static const double selectorPadding = 4.0;
-  static const double flagCircleSize = 32.0;
+  static const double flagTouchSize = 44.0; // Área táctil mínima por bandera.
+  static const double flagDiscSize = 34.0;
   static const double flagFontSize = 18.0;
-  static const double yearZoneHorizontalPadding = 8.0;
+  static const double inactiveFlagOpacity = 0.45;
+  static const double selectorGap =
+      8.0; // Entre el interruptor y la píldora de año.
+
+  // Píldora de año: solo borde fino, con el año y el chevron.
+  static const double yearZoneHorizontalPadding = 14.0;
   static const double chevronSize = 18.0;
 
   // Panel de años anclado bajo el selector.

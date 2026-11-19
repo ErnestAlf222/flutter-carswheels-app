@@ -88,7 +88,8 @@ class BrandHeaderDelegate extends SliverPersistentHeaderDelegate {
             ),
           ),
         ),
-        _fading(opacity: fade, child: _compactContent()),
+        // La barra compacta solo existe cuando el encabezado de Inicio ya salió.
+        if (fade > 0) _fading(opacity: fade, child: _compactContent()),
       ],
     );
   }
@@ -106,6 +107,7 @@ class BrandHeaderDelegate extends SliverPersistentHeaderDelegate {
       years: availableYears,
       year: year,
       onYearSelected: onYearSelected,
+      onLight: true,
     );
   }
 
@@ -118,17 +120,8 @@ class BrandHeaderDelegate extends SliverPersistentHeaderDelegate {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  AppTexts.brandsSectionTitle,
-                  style: AppTextStyles.sectionTitle,
-                ),
-              ),
-              _yearSelector(),
-            ],
-          ),
+          // Sin selector: el del encabezado de Inicio sigue a la vista.
+          Text(AppTexts.brandsSectionTitle, style: AppTextStyles.sectionTitle),
           const SizedBox(height: AppSpacing.m),
           const BrandCarouselWidget(),
         ],

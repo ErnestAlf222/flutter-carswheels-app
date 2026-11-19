@@ -131,8 +131,9 @@ void main() {
     await pumpDelegate(tester, _delegate(), 0);
     expect(opacityAbove(tester, find.byType(BrandCarouselWidget)), 1.0);
     expect(ignoringAbove(tester, find.byType(BrandCarouselWidget)), isFalse);
-    expect(opacityAbove(tester, compactTitle()), 0.0);
-    expect(ignoringAbove(tester, compactTitle()), isTrue);
+    // La barra compacta (y su selector) no existe mientras Inicio muestra el suyo.
+    expect(compactTitle(), findsNothing);
+    expect(find.byType(MarketYearSelectorWidget), findsNothing);
   });
 
   testWidgets('encogido del todo muestra la barra y bloquea el carrusel', (
@@ -142,6 +143,7 @@ void main() {
     expect(compactTitle(), findsOneWidget);
     expect(opacityAbove(tester, compactTitle()), 1.0);
     expect(ignoringAbove(tester, compactTitle()), isFalse);
+    expect(find.byType(MarketYearSelectorWidget), findsOneWidget);
     expect(opacityAbove(tester, find.byType(BrandCarouselWidget)), 0.0);
     expect(ignoringAbove(tester, find.byType(BrandCarouselWidget)), isTrue);
   });

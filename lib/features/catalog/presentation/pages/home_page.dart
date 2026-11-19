@@ -271,12 +271,12 @@ class _LoadedContentState extends State<_LoadedContent>
             ),
           )
         else
-          SliverToBoxAdapter(
+          const SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(
+              padding: EdgeInsets.symmetric(
                 horizontal: UiConfig.pageHorizontalPadding,
               ),
-              child: _BrandsHeader(state: state),
+              child: _BrandsHeader(),
             ),
           ),
         if (state.refreshFailure != null)
@@ -408,28 +408,12 @@ class _HomeHeader extends StatelessWidget {
   }
 }
 
-/// Título de marcas con el selector de año.
+/// Título de marcas; el selector de mercado y año vive solo en el encabezado.
 class _BrandsHeader extends StatelessWidget {
-  const _BrandsHeader({required this.state});
-
-  final CatalogLoaded state;
+  const _BrandsHeader();
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            AppTexts.brandsSectionTitle,
-            style: AppTextStyles.sectionTitle,
-          ),
-        ),
-        MarketYearSelectorWidget(
-          years: state.availableYears,
-          year: state.year,
-          onYearSelected: context.read<CatalogCubit>().selectYear,
-        ),
-      ],
-    );
+    return Text(AppTexts.brandsSectionTitle, style: AppTextStyles.sectionTitle);
   }
 }

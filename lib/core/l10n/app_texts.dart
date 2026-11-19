@@ -53,6 +53,8 @@ class AppTexts {
   static const String fuelListSeparator = ' · ';
   static const String marketUnitedStatesLabel = 'EE. UU.';
   static const String marketMexicoLabel = 'México';
+  static const String marketUnitedStatesName = 'Estados Unidos';
+  static const String marketMexicoName = 'México';
   static const String switchToMexicoLabel = 'Cambiar a México';
   static const String switchToUnitedStatesLabel = 'Cambiar a Estados Unidos';
   static const String pickYearLabel = 'Elegir año';

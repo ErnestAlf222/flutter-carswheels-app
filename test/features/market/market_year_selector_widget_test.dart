@@ -10,6 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../support/market_test_support.dart';
 
 const _years = [2026, 2025, 2024];
+final _disc = find.byKey(const ValueKey('market-switch-disc'));
 
 Widget _host(
   MarketCubit cubit, {
@@ -45,7 +46,53 @@ void main() {
     GoogleFonts.config.allowRuntimeFetching = false;
   });
 
-  testWidgets('tocar la bandera alterna el mercado y lo guarda', (
+  testWidgets('se ven las dos banderas en el orden de la configuración', (
+    tester,
+  ) async {
+    final cubit = buildMarketCubit();
+    addTearDown(cubit.close);
+    await tester.pumpWidget(_host(cubit, onYearSelected: (_) {}));
+    await tester.pump();
+    final first = tester.getTopLeft(find.text(Market.mexico.flag)).dx;
+    final second = tester.getTopLeft(find.text(Market.unitedStates.flag)).dx;
+    expect(first, lessThan(second));
+    expect(MarketConfig.switchOrderCodes, [
+      MarketConfig.mexicoCode,
+      MarketConfig.unitedStatesCode,
+    ]);
+  });
+
+  testWidgets('el disco está tras la bandera activa y la otra se atenúa', (
+    tester,
+  ) async {
+    final cubit = buildMarketCubit();
+    addTearDown(cubit.close);
+    await tester.pumpWidget(_host(cubit, onYearSelected: (_) {}));
+    await tester.pump();
+    double opacityOf(Market market) => tester
+        .widget<AnimatedOpacity>(
+          find.ancestor(
+            of: find.text(market.flag),
+            matching: find.byType(AnimatedOpacity),
+          ),
+        )
+        .opacity;
+    expect(opacityOf(Market.unitedStates), 1.0);
+    expect(opacityOf(Market.mexico), MarketConfig.inactiveFlagOpacity);
+    expect(
+      tester.getCenter(_disc).dx,
+      closeTo(tester.getCenter(find.text(Market.unitedStates.flag)).dx, 1),
+    );
+    await cubit.select(Market.mexico);
+    await tester.pumpAndSettle();
+    expect(opacityOf(Market.mexico), 1.0);
+    expect(
+      tester.getCenter(_disc).dx,
+      closeTo(tester.getCenter(find.text(Market.mexico.flag)).dx, 1),
+    );
+  });
+
+  testWidgets('tocar la inactiva alterna el mercado y lo guarda', (
     tester,
   ) async {
     final preference = FakeMarketPreference();
@@ -53,15 +100,65 @@ void main() {
     addTearDown(cubit.close);
     await tester.pumpWidget(_host(cubit, onYearSelected: (_) {}));
     await tester.pump();
-    expect(find.text(Market.unitedStates.flag), findsOneWidget);
-    await tester.tap(find.text(Market.unitedStates.flag));
+    await tester.tap(find.text(Market.mexico.flag));
     await tester.pumpAndSettle();
     expect(cubit.market, Market.mexico);
     expect(preference.writes, ['mx']);
-    expect(find.text(Market.mexico.flag), findsOneWidget);
-    await tester.tap(find.text(Market.mexico.flag));
+    await tester.tap(find.text(Market.unitedStates.flag));
     await tester.pumpAndSettle();
     expect(cubit.market, Market.unitedStates);
+  });
+
+  testWidgets('tocar la bandera activa no hace nada', (tester) async {
+    final preference = FakeMarketPreference();
+    final cubit = buildMarketCubit(preference: preference);
+    addTearDown(cubit.close);
+    await tester.pumpWidget(_host(cubit, onYearSelected: (_) {}));
+    await tester.pump();
+    await tester.tap(find.text(Market.unitedStates.flag));
+    await tester.pumpAndSettle();
+    expect(cubit.market, Market.unitedStates);
+    expect(preference.writes, isEmpty);
+  });
+
+  testWidgets('cada bandera tiene un área táctil mínima', (tester) async {
+    final cubit = buildMarketCubit();
+    addTearDown(cubit.close);
+    await tester.pumpWidget(_host(cubit, onYearSelected: (_) {}));
+    await tester.pump();
+    for (final market in Market.values) {
+      final box = find.ancestor(
+        of: find.text(market.flag),
+        matching: find.byType(SizedBox),
+      );
+      final size = tester.getSize(box.first);
+      expect(size.width, greaterThanOrEqualTo(MarketConfig.flagTouchSize));
+      expect(size.height, greaterThanOrEqualTo(MarketConfig.flagTouchSize));
+    }
+  });
+
+  testWidgets('con animaciones el disco se desliza; sin ellas salta', (
+    tester,
+  ) async {
+    for (final disable in [false, true]) {
+      final cubit = buildMarketCubit();
+      addTearDown(cubit.close);
+      await tester.pumpWidget(
+        _host(cubit, onYearSelected: (_) {}, disableAnimations: disable),
+      );
+      await tester.pump();
+      await cubit.select(Market.mexico);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 30));
+      final moved = tester.getCenter(_disc).dx;
+      final target = tester.getCenter(find.text(Market.mexico.flag)).dx;
+      if (disable) {
+        expect(moved, closeTo(target, 1));
+      } else {
+        expect((moved - target).abs(), greaterThan(1));
+      }
+      await tester.pumpAndSettle();
+    }
   });
 
   testWidgets('las banderas salen de la configuración de mercados', (
@@ -79,14 +176,22 @@ void main() {
     final handle = tester.ensureSemantics();
     await tester.pumpWidget(_host(cubit, onYearSelected: (_) {}));
     await tester.pump();
-    expect(find.bySemanticsLabel(AppTexts.switchToMexicoLabel), findsOneWidget);
-    expect(find.bySemanticsLabel(AppTexts.pickYearLabel), findsOneWidget);
-    await cubit.select(Market.mexico);
-    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel(AppTexts.marketMexicoName), findsOneWidget);
     expect(
-      find.bySemanticsLabel(AppTexts.switchToUnitedStatesLabel),
+      find.bySemanticsLabel(AppTexts.marketUnitedStatesName),
       findsOneWidget,
     );
+    expect(find.bySemanticsLabel(AppTexts.pickYearLabel), findsOneWidget);
+    final mexico = tester.getSemantics(
+      find.bySemanticsLabel(AppTexts.marketMexicoName),
+    );
+    expect(mexico.hint, AppTexts.switchToMexicoLabel);
+    await cubit.select(Market.mexico);
+    await tester.pumpAndSettle();
+    final us = tester.getSemantics(
+      find.bySemanticsLabel(AppTexts.marketUnitedStatesName),
+    );
+    expect(us.hint, AppTexts.switchToUnitedStatesLabel);
     handle.dispose();
   });
 
@@ -239,7 +344,7 @@ void main() {
     expect(find.byType(ListView), findsOneWidget);
   });
 
-  testWidgets('sin año solo se ve la bandera', (tester) async {
+  testWidgets('sin año solo se ve el interruptor', (tester) async {
     final cubit = buildMarketCubit();
     addTearDown(cubit.close);
     await tester.pumpWidget(
@@ -247,6 +352,7 @@ void main() {
     );
     await tester.pump();
     expect(find.text(Market.unitedStates.flag), findsOneWidget);
+    expect(find.text(Market.mexico.flag), findsOneWidget);
     expect(find.byType(AnimatedRotation), findsNothing);
   });
 

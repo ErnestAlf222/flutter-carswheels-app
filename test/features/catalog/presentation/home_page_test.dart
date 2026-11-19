@@ -157,10 +157,9 @@ void main() {
     await pumpHome(tester, catalog: _loaded(), models: _models(3, 3));
     await tester.pumpAndSettle();
     expect(find.byType(BrandCarouselWidget), findsOneWidget);
-    // El encabezado tiene una copia expandida y otra compacta.
-    // Encabezado de Inicio, copia expandida y copia compacta de marcas.
-    expect(find.byType(MarketYearSelectorWidget), findsNWidgets(3));
-    expect(find.text('2026'), findsNWidgets(3));
+    // Solo el selector del encabezado de Inicio; la barra compacta aún no existe.
+    expect(find.byType(MarketYearSelectorWidget), findsOneWidget);
+    expect(find.text('2026'), findsOneWidget);
     expect(find.byType(ModelsSectionWidget), findsOneWidget);
     expect(find.byType(ModelGridCardWidget), findsNWidgets(3));
     expect(find.text('3 modelos'), findsOneWidget);
@@ -321,11 +320,11 @@ void main() {
     );
     expect(find.byType(ErrorStateWidget), findsOneWidget);
     expect(find.byType(MarketYearSelectorWidget), findsOneWidget);
-    await tester.tap(find.text(Market.unitedStates.flag));
+    await tester.tap(find.text(Market.mexico.flag));
     await tester.pump();
     expect(marketCubit.market, Market.mexico);
     // Poder volver a EE. UU. sin red es el motivo del selector.
-    await tester.tap(find.text(Market.mexico.flag));
+    await tester.tap(find.text(Market.unitedStates.flag));
     await tester.pump();
     expect(marketCubit.market, Market.unitedStates);
   });

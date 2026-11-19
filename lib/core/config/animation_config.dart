@@ -12,6 +12,8 @@ class AnimationConfig {
   static const int dimDurationMilliseconds = 150;
   // Despliegue del panel de años y giro del chevron.
   static const int yearPanelMilliseconds = 160;
+  // Deslizamiento del disco amarillo del interruptor de mercado.
+  static const int marketSwitchMilliseconds = 180;
   static const int skeletonPulseMilliseconds = 1200;
   static const int sectionLoaderVisibleMilliseconds = 400;
   static const int sectionLoaderFadeMilliseconds = 150;
