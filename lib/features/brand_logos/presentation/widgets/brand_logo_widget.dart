@@ -8,7 +8,7 @@ import 'package:cars_wheels_app/features/brand_logos/presentation/cubits/cubits.
 import 'package:cars_wheels_app/features/brand_logos/presentation/loaders/loaders.dart';
 
 /// Logo de una marca; muestra un monograma si no hay logo o no carga.
-class BrandLogoWidget extends StatelessWidget {
+class BrandLogoWidget extends StatefulWidget {
   const BrandLogoWidget({
     super.key,
     required this.brandName,
@@ -19,17 +19,36 @@ class BrandLogoWidget extends StatelessWidget {
   final double size;
 
   @override
+  State<BrandLogoWidget> createState() => _BrandLogoWidgetState();
+}
+
+class _BrandLogoWidgetState extends State<BrandLogoWidget> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<BrandLogosCubit>().ensureLogo(widget.brandName);
+  }
+
+  @override
+  void didUpdateWidget(BrandLogoWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.brandName != widget.brandName) {
+      context.read<BrandLogosCubit>().ensureLogo(widget.brandName);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final url = context.select<BrandLogosCubit, String?>(
-      (cubit) => cubit.urlFor(brandName),
+      (cubit) => cubit.urlFor(widget.brandName),
     );
-    final monogram = _Monogram(brandName: brandName, size: size);
+    final monogram = _Monogram(brandName: widget.brandName, size: widget.size);
     if (url == null) return monogram;
     if (url.endsWith(LogosConfig.svgExtension)) {
       return SvgPicture(
         SanitizedSvgNetworkLoader(url, headers: LogosConfig.requestHeaders),
-        width: size,
-        height: size,
+        width: widget.size,
+        height: widget.size,
         placeholderBuilder: (_) => monogram,
         errorBuilder: (_, _, _) => monogram,
       );
@@ -37,8 +56,8 @@ class BrandLogoWidget extends StatelessWidget {
     return CachedNetworkImage(
       imageUrl: url,
       httpHeaders: LogosConfig.requestHeaders,
-      width: size,
-      height: size,
+      width: widget.size,
+      height: widget.size,
       placeholder: (_, _) => monogram,
       errorWidget: (_, _, _) => monogram,
     );

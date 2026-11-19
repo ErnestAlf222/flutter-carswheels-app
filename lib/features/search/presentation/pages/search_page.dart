@@ -23,7 +23,7 @@ typedef SearchResultsGridBuilder = Widget Function(
   ValueChanged<SearchResultEntity> onOpen,
 );
 
-/// Pantalla de búsqueda: encabezado con campo, marcas fijas y resultados.
+/// Pantalla de búsqueda: encabezado con campo, alcance de marca y resultados.
 class SearchPage extends StatefulWidget {
   const SearchPage({
     super.key,
@@ -104,6 +104,7 @@ class _SearchPageState extends State<SearchPage> {
                 NavConfig.footprint +
                 MediaQuery.paddingOf(context).bottom +
                 ModelGridConfig.listBottomGap;
+            final scopeBrand = state.scopeBrand;
             return CustomScrollView(
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               slivers: [
@@ -117,17 +118,20 @@ class _SearchPageState extends State<SearchPage> {
                     onClear: cubit.clearQuery,
                   ),
                 ),
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: SearchBrandSelectorDelegate(
-                    brands: state.brands,
-                    selectedBrand: state.brandFilter,
-                    onSelectBrand: cubit.selectBrand,
-                    onClear: cubit.clearBrand,
-                    showProgress: state.isPreparing,
-                    progress: state.indexStatus?.progress,
+                if (scopeBrand != null)
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: SearchScopeRowDelegate(
+                      brand: scopeBrand,
+                      onClear: cubit.clearScopeBrand,
+                    ),
                   ),
-                ),
+                if (state.isPreparing)
+                  SliverToBoxAdapter(
+                    child: SearchProgressWidget(
+                      progress: state.indexStatus?.progress,
+                    ),
+                  ),
                 if (state.isPartial)
                   SliverToBoxAdapter(
                     child: Padding(
@@ -164,69 +168,176 @@ class _SearchPageState extends State<SearchPage> {
       ];
     }
     if (!state.hasQuery) return _idleSlivers(context, state, bottomPadding);
-    if (state.results.isNotEmpty) {
-      return [
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(
-            UiConfig.pageHorizontalPadding,
-            AppSpacing.xs,
-            UiConfig.pageHorizontalPadding,
-            AppSpacing.s,
-          ),
-          sliver: SliverToBoxAdapter(
-            child: SearchResultsHeaderWidget(
-              count: state.results.length,
-              brand: state.brandFilter,
-              truncated: state.isTruncated,
-            ),
-          ),
-        ),
-        SliverPadding(
-          padding: EdgeInsets.fromLTRB(
-            UiConfig.pageHorizontalPadding,
-            0,
-            UiConfig.pageHorizontalPadding,
-            bottomPadding,
-          ),
-          sliver: widget.resultsGridBuilder(
-            context,
-            state.results,
-            state.resultsKey,
-            (result) => _openResult(context, result),
-          ),
-        ),
-      ];
-    }
     final scope = state.scope;
-    if (state.hasNoResults && scope != null) {
-      return [
-        SliverFillRemaining(
-          hasScrollBody: false,
-          child: Padding(
-            padding: EdgeInsets.only(bottom: bottomPadding),
-            child: SearchNoResultsWidget(
-              query: state.query,
-              marketCode: scope.marketCode,
-              year: scope.year,
-              brand: state.brandFilter,
-              onClearBrand: cubit.clearBrand,
-            ),
+    final brand = state.scopeBrand;
+    final slivers = <Widget>[];
+    if (state.brandMatches.isNotEmpty) {
+      slivers.add(
+        SliverToBoxAdapter(
+          child: SearchBrandRowWidget(
+            title: AppTexts.searchBrandMatchesTitle,
+            brands: state.brandMatches,
+            onSelect: cubit.selectBrand,
           ),
         ),
-      ];
+      );
     }
-    // Índice aún en marcha: la barra amarilla indica el avance.
-    return const [SliverToBoxAdapter(child: SizedBox.shrink())];
+    if (state.totalResults > 0) {
+      // Con texto y alcance: "En {marca}" y "En otras marcas"; sin alcance, el conteo.
+      final note = state.isTruncated
+          ? AppTexts.searchResultsTruncatedLabel(state.totalResults)
+          : null;
+      if (brand != null && state.hasText) {
+        if (state.results.isNotEmpty) {
+          slivers.addAll(
+            _section(
+              context,
+              state,
+              header: SearchSectionHeaderWidget(
+                title: AppTexts.searchInBrandTitle(brand),
+                note: state.otherResults.isEmpty ? note : null,
+              ),
+              results: state.results,
+              resetKey: state.resultsKey,
+            ),
+          );
+        } else {
+          slivers.add(
+            _padded(
+              child: SearchScopeNoticeWidget(brand: brand),
+              top: AppSpacing.xs,
+              bottom: AppSpacing.xs,
+            ),
+          );
+        }
+        if (state.otherResults.isNotEmpty) {
+          slivers.addAll(
+            _section(
+              context,
+              state,
+              header: SearchSectionHeaderWidget(
+                title: AppTexts.searchOtherBrandsTitle,
+                note: note,
+              ),
+              results: state.otherResults,
+              resetKey: '${state.resultsKey} others',
+            ),
+          );
+        }
+      } else {
+        slivers.addAll(
+          _section(
+            context,
+            state,
+            header: SearchSectionHeaderWidget(
+              title: AppTexts.searchResultsCountLabel(state.results.length),
+              subtitle: brand,
+              note: note,
+            ),
+            results: state.results,
+            resetKey: state.resultsKey,
+          ),
+        );
+      }
+    } else if (state.hasNoResults && scope != null) {
+      slivers.add(
+        SliverToBoxAdapter(
+          child: SearchNoResultsWidget(
+            query: state.query,
+            marketCode: scope.marketCode,
+            year: scope.year,
+            brand: brand,
+            suggestions: state.suggestions,
+            onSuggestion: cubit.applySuggestion,
+            onSearchOtherYears: state.canSearchOtherYears
+                ? cubit.searchInOtherYears
+                : null,
+          ),
+        ),
+      );
+    }
+    slivers.addAll(_otherYearsSlivers(context, state));
+    slivers.add(SliverToBoxAdapter(child: SizedBox(height: bottomPadding)));
+    return slivers;
   }
 
-  // Sin consulta ni marca: recientes en una fila, o un texto amable.
+  // Encabezado de sección y su cuadrícula de tarjetas.
+  List<Widget> _section(
+    BuildContext context,
+    SearchState state, {
+    required Widget header,
+    required List<SearchResultEntity> results,
+    required String resetKey,
+  }) {
+    return [
+      _padded(child: header, top: AppSpacing.xs, bottom: AppSpacing.s),
+      SliverPadding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: UiConfig.pageHorizontalPadding,
+        ),
+        sliver: widget.resultsGridBuilder(
+          context,
+          results,
+          resetKey,
+          (result) => _openResult(context, result),
+        ),
+      ),
+    ];
+  }
+
+  // Búsqueda en otros años: enlace al final de la lista o sección con avance y filas.
+  List<Widget> _otherYearsSlivers(BuildContext context, SearchState state) {
+    final cubit = context.read<SearchCubit>();
+    final status = state.otherYears;
+    if (status != null) {
+      return [
+        _padded(
+          child: SearchOtherYearsWidget(
+            status: status,
+            onCancel: cubit.cancelOtherYears,
+            onOpen: (result) => _openResult(context, result),
+          ),
+          top: AppSpacing.m,
+          bottom: 0,
+        ),
+      ];
+    }
+    final offerLink = state.totalResults > 0 && state.canSearchOtherYears;
+    if (!offerLink) return const [];
+    return [
+      _padded(
+        child: SearchOtherYearsLinkWidget(
+          onTap: cubit.searchInOtherYears,
+          failed: state.otherYearsFailed,
+        ),
+        top: AppSpacing.m,
+        bottom: 0,
+      ),
+    ];
+  }
+
+  Widget _padded({
+    required Widget child,
+    required double top,
+    required double bottom,
+  }) => SliverPadding(
+    padding: EdgeInsets.fromLTRB(
+      UiConfig.pageHorizontalPadding,
+      top,
+      UiConfig.pageHorizontalPadding,
+      bottom,
+    ),
+    sliver: SliverToBoxAdapter(child: child),
+  );
+
+  // Sin consulta ni alcance: explorar por marca y recientes, o un texto amable.
   List<Widget> _idleSlivers(
     BuildContext context,
     SearchState state,
     double bottomPadding,
   ) {
     final cubit = context.read<SearchCubit>();
-    if (state.recents.isEmpty) {
+    if (state.recents.isEmpty && state.brands.isEmpty) {
       return [
         SliverFillRemaining(
           hasScrollBody: false,
@@ -238,14 +349,23 @@ class _SearchPageState extends State<SearchPage> {
       ];
     }
     return [
-      SliverToBoxAdapter(
-        child: SearchRecentsWidget(
-          recents: state.recents,
-          onSelect: cubit.useRecent,
-          onRemove: (recent) => cubit.removeRecentSearch(recent.key),
-          onClearAll: cubit.clearRecentSearches,
+      if (state.brands.isNotEmpty)
+        SliverToBoxAdapter(
+          child: SearchBrandRowWidget(
+            title: AppTexts.searchExploreByBrandTitle,
+            brands: state.brands,
+            onSelect: cubit.selectBrand,
+          ),
         ),
-      ),
+      if (state.recents.isNotEmpty)
+        SliverToBoxAdapter(
+          child: SearchRecentsWidget(
+            recents: state.recents,
+            onSelect: cubit.useRecent,
+            onRemove: (recent) => cubit.removeRecentSearch(recent.key),
+            onClearAll: cubit.clearRecentSearches,
+          ),
+        ),
     ];
   }
 }

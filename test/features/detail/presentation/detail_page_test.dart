@@ -172,18 +172,23 @@ void main() {
     expect(photo.width, screen.width);
     expect(photo.height, UiConfig.detailPhotoHeight);
     expect(find.bySemanticsLabel(AppTexts.backLabel), findsOneWidget);
-    // Panel claro que se superpone a la foto, con esquinas superiores.
-    final panels = tester
-        .widgetList<DecoratedBox>(find.byType(DecoratedBox))
-        .where(
-          (box) =>
-              (box.decoration as BoxDecoration).color == AppColors.background &&
-              (box.decoration as BoxDecoration).borderRadius ==
-                  const BorderRadius.vertical(
-                    top: Radius.circular(HeaderConfig.detailPanelOverlap),
-                  ),
-        );
-    expect(panels, hasLength(1));
+    // La banda tinta de arriba: área segura (0 en pruebas) + altura de config.
+    expect(photo.top, UiConfig.detailCollapsedBarHeight);
+    final back = tester.getRect(find.byIcon(Symbols.chevron_left));
+    expect(back.bottom, lessThanOrEqualTo(photo.top));
+    // La foto lleva las esquinas inferiores redondeadas.
+    final clip = tester.widget<ClipRRect>(
+      find.ancestor(
+        of: find.byType(DetailPhotoCarouselWidget),
+        matching: find.byType(ClipRRect),
+      ),
+    );
+    expect(
+      clip.borderRadius,
+      const BorderRadius.vertical(
+        bottom: Radius.circular(HeaderConfig.bottomRadius),
+      ),
+    );
     // La acción principal es el botón amarillo.
     expect(find.byType(AccentButton), findsOneWidget);
   });
@@ -210,6 +215,42 @@ void main() {
       ),
     );
     expect(titles.any((opacity) => opacity.opacity == 1.0), isTrue);
+    // En reposo la barra es tinta sólida y no queda foto visible.
+    final bands = tester.widgetList<ColoredBox>(
+      find.byWidgetPredicate(
+        (widget) => widget is ColoredBox && widget.color == AppColors.ink,
+      ),
+    );
+    expect(bands, isNotEmpty);
+    expect(bands.every((band) => band.color.a == 1.0), isTrue);
+    final scrollable = tester.state<ScrollableState>(
+      find.byType(Scrollable).first,
+    );
+    // La banda no se desplaza más allá de su altura: la foto ya no se ve.
+    expect(scrollable.position.pixels, greaterThan(0));
+    expect(back.bottom, lessThanOrEqualTo(UiConfig.detailCollapsedBarHeight));
+  });
+
+  testWidgets('la barra inferior lleva una veladura de fondo y el final '
+      'del scroll deja espacio', (tester) async {
+    when(() => load(any())).thenAnswer((_) async => _details());
+    await pumpPage(tester);
+    await tester.pumpAndSettle();
+    final veils = tester
+        .widgetList<DecoratedBox>(find.byType(DecoratedBox))
+        .where(
+          (box) =>
+              (box.decoration as BoxDecoration).gradient ==
+              AppGradients.detailBottomVeil,
+        );
+    expect(veils, hasLength(1));
+    expect(
+      tester.getSize(find.byType(DetailBottomBarWidget)).height,
+      greaterThanOrEqualTo(
+        UiConfig.detailBottomVeilHeight + UiConfig.detailBottomBarHeight,
+      ),
+    );
+    expect(UiConfig.detailBottomClearance, greaterThan(100));
   });
 
   testWidgets('cargado muestra cápsula, versión, cifras y filas', (
@@ -290,6 +331,9 @@ void main() {
   testWidgets('elegir otra versión desde la hoja actualiza sin AppLoader', (
     tester,
   ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(800, 1200);
+    addTearDown(tester.view.reset);
     when(() => load(any())).thenAnswer((_) async => _details());
     await pumpPage(tester);
     await tester.pumpAndSettle();
@@ -502,7 +546,51 @@ void main() {
         .map((image) => image.imageUrl);
     expect(urls, contains(testPhoto().thumbnailUrl));
     expect(find.byType(AppLoader), findsNothing);
-    expect(find.text('Foto: Autora · CC BY 4.0'), findsOneWidget);
+    expect(find.textContaining('Foto:'), findsNothing);
+  });
+
+  testWidgets(
+    'el fondo de Detalle es blanco puro y la barra inferior también',
+    (tester) async {
+      when(() => load(any())).thenAnswer((_) async => _details());
+      await pumpPage(tester);
+      await tester.pumpAndSettle();
+      final scaffold = tester.widget<Scaffold>(find.byType(Scaffold).first);
+      expect(scaffold.backgroundColor, AppColors.surface);
+      final bar = find.descendant(
+        of: find.byType(DetailBottomBarWidget),
+        matching: find.byType(ColoredBox),
+      );
+      expect(
+        tester.widgetList<ColoredBox>(bar).map((box) => box.color),
+        contains(AppColors.surface),
+      );
+      expect(
+        tester.widgetList<ColoredBox>(bar).map((box) => box.color),
+        isNot(contains(AppColors.background)),
+      );
+    },
+  );
+
+  testWidgets('las tarjetas de Detalle llevan borde outline de 1 px', (
+    tester,
+  ) async {
+    when(() => load(any())).thenAnswer((_) async => _details());
+    await pumpPage(tester);
+    await tester.pumpAndSettle();
+    final bordered = tester.widgetList<Container>(find.byType(Container)).where(
+      (box) {
+        final decoration = box.decoration;
+        return decoration is BoxDecoration &&
+            decoration.border ==
+                Border.all(
+                  color: AppColors.outline,
+                  width: UiConfig.detailCardBorderWidth,
+                );
+      },
+    );
+    expect(bordered, isNotEmpty);
+    expect(UiConfig.detailCardBorderWidth, 1.0);
   });
 
   testWidgets('con args.photo nula la foto aparece cuando llega la galería', (
@@ -524,7 +612,7 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(find.byType(CachedNetworkImage), findsWidgets);
-    expect(find.text('Foto: Galería · CC BY 4.0'), findsOneWidget);
+    expect(find.textContaining('Foto:'), findsNothing);
     expect(find.byType(AppLoader), findsNothing);
   });
 }

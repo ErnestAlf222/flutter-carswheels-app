@@ -24,11 +24,14 @@ class DetailHeaderDelegate extends SliverPersistentHeaderDelegate {
   /// Área segura superior de la pantalla.
   final double topInset;
 
-  @override
-  double get maxExtent => topInset + UiConfig.detailPhotoHeight;
+  // Banda tinta (área segura + barra) y debajo la foto.
+  double get _bandHeight => topInset + UiConfig.detailCollapsedBarHeight;
 
   @override
-  double get minExtent => topInset + UiConfig.detailCollapsedBarHeight;
+  double get maxExtent => _bandHeight + UiConfig.detailPhotoHeight;
+
+  @override
+  double get minExtent => _bandHeight;
 
   @override
   Widget build(
@@ -47,48 +50,42 @@ class DetailHeaderDelegate extends SliverPersistentHeaderDelegate {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // Con la foto contraída queda la tinta como barra fija.
-        const ColoredBox(color: AppColors.ink),
-        ClipRect(
-          child: Stack(
-            children: [
-              Positioned(
-                top: topInset - shrinkOffset * UiConfig.detailParallaxFactor,
-                left: 0,
-                right: 0,
-                child: IgnorePointer(
-                  ignoring: t >= 1.0,
-                  child: Opacity(
-                    opacity: 1.0 - t,
-                    child: DetailPhotoCarouselWidget(
-                      brandName: brandName,
-                      heroTag: heroTag,
+        // La foto queda bajo la banda; se contrae con parallax y esquinas abajo.
+        Positioned.fill(
+          top: _bandHeight,
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(HeaderConfig.bottomRadius),
+            ),
+            child: Stack(
+              clipBehavior: Clip.hardEdge,
+              children: [
+                Positioned(
+                  top: -shrinkOffset * UiConfig.detailParallaxFactor,
+                  left: 0,
+                  right: 0,
+                  child: IgnorePointer(
+                    ignoring: t >= 1.0,
+                    child: Opacity(
+                      opacity: 1.0 - t,
+                      child: DetailPhotoCarouselWidget(
+                        brandName: brandName,
+                        heroTag: heroTag,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
-        // Panel claro que se superpone a la foto; se desvanece al contraer.
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: HeaderConfig.detailPanelOverlap,
-          child: IgnorePointer(
-            child: Opacity(
-              opacity: 1.0 - t,
-              child: const DecoratedBox(
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(HeaderConfig.detailPanelOverlap),
-                  ),
-                ),
-              ),
+              ],
             ),
           ),
+        ),
+        // Banda tinta sólida: es la barra fija al terminar de contraer.
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          height: _bandHeight,
+          child: const ColoredBox(color: AppColors.ink),
         ),
         Positioned(
           top: topInset,

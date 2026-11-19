@@ -19,13 +19,16 @@ class BrandLogosLoading extends BrandLogosState {
 }
 
 class BrandLogosLoaded extends BrandLogosState {
-  const BrandLogosLoaded(this.logoUrls);
+  const BrandLogosLoaded(this.logoUrls, {this.fallbackUrls = const {}});
 
   /// Nombre de marca normalizado → URL del logo.
   final Map<String, String> logoUrls;
 
+  /// Logos de respaldo de Commons, solo para marcas sin logo en el conjunto.
+  final Map<String, String> fallbackUrls;
+
   @override
-  List<Object?> get props => [logoUrls];
+  List<Object?> get props => [logoUrls, fallbackUrls];
 }
 
 class BrandLogosError extends BrandLogosState {

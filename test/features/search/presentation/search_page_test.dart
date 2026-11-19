@@ -135,14 +135,6 @@ Future<void> _selectBrand(WidgetTester tester, String name) async {
   await _settle(tester);
 }
 
-/// Borde del círculo de una marca; nulo si no está seleccionada.
-Border? _ringOf(WidgetTester tester, Finder item) {
-  final circle = tester.widget<Container>(
-    find.descendant(of: item, matching: find.byType(Container)).first,
-  );
-  return (circle.decoration! as BoxDecoration).border as Border?;
-}
-
 RecentSearchEntity _recent(String text) => RecentSearchEntity(
   key: text.toLowerCase(),
   text: text,
@@ -174,8 +166,11 @@ void main() {
     expect(find.text(AppTexts.searchPageTitle), findsOneWidget);
     expect(find.text('EE. UU. · 2025'), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
-    // Sin recientes: solo la lupa grande y el texto amable.
-    expect(find.text(AppTexts.searchIdleHint), findsOneWidget);
+    // Sin recientes: explorar por marca (el texto amable es para antes del índice).
+    expect(
+      find.text(AppTexts.searchExploreByBrandTitle.toUpperCase()),
+      findsOneWidget,
+    );
     expect(find.byType(SearchRecentsWidget), findsNothing);
     expect(find.byType(ModelGridCardWidget), findsNothing);
     await tester.pumpWidget(const SizedBox());
@@ -191,57 +186,75 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  _test('el selector trae "Todas" y todas las marcas en orden alfabético', (
-    tester,
-  ) async {
-    final harness = SearchHarness();
+  _test(
+    'explorar por marca: título y todas las marcas en una fila alfabética',
+    (tester) async {
+      final harness = SearchHarness();
+      await tester.pumpWidget(_page(harness));
+      await _settle(tester);
+      expect(
+        find.text(AppTexts.searchExploreByBrandTitle.toUpperCase()),
+        findsOneWidget,
+      );
+      final xs = [
+        for (final name in ['Honda', 'Hyundai', 'Toyota'])
+          tester.getTopLeft(_brand(name)).dx,
+      ];
+      expect(xs, orderedEquals([...xs]..sort()));
+      expect(xs.toSet(), hasLength(3));
+      // Una sola fila: todos a la misma altura y sin elemento "Todas".
+      expect(
+        tester.getTopLeft(_brand('Honda')).dy,
+        tester.getTopLeft(_brand('Toyota')).dy,
+      );
+      expect(find.byKey(const ValueKey('search-scope-clear')), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  _test('la etiqueta "Alfa Romeo" cabe completa en dos líneas', (tester) async {
+    final harness = SearchHarness(
+      groupsByBrand: {
+        'Alfa Romeo': ['Giulia'],
+        'Toyota': ['Camry'],
+      },
+    );
     await tester.pumpWidget(_page(harness));
     await _settle(tester);
-    expect(find.text(AppTexts.searchAllBrandsLabel), findsOneWidget);
-    final xs = [
-      for (final key in [
-        const ValueKey('search-brand-all'),
-        const ValueKey('search-brand-Honda'),
-        const ValueKey('search-brand-Hyundai'),
-        const ValueKey('search-brand-Toyota'),
-      ])
-        tester.getTopLeft(find.byKey(key)).dx,
-    ];
-    expect(xs, orderedEquals([...xs]..sort()));
-    expect(xs.toSet(), hasLength(4));
-    // Una sola fila: todos a la misma altura.
-    expect(
-      tester.getTopLeft(_brand('Honda')).dy,
-      tester.getTopLeft(_brand('Toyota')).dy,
-    );
+    final label = tester.widget<Text>(find.text('Alfa Romeo'));
+    expect(label.maxLines, SearchConfig.brandLabelMaxLines);
+    expect(label.maxLines, greaterThanOrEqualTo(2));
+    expect(find.text('Alfa Romeo'), findsOneWidget);
+    final box = tester.getSize(find.text('Alfa Romeo'));
+    expect(box.width, lessThanOrEqualTo(SearchConfig.brandItemWidth));
+    expect(box.height, lessThanOrEqualTo(SearchConfig.brandLabelHeight));
     await tester.pumpWidget(const SizedBox());
   });
 
-  _test('la marca elegida lleva aro tinta y tocarla de nuevo lo quita', (
+  _test('tocar una marca fija el alcance: fila "Buscando en" y el ✕ lo quita', (
     tester,
   ) async {
     final harness = SearchHarness();
     await tester.pumpWidget(_page(harness));
     await _settle(tester);
-    // Sin marca elegida, "Todas" es la seleccionada.
+    await _selectBrand(tester, 'Toyota');
+    expect(harness.cubit.state.scopeBrand, 'Toyota');
+    expect(find.text(AppTexts.searchScopePrefix), findsOneWidget);
+    // La fila de marcas se reemplaza por la fila compacta.
     expect(
-      _ringOf(tester, find.byKey(const ValueKey('search-brand-all'))),
-      isNotNull,
+      find.text(AppTexts.searchExploreByBrandTitle.toUpperCase()),
+      findsNothing,
     );
-    expect(_ringOf(tester, _brand('Toyota')), isNull);
-    await _selectBrand(tester, 'Toyota');
-    final ring = _ringOf(tester, _brand('Toyota'))!;
-    expect(ring.top.width, SearchConfig.brandRingWidth);
-    expect(ring.top.color, AppColors.ink);
-    expect(_ringOf(tester, _brand('Honda')), isNull);
-    expect(harness.cubit.state.brandFilter, 'Toyota');
-    await _selectBrand(tester, 'Toyota');
-    expect(harness.cubit.state.brandFilter, isNull);
-    expect(_ringOf(tester, _brand('Toyota')), isNull);
-    await _selectBrand(tester, 'Honda');
-    await tester.tap(find.byKey(const ValueKey('search-brand-all')));
+    expect(_brand('Honda'), findsNothing);
+    expect(find.byType(BrandLogoWidget), findsWidgets);
+    await tester.tap(find.byKey(const ValueKey('search-scope-clear')));
     await _settle(tester);
-    expect(harness.cubit.state.brandFilter, isNull);
+    expect(harness.cubit.state.scopeBrand, isNull);
+    expect(find.text(AppTexts.searchScopePrefix), findsNothing);
+    expect(
+      find.text(AppTexts.searchExploreByBrandTitle.toUpperCase()),
+      findsOneWidget,
+    );
     await tester.pumpWidget(const SizedBox());
   });
 
@@ -286,21 +299,78 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  _test('el texto se combina con la marca elegida', (tester) async {
+  _test(
+    'con alcance y texto: "En {marca}" primero y "En otras marcas" debajo',
+    (tester) async {
+      final harness = SearchHarness(
+        groupsByBrand: {
+          'Toyota': ['Corolla', 'Camry'],
+          'Honda': ['Civic', 'Corvette X'],
+        },
+      );
+      await tester.pumpWidget(_page(harness));
+      await _settle(tester);
+      await _type(tester, 'cor');
+      expect(find.byType(ModelGridCardWidget), findsNWidgets(2));
+      expect(
+        find.text(AppTexts.searchResultsCountLabel(2).toUpperCase()),
+        findsOneWidget,
+      );
+      await tester.tap(find.byTooltip(AppTexts.searchClearSemanticLabel));
+      await _settle(tester);
+      await _selectBrand(tester, 'Toyota');
+      await _type(tester, 'cor');
+      expect(find.byType(ModelGridCardWidget), findsNWidgets(2));
+      final inBrand = find.text(
+        AppTexts.searchInBrandTitle('Toyota').toUpperCase(),
+      );
+      final others = find.text(AppTexts.searchOtherBrandsTitle.toUpperCase());
+      expect(inBrand, findsOneWidget);
+      expect(others, findsOneWidget);
+      double top(Finder finder) => tester.getTopLeft(finder).dy;
+      expect(top(inBrand), lessThan(top(find.text('Corolla'))));
+      expect(top(find.text('Corolla')), lessThan(top(others)));
+      expect(top(others), lessThan(top(find.text('Corvette X'))));
+      expect(
+        find.text(AppTexts.searchNoResultsInBrand('Toyota')),
+        findsNothing,
+      );
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  _test('alcance Audi y "ferrari": nota, los Ferrari debajo y fila Marcas', (
+    tester,
+  ) async {
     final harness = SearchHarness(
       groupsByBrand: {
-        'Toyota': ['Corolla', 'Camry'],
-        'Honda': ['Civic', 'Corvette X'],
+        'Audi': ['A3'],
+        'Ferrari': ['Roma', 'F8 Tributo'],
       },
     );
     await tester.pumpWidget(_page(harness));
     await _settle(tester);
-    await _type(tester, 'cor');
+    await _selectBrand(tester, 'Audi');
+    await _type(tester, 'ferrari');
+    expect(find.text(AppTexts.searchNoResultsInBrand('Audi')), findsOneWidget);
+    expect(
+      find.text(AppTexts.searchOtherBrandsTitle.toUpperCase()),
+      findsOneWidget,
+    );
     expect(find.byType(ModelGridCardWidget), findsNWidgets(2));
-    await _selectBrand(tester, 'Toyota');
-    expect(find.byType(ModelGridCardWidget), findsOneWidget);
-    expect(find.text('Corolla'), findsOneWidget);
-    expect(find.text('Corvette X'), findsNothing);
+    // Fila "Marcas": tocar el logo fija ese alcance y limpia el texto.
+    expect(
+      find.text(AppTexts.searchBrandMatchesTitle.toUpperCase()),
+      findsOneWidget,
+    );
+    await tester.tap(_brand('Ferrari'));
+    await _settle(tester);
+    expect(harness.cubit.state.scopeBrand, 'Ferrari');
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      '',
+    );
+    expect(find.byType(ModelGridCardWidget), findsNWidgets(2));
     await tester.pumpWidget(const SizedBox());
   });
 
@@ -335,7 +405,7 @@ void main() {
     verify(() => cards.photos.single.requestPhotos(any())).called(2);
     verify(() => cards.summaries.single.requestSummaries(any())).called(2);
     // Otra consulta reinicia los cubits y cancela lo pendiente de los viejos.
-    await _selectBrand(tester, 'Toyota');
+    await _type(tester, 'ci');
     expect(cards.photos, hasLength(2));
     expect(cards.summaries, hasLength(2));
     verify(() => cards.photos.first.cancelPending()).called(1);
@@ -405,15 +475,99 @@ void main() {
       findsOneWidget,
     );
     expect(find.text(AppTexts.searchNoResultsSuggestion), findsOneWidget);
-    // Sin marca elegida no hay botón.
-    expect(find.text(AppTexts.searchRemoveBrandFilterLabel), findsNothing);
-    await _selectBrand(tester, 'Honda');
-    expect(find.text(AppTexts.searchRemoveBrandFilterLabel), findsOneWidget);
-    await tester.tap(find.text(AppTexts.searchRemoveBrandFilterLabel));
+    expect(find.byType(SearchSuggestionsWidget), findsNothing);
+    // La única acción principal: relleno amarillo con texto tinta.
+    final button = find.byType(AccentButton);
+    expect(button, findsOneWidget);
+    expect(
+      find.descendant(
+        of: button,
+        matching: find.text(AppTexts.searchOtherYearsAction),
+      ),
+      findsOneWidget,
+    );
+    final material = tester.widget<Material>(
+      find.descendant(of: button, matching: find.byType(Material)).first,
+    );
+    expect(material.color, AppColors.accent);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  _test('sugerencias en chips: tocar una reemplaza el texto', (tester) async {
+    final harness = SearchHarness();
+    await tester.pumpWidget(_page(harness));
     await _settle(tester);
-    expect(harness.cubit.state.brandFilter, isNull);
-    expect(find.text(AppTexts.searchRemoveBrandFilterLabel), findsNothing);
-    expect(find.text(AppTexts.searchNoResultsTitle('zzzz')), findsOneWidget);
+    await _type(tester, 'toyta');
+    final chip = find.text(AppTexts.searchSuggestionLabel('toyota'));
+    expect(chip, findsOneWidget);
+    // Nunca se sustituye solo.
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      'toyta',
+    );
+    await tester.tap(chip);
+    await _settle(tester);
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      'toyota',
+    );
+    expect(find.byType(ModelGridCardWidget), findsNWidgets(3));
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  _test('otros años: botón, filas compactas y apertura con ese año', (
+    tester,
+  ) async {
+    final harness = SearchHarness();
+    final opened = <SearchResultEntity>[];
+    await tester.pumpWidget(_page(harness, onOpen: (_, r) => opened.add(r)));
+    await _settle(tester);
+    await _type(tester, 'zzzz');
+    await tester.tap(find.byType(AccentButton));
+    await _settle(tester);
+    expect(
+      find.text(AppTexts.searchOtherYearsTitle.toUpperCase()),
+      findsOneWidget,
+    );
+    expect(find.text(AppTexts.searchOtherYearsNone), findsOneWidget);
+    // Con resultados, el enlace discreto al final de la lista.
+    await _type(tester, 'camry');
+    final link = find.byKey(const ValueKey('search-other-years-link'));
+    expect(link, findsOneWidget);
+    expect(find.text(AppTexts.searchOtherYearsPrompt), findsOneWidget);
+    await tester.tap(link);
+    await _settle(tester);
+    expect(find.byType(SearchOtherYearRowWidget), findsNWidgets(3));
+    expect(find.text('2026'), findsOneWidget);
+    expect(find.text('2024'), findsOneWidget);
+    expect(find.text('2023'), findsOneWidget);
+    await tester.tap(find.byType(SearchOtherYearRowWidget).first);
+    await _settle(tester);
+    expect(opened.single.year, 2026);
+    expect(opened.single.groupName, 'Camry');
+    // El año vigente de la búsqueda no cambió.
+    expect(harness.cubit.state.scope, usScope);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  _test('otros años en marcha: barra fina y "Cancelar"', (tester) async {
+    final harness = SearchHarness();
+    await tester.pumpWidget(_page(harness));
+    await _settle(tester);
+    await _type(tester, 'camry');
+    harness.source.gate = Completer<void>();
+    await tester.tap(find.byKey(const ValueKey('search-other-years-link')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    const progressKey = ValueKey('search-other-years-progress');
+    expect(find.byKey(progressKey), findsOneWidget);
+    final bar = tester.widget<LinearProgressIndicator>(find.byKey(progressKey));
+    expect(bar.minHeight, SearchConfig.progressHeight);
+    await tester.tap(find.byKey(const ValueKey('search-other-years-cancel')));
+    harness.source.gate!.complete();
+    await _settle(tester);
+    expect(find.byKey(progressKey), findsNothing);
+    expect(harness.cubit.state.otherYears, isNull);
     await tester.pumpWidget(const SizedBox());
   });
 
@@ -497,8 +651,12 @@ void main() {
     await _settle(tester);
     expect(find.text('Camry'), findsNothing);
     expect(harness.recents.stored, isEmpty);
-    // Sin recientes vuelve el texto amable.
-    expect(find.text(AppTexts.searchIdleHint), findsOneWidget);
+    // Sin recientes queda solo explorar por marca.
+    expect(find.byType(SearchRecentsWidget), findsNothing);
+    expect(
+      find.text(AppTexts.searchExploreByBrandTitle.toUpperCase()),
+      findsOneWidget,
+    );
     await tester.pumpWidget(const SizedBox());
   });
 
@@ -581,7 +739,7 @@ void main() {
       tester.widget<TextField>(find.byType(TextField)).controller!.text,
       'cam',
     );
-    expect(harness.cubit.state.brandFilter, 'Toyota');
+    expect(harness.cubit.state.scopeBrand, 'Toyota');
     expect(find.text('Camry'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });

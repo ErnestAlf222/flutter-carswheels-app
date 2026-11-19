@@ -60,6 +60,10 @@ class DetailFiguresCardWidget extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(AppRadii.card),
+            border: Border.all(
+              color: AppColors.outline,
+              width: UiConfig.detailCardBorderWidth,
+            ),
             boxShadow: AppShadows.soft,
           ),
           child: IntrinsicHeight(

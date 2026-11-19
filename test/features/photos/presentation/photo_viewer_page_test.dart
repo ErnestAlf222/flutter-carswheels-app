@@ -158,4 +158,42 @@ void main() {
     expect(await result.future, 2);
     expect(find.text('inicio'), findsOneWidget);
   });
+
+  group('circular', () {
+    testWidgets('desde la última, deslizar vuelve a la primera', (
+      tester,
+    ) async {
+      await openViewer(tester, [
+        _photo(1),
+        _photo(2),
+        _photo(3),
+      ], initialIndex: 2);
+      await tester.drag(find.byType(PageView), const Offset(-600, 0));
+      await tester.pumpAndSettle();
+      expect(find.text('Foto: Autor 1 · CC BY 4.0'), findsOneWidget);
+    });
+
+    testWidgets('desde la primera, deslizar atrás va a la última', (
+      tester,
+    ) async {
+      await openViewer(tester, [_photo(1), _photo(2), _photo(3)]);
+      await tester.drag(find.byType(PageView), const Offset(600, 0));
+      await tester.pumpAndSettle();
+      expect(find.text('Foto: Autor 3 · CC BY 4.0'), findsOneWidget);
+    });
+
+    testWidgets('con una foto no hay vuelta', (tester) async {
+      await openViewer(tester, [_photo(1)]);
+      await tester.drag(find.byType(PageView), const Offset(-600, 0));
+      await tester.pumpAndSettle();
+      expect(find.text('Foto: Autor 1 · CC BY 4.0'), findsOneWidget);
+      expect(
+        tester
+            .widget<PageView>(find.byType(PageView))
+            .childrenDelegate
+            .estimatedChildCount,
+        1,
+      );
+    });
+  });
 }

@@ -36,6 +36,14 @@ class MarketSearchContextSource implements SearchContextSource {
   @override
   Stream<SearchScopeEntity?> get scopeChanges => _changes.stream;
 
+  @override
+  List<int> get availableYears {
+    final state = catalog.state;
+    return _catalogStale || state is! CatalogLoaded
+        ? const []
+        : state.availableYears;
+  }
+
   void _onMarketState(MarketState state) {
     if (state.market == _lastMarket) return;
     _lastMarket = state.market;

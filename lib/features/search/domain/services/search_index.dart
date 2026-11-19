@@ -39,6 +39,11 @@ class SearchIndex {
   final List<SearchEntryEntity> entries;
   final List<SearchPosting> _postings;
 
+  /// Tokens distintos del índice, en orden alfabético.
+  List<String> get vocabulary => [
+    for (final posting in _postings) posting.token,
+  ];
+
   /// Filas donde todos los tokens de la consulta son prefijo de algún token.
   List<SearchEntryEntity> match(List<String> queryTokens) {
     if (queryTokens.isEmpty) return const [];

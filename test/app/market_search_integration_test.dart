@@ -79,6 +79,26 @@ void main() {
       },
     );
 
+    test('al cambiar de mercado el año vuelve al de cada mercado', () async {
+      final market = buildMarketCubit();
+      await _pump();
+      // Los años de cada mercado traen 2027, 2026 y 2025 disponibles.
+      final catalog = _catalogCubit(_Repository([2027, 2026, 2025]), market);
+      await catalog.loadBrands();
+      expect((catalog.state as CatalogLoaded).year, 2026);
+      // El usuario cambia de año y luego de mercado, como hace la app.
+      await catalog.selectYear(2027);
+      await market.select(Market.mexico);
+      await catalog.loadBrands(force: true);
+      expect((catalog.state as CatalogLoaded).year, 2025);
+      await catalog.selectYear(2026);
+      await market.select(Market.unitedStates);
+      await catalog.loadBrands(force: true);
+      expect((catalog.state as CatalogLoaded).year, 2026);
+      await catalog.close();
+      await market.close();
+    });
+
     test('si 2026 no está en la lista cae al primero', () async {
       final market = buildMarketCubit();
       final catalog = _catalogCubit(_Repository([2025, 2024]), market);

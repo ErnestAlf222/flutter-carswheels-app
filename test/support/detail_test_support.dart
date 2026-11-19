@@ -67,6 +67,8 @@ VehicleDetailEntity testDetail({
   double? cityKmPerLiter,
   double? highwayKmPerLiter,
   double? co2GramsPerKilometer,
+  double? cityCo2GramsPerKilometer,
+  double? highwayCo2GramsPerKilometer,
   double? electricRangeKilometers,
   double? totalRangeKilometers,
   double? electricConsumptionKwhPer100Kilometers,
@@ -90,6 +92,8 @@ VehicleDetailEntity testDetail({
   combinedKmPerLiter: combinedKmPerLiter,
   annualFuelCostUsd: annualFuelCostUsd,
   co2GramsPerKilometer: co2GramsPerKilometer,
+  cityCo2GramsPerKilometer: cityCo2GramsPerKilometer,
+  highwayCo2GramsPerKilometer: highwayCo2GramsPerKilometer,
   electricRangeKilometers: electricRangeKilometers,
   totalRangeKilometers: totalRangeKilometers,
   electricConsumptionKwhPer100Kilometers:

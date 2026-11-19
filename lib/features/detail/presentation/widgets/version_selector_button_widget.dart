@@ -39,6 +39,10 @@ class VersionSelectorButtonWidget extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(AppRadii.versionSelector),
+            border: Border.all(
+              color: AppColors.outline,
+              width: UiConfig.detailCardBorderWidth,
+            ),
             boxShadow: AppShadows.soft,
           ),
           child: Material(

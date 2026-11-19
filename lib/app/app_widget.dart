@@ -117,9 +117,10 @@ class _AppState extends State<App> {
       child: MultiBlocProvider(
         providers: [
           BlocProvider<BrandLogosCubit>(
-            create: (context) =>
-                BrandLogosCubit(context.read<BrandLogosRepository>())
-                  ..loadLogos(),
+            create: (context) => BrandLogosCubit(
+              context.read<BrandLogosRepository>(),
+              resolveCommonsLogo: _dependencies.resolveCommonsLogoUseCase,
+            )..loadLogos(),
           ),
           BlocProvider<MarketCubit>.value(value: _dependencies.marketCubit),
           BlocProvider<CatalogCubit>(
@@ -167,7 +168,9 @@ class _AppState extends State<App> {
                 catalog: context.read<CatalogCubit>(),
               ),
               buildIndex: _dependencies.buildSearchIndexUseCase,
-              searchCatalog: _dependencies.searchCatalogUseCase,
+              searchWithScope: _dependencies.searchWithScopeUseCase,
+              suggestTerms: _dependencies.suggestSearchTermsUseCase,
+              searchOtherYears: _dependencies.searchOtherYearsUseCase,
               getBrandGroups: _dependencies.getBrandGroupsUseCase,
               getIndexBrands: _dependencies.getIndexBrandsUseCase,
               addRecent: _dependencies.addRecentSearchUseCase,

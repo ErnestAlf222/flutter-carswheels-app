@@ -12,6 +12,23 @@ class DetailBottomBarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Veladura: el contenido se funde antes de llegar a los botones.
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(gradient: AppGradients.detailBottomVeil),
+          child: const SizedBox(
+            width: double.infinity,
+            height: UiConfig.detailBottomVeilHeight,
+          ),
+        ),
+        ColoredBox(color: AppColors.surface, child: _bar()),
+      ],
+    );
+  }
+
+  Widget _bar() {
     return SafeArea(
       top: false,
       child: Padding(

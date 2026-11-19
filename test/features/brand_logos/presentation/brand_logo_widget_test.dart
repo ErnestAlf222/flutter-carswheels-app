@@ -43,6 +43,15 @@ void main() {
     expect(text.style!.color, AppColors.mutedText);
   });
 
+  testWidgets('al montarse pide el logo de respaldo una sola vez', (
+    tester,
+  ) async {
+    when(() => cubit.urlFor('audi')).thenReturn(null);
+    await tester.pumpWidget(host());
+    await tester.pump();
+    verify(() => cubit.ensureLogo('audi')).called(1);
+  });
+
   testWidgets('con URL .svg construye SvgPicture', (tester) async {
     when(
       () => cubit.urlFor('audi'),

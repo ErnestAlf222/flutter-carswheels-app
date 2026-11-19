@@ -1,35 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 
-/// Círculo blanco con el logo de una marca (o "Todas") y su etiqueta debajo.
+/// Círculo blanco con el logo de una marca y su etiqueta debajo (hasta 2 líneas).
 class SearchBrandItemWidget extends StatelessWidget {
   const SearchBrandItemWidget({
     super.key,
-    required this.label,
-    required this.semanticLabel,
-    required this.selected,
+    required this.brandName,
     required this.onTap,
-    this.brandName,
   });
 
-  final String label;
-  final String semanticLabel;
-  final bool selected;
+  final String brandName;
   final VoidCallback onTap;
-
-  /// Marca cuyo logo se muestra; nulo en el elemento "Todas".
-  final String? brandName;
 
   @override
   Widget build(BuildContext context) {
-    final brand = brandName;
     return Semantics(
       button: true,
-      selected: selected,
-      label: semanticLabel,
+      label: AppTexts.searchBrandChipSemanticLabel(brandName),
       excludeSemantics: true,
       onTap: onTap,
       child: GestureDetector(
@@ -44,42 +33,25 @@ class SearchBrandItemWidget extends StatelessWidget {
                 width: SearchConfig.brandCircleSize,
                 height: SearchConfig.brandCircleSize,
                 alignment: Alignment.center,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AppColors.surface,
                   shape: BoxShape.circle,
-                  border: selected
-                      ? Border.all(
-                          color: AppColors.ink,
-                          width: SearchConfig.brandRingWidth,
-                        )
-                      : null,
-                  boxShadow: selected ? null : AppShadows.soft,
+                  boxShadow: AppShadows.soft,
                 ),
-                child: brand == null
-                    ? const Icon(
-                        Symbols.apps,
-                        size: SearchConfig.fieldIconSize,
-                        color: AppColors.ink,
-                      )
-                    : BrandLogoWidget(
-                        brandName: brand,
-                        size: SearchConfig.brandLogoSize,
-                      ),
+                child: BrandLogoWidget(
+                  brandName: brandName,
+                  size: SearchConfig.brandLogoSize,
+                ),
               ),
               const SizedBox(height: SearchConfig.brandItemGap),
               SizedBox(
                 height: SearchConfig.brandLabelHeight,
                 child: Text(
-                  label,
-                  maxLines: 1,
+                  brandName,
+                  maxLines: SearchConfig.brandLabelMaxLines,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
-                  style: selected
-                      ? AppTextStyles.caption.copyWith(
-                          color: AppColors.ink,
-                          fontWeight: FontWeight.w700,
-                        )
-                      : AppTextStyles.caption,
+                  style: AppTextStyles.caption,
                 ),
               ),
             ],

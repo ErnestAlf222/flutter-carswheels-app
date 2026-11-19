@@ -39,7 +39,10 @@ class _ViewerBody extends StatefulWidget {
 class _ViewerBodyState extends State<_ViewerBody> {
   // El controlador es un recurso: empieza en la foto que se pidió.
   late final PageController _controller = PageController(
-    initialPage: widget.args.initialIndex,
+    initialPage: CircularIndex.initialPage(
+      widget.args.initialIndex,
+      widget.args.photos.length,
+    ),
   );
 
   @override
@@ -66,10 +69,13 @@ class _ViewerBodyState extends State<_ViewerBody> {
               children: [
                 PageView.builder(
                   controller: _controller,
-                  itemCount: photos.length,
-                  onPageChanged: context.read<PhotoViewerCubit>().selectPage,
-                  itemBuilder: (context, index) =>
-                      _ZoomablePhoto(photo: photos[index]),
+                  itemCount: CircularIndex.pageCount(photos.length),
+                  onPageChanged: (page) => context
+                      .read<PhotoViewerCubit>()
+                      .selectPage(CircularIndex.wrap(page, photos.length)),
+                  itemBuilder: (context, page) => _ZoomablePhoto(
+                    photo: photos[CircularIndex.wrap(page, photos.length)],
+                  ),
                 ),
                 SafeArea(
                   child: Align(

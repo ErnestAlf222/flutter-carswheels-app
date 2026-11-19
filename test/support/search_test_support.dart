@@ -15,6 +15,17 @@ const SortStrategy<RankedSearchEntry> rankedSort =
       largeListStrategy: ShellSortStrategy<RankedSearchEntry>(),
     );
 
+const SortStrategy<SuggestionCandidate> suggestionSort =
+    AdaptiveSortStrategy<SuggestionCandidate>(
+      smallListStrategy: BubbleSortStrategy<SuggestionCandidate>(),
+      largeListStrategy: ShellSortStrategy<SuggestionCandidate>(),
+    );
+
+const SortStrategy<int> yearSort = AdaptiveSortStrategy<int>(
+  smallListStrategy: BubbleSortStrategy<int>(),
+  largeListStrategy: ShellSortStrategy<int>(),
+);
+
 const SearchScopeEntity usScope = SearchScopeEntity(
   marketCode: 'us',
   year: 2025,
@@ -98,11 +109,17 @@ class FakeSearchContextSource implements SearchContextSource {
       StreamController<SearchScopeEntity?>.broadcast(sync: true);
   bool closed = false;
 
+  /// Años del catálogo del mercado, del más reciente al más antiguo.
+  List<int> years = const [2026, 2025, 2024, 2023];
+
   @override
   SearchScopeEntity? get scope => _scope;
 
   @override
   Stream<SearchScopeEntity?> get scopeChanges => _changes.stream;
+
+  @override
+  List<int> get availableYears => years;
 
   /// Cambia el alcance y lo anuncia.
   void change(SearchScopeEntity? scope) {
@@ -148,10 +165,15 @@ class SearchHarness {
     return SearchCubit(
       contextSource: context,
       buildIndex: build,
-      searchCatalog: SearchCatalogUseCase(
+      searchWithScope: SearchWithScopeUseCase(
         store: store,
         ranker: const SearchResultRanker(sortStrategy: rankedSort),
       ),
+      suggestTerms: SuggestSearchTermsUseCase(
+        store: store,
+        sortStrategy: suggestionSort,
+      ),
+      searchOtherYears: otherYears,
       getBrandGroups: GetBrandGroupsUseCase(
         store: store,
         ranker: const SearchResultRanker(sortStrategy: rankedSort),
@@ -186,4 +208,18 @@ class SearchHarness {
   final FakeRecentSearches recents;
   late final SearchIndexStore store;
   late final BuildSearchIndexUseCase build;
+
+  // Otros años: índice propio sobre el mismo almacén y el mismo origen.
+  late final SearchOtherYearsUseCase otherYears = SearchOtherYearsUseCase(
+    buildIndex: BuildSearchIndexUseCase(
+      source: source,
+      store: store,
+      sortStrategy: postingSort,
+    ),
+    searchCatalog: SearchCatalogUseCase(
+      store: store,
+      ranker: const SearchResultRanker(sortStrategy: rankedSort),
+    ),
+    selector: const NearestYearsSelector(sortStrategy: yearSort),
+  );
 }

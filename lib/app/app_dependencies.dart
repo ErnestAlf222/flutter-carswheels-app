@@ -30,6 +30,7 @@ class AppDependencies {
     required this.getBrandsUseCase,
     required this.getModelGroupsUseCase,
     required this.brandLogosRepository,
+    this.resolveCommonsLogoUseCase,
     required this.getModelPhotoUseCase,
     required this.resolveModelPhotoUseCase,
     required this.getModelGalleryUseCase,
@@ -54,7 +55,9 @@ class AppDependencies {
     required this.getMxModelGroupsUseCase,
     required this.getMxVersionsUseCase,
     required this.buildSearchIndexUseCase,
-    required this.searchCatalogUseCase,
+    required this.searchWithScopeUseCase,
+    required this.suggestSearchTermsUseCase,
+    required this.searchOtherYearsUseCase,
     required this.getBrandGroupsUseCase,
     required this.getIndexBrandsUseCase,
     required this.addRecentSearchUseCase,
@@ -79,6 +82,7 @@ class AppDependencies {
       mexicoCatalogCache: IsarMexicoCatalogCacheDatasource(isar),
       marketPreference: IsarMarketPreferenceDatasource(isar),
       recentSearches: IsarRecentSearchesDatasource(isar),
+      commonsLogoCache: IsarCommonsLogoCacheDatasource(isar),
       closeStorage: () => IsarDatabase.close(isar),
     );
   }
@@ -93,6 +97,7 @@ class AppDependencies {
     required MexicoCatalogCacheDatasource mexicoCatalogCache,
     required MarketPreferenceDatasource marketPreference,
     required RecentSearchesDatasource recentSearches,
+    CommonsLogoCacheDatasource? commonsLogoCache,
     Future<void> Function()? closeStorage,
   }) {
     final fuelEconomyDio = ApiClientFactory.create(
@@ -146,6 +151,7 @@ class AppDependencies {
       mexicoCatalogCache,
       marketPreference,
       recentSearches,
+      commonsLogoCache: commonsLogoCache,
       closeStorage: closeStorage,
     );
   }
@@ -166,6 +172,7 @@ class AppDependencies {
     MexicoCatalogCacheDatasource mexicoCatalogCache,
     MarketPreferenceDatasource marketPreference,
     RecentSearchesDatasource recentSearches, {
+    CommonsLogoCacheDatasource? commonsLogoCache,
     Future<void> Function()? closeStorage,
   }) {
     final repository = CatalogRepositoryImpl(
@@ -276,6 +283,14 @@ class AppDependencies {
       smallListStrategy: BubbleSortStrategy<String>(),
       largeListStrategy: ShellSortStrategy<String>(),
     );
+    const suggestionSortStrategy = AdaptiveSortStrategy<SuggestionCandidate>(
+      smallListStrategy: BubbleSortStrategy<SuggestionCandidate>(),
+      largeListStrategy: ShellSortStrategy<SuggestionCandidate>(),
+    );
+    const yearSortStrategy = AdaptiveSortStrategy<int>(
+      smallListStrategy: BubbleSortStrategy<int>(),
+      largeListStrategy: ShellSortStrategy<int>(),
+    );
     final searchStore = SearchIndexStore();
     final searchSource = MarketSearchCatalogSource(
       unitedStatesBrands: GetBrandsUseCase(
@@ -318,6 +333,18 @@ class AppDependencies {
       brandLogosRepository: BrandLogosRepositoryImpl(
         BrandLogosCdnDatasource(logosDio),
       ),
+      // Sin caché no hay logos de respaldo: solo se piden con la caché lista.
+      resolveCommonsLogoUseCase: commonsLogoCache == null
+          ? null
+          : ResolveCommonsLogoUseCase(
+              cache: commonsLogoCache,
+              datasource: CommonsLogoDatasourceImpl(
+                dio: commonsDio,
+                queue: commonsQueue,
+              ),
+              selector: const CommonsLogoSelector(),
+              clock: DateTime.now,
+            ),
       getModelPhotoUseCase: getModelPhoto,
       resolveModelPhotoUseCase: ResolveModelPhotoUseCase(
         cache: photoCache,
@@ -378,9 +405,26 @@ class AppDependencies {
         store: searchStore,
         sortStrategy: postingSortStrategy,
       ),
-      searchCatalogUseCase: SearchCatalogUseCase(
+      searchWithScopeUseCase: SearchWithScopeUseCase(
         store: searchStore,
         ranker: const SearchResultRanker(sortStrategy: rankedSortStrategy),
+      ),
+      suggestSearchTermsUseCase: SuggestSearchTermsUseCase(
+        store: searchStore,
+        sortStrategy: suggestionSortStrategy,
+      ),
+      searchOtherYearsUseCase: SearchOtherYearsUseCase(
+        // Instancia propia: construir otros años no interrumpe el índice vigente.
+        buildIndex: BuildSearchIndexUseCase(
+          source: searchSource,
+          store: searchStore,
+          sortStrategy: postingSortStrategy,
+        ),
+        searchCatalog: SearchCatalogUseCase(
+          store: searchStore,
+          ranker: const SearchResultRanker(sortStrategy: rankedSortStrategy),
+        ),
+        selector: const NearestYearsSelector(sortStrategy: yearSortStrategy),
       ),
       getBrandGroupsUseCase: GetBrandGroupsUseCase(
         store: searchStore,
@@ -412,6 +456,7 @@ class AppDependencies {
   final GetBrandsUseCase getBrandsUseCase;
   final GetModelGroupsUseCase getModelGroupsUseCase;
   final BrandLogosRepository brandLogosRepository;
+  final ResolveCommonsLogoUseCase? resolveCommonsLogoUseCase;
   final GetModelPhotoUseCase getModelPhotoUseCase;
   final ResolveModelPhotoUseCase resolveModelPhotoUseCase;
   final GetModelGalleryUseCase getModelGalleryUseCase;
@@ -436,7 +481,9 @@ class AppDependencies {
   final GetMxModelGroupsUseCase getMxModelGroupsUseCase;
   final GetMxVersionsUseCase getMxVersionsUseCase;
   final BuildSearchIndexUseCase buildSearchIndexUseCase;
-  final SearchCatalogUseCase searchCatalogUseCase;
+  final SearchWithScopeUseCase searchWithScopeUseCase;
+  final SuggestSearchTermsUseCase suggestSearchTermsUseCase;
+  final SearchOtherYearsUseCase searchOtherYearsUseCase;
   final GetBrandGroupsUseCase getBrandGroupsUseCase;
   final GetIndexBrandsUseCase getIndexBrandsUseCase;
   final AddRecentSearchUseCase addRecentSearchUseCase;
@@ -470,6 +517,7 @@ class AppDependencies {
   /// Libera los recursos de la composición.
   Future<void> close() async {
     buildSearchIndexUseCase.cancel();
+    searchOtherYearsUseCase.cancel();
     await commonsQueue.close();
     await fuelEconomyQueue.close();
     await nhtsaQueue.close();

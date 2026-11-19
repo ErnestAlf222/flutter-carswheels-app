@@ -11,6 +11,21 @@ class SearchConfig {
   // Marcas cuyos grupos se piden a la vez al construir el índice.
   static const int indexBuildConcurrency = 4;
 
+  // Marcas coincidentes que se muestran arriba de los resultados.
+  static const int maxBrandMatches = 3;
+
+  // Sugerencias "¿Quisiste decir?": cantidad, largo mínimo del token y distancia
+  // máxima de edición (1 hasta el largo corto, 2 desde ahí).
+  static const int maxSuggestions = 2;
+  static const int suggestionMinTokenLength = 3;
+  static const int suggestionShortTokenMaxLength = 5;
+  static const int suggestionShortMaxDistance = 1;
+  static const int suggestionLongMaxDistance = 2;
+
+  // Otros años: cuántos años cercanos se indexan y tope de filas halladas.
+  static const int otherYearsCount = 3;
+  static const int maxOtherYearsResults = 30;
+
   // Búsquedas recientes guardadas.
   static const int maxRecentSearches = 8;
 
@@ -53,9 +68,10 @@ class SearchConfig {
   // Selector de marcas: círculo con logo y etiqueta debajo.
   static const double brandCircleSize = 56.0;
   static const double brandLogoSize = 34.0;
-  static const double brandItemWidth = 68.0;
+  static const double brandItemWidth = 76.0;
   static const double brandItemGap = 4.0;
-  static const double brandLabelHeight = 16.0;
+  static const int brandLabelMaxLines = 2;
+  static const double brandLabelHeight = 32.0;
   static const double brandRowVerticalPadding = 10.0;
   static const double brandRingWidth = 2.0;
   static const double brandRowHeight =
@@ -63,6 +79,23 @@ class SearchConfig {
       brandCircleSize +
       brandItemGap +
       brandLabelHeight;
+
+  // Alcance de marca: fila compacta "Buscando en [logo] Marca x" bajo el campo.
+  static const double scopeRowHeight = 48.0;
+  static const double scopeLogoCircleSize = 28.0;
+  static const double scopeLogoSize = 20.0;
+  static const double scopeCloseSize = 32.0;
+  static const double scopeCloseIconSize = 18.0;
+
+  // Secciones, sugerencias y otros años.
+  static const double sectionTitleGap = 8.0;
+  static const double suggestionChipGap = 8.0;
+  static const double otherYearRowHeight = 64.0;
+  static const double otherYearLogoCircleSize = 44.0;
+  static const double otherYearLogoSize = 28.0;
+  static const double otherYearRowGap = 8.0;
+  static const double otherYearChipVerticalPadding = 4.0;
+  static const double emptyTopGap = 40.0;
 
   // Recientes: una fila horizontal de chips.
   static const double recentChipHeight = 40.0;

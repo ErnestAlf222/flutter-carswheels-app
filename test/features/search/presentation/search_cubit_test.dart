@@ -151,7 +151,7 @@ void main() {
         _settle(async);
         harness.cubit.selectBrand('Toyota');
         expect(harness.cubit.state.query, '');
-        expect(harness.cubit.state.brandFilter, 'Toyota');
+        expect(harness.cubit.state.scopeBrand, 'Toyota');
       });
     });
   });
@@ -175,7 +175,7 @@ void main() {
         _settle(async);
         harness.cubit.selectBrand('Toyota');
         final state = harness.cubit.state;
-        expect(state.brandFilter, 'Toyota');
+        expect(state.scopeBrand, 'Toyota');
         expect(state.results, hasLength(82));
         expect(state.results.every((r) => r.brand == 'Toyota'), isTrue);
         expect(state.results.every((r) => !r.isBrandOnly), isTrue);
@@ -184,22 +184,31 @@ void main() {
       });
     });
 
-    test('con texto filtra por texto y por marca', () {
+    test('con alcance y texto: la marca primero y el resto debajo', () {
       final harness = manyToyotas();
       _run(harness, (async) {
         harness.cubit.ensureIndex();
         _settle(async);
         harness.cubit.onQueryChanged('cor');
         _settle(async);
-        // Sin marca: Corolla, Corolla Cross (Toyota) y Corvette X (Honda).
+        // Sin alcance: Corolla, Corolla Cross (Toyota) y Corvette X (Honda).
         expect(harness.cubit.state.results, hasLength(3));
+        expect(harness.cubit.state.otherResults, isEmpty);
         harness.cubit.selectBrand('Toyota');
-        final results = harness.cubit.state.results;
+        // Elegir una marca limpia el texto: se listan sus modelos.
+        expect(harness.cubit.state.query, '');
+        harness.cubit.onQueryChanged('cor');
+        _settle(async);
+        final state = harness.cubit.state;
         expect(
-          [for (final r in results) r.groupName],
+          [for (final r in state.results) r.groupName],
           ['Corolla', 'Corolla Cross'],
         );
-        expect(harness.cubit.state.query, 'cor');
+        expect(
+          [for (final r in state.otherResults) r.groupName],
+          ['Corvette X'],
+        );
+        expect(state.otherResults.single.brand, 'Honda');
       });
     });
 
@@ -213,7 +222,7 @@ void main() {
           harness.cubit.selectBrand('Toyota');
           harness.cubit.onQueryChanged('cor');
           _settle(async);
-          expect(harness.cubit.state.brandFilter, 'Toyota');
+          expect(harness.cubit.state.scopeBrand, 'Toyota');
           expect(harness.cubit.state.results, hasLength(2));
           harness.cubit.onQueryChanged('c');
           // Sin texto suficiente, al instante vuelven todos los de la marca.
@@ -221,26 +230,22 @@ void main() {
           harness.cubit.onQueryChanged('cor');
           _settle(async);
           harness.cubit.clearQuery();
-          expect(harness.cubit.state.brandFilter, 'Toyota');
+          expect(harness.cubit.state.scopeBrand, 'Toyota');
           expect(harness.cubit.state.results, hasLength(82));
         });
       },
     );
 
-    test('tocar la marca elegida o "Todas" quita el filtro', () {
+    test('elegir otra marca cambia el alcance y quitarlo vuelve a vacío', () {
       final harness = manyToyotas();
       _run(harness, (async) {
         harness.cubit.ensureIndex();
         _settle(async);
         harness.cubit.selectBrand('Toyota');
-        harness.cubit.selectBrand('Toyota');
-        expect(harness.cubit.state.brandFilter, isNull);
-        expect(harness.cubit.state.results, isEmpty);
         harness.cubit.selectBrand('Honda');
-        harness.cubit.selectBrand('Toyota');
-        expect(harness.cubit.state.brandFilter, 'Toyota');
-        harness.cubit.clearBrand();
-        expect(harness.cubit.state.brandFilter, isNull);
+        expect(harness.cubit.state.scopeBrand, 'Honda');
+        harness.cubit.clearScopeBrand();
+        expect(harness.cubit.state.scopeBrand, isNull);
         expect(harness.cubit.state.hasQuery, isFalse);
       });
     });
@@ -250,9 +255,10 @@ void main() {
       _run(harness, (async) {
         harness.cubit.ensureIndex();
         _settle(async);
-        harness.cubit.onQueryChanged('cor');
         harness.cubit.selectBrand('Toyota');
-        harness.cubit.clearBrand();
+        harness.cubit.onQueryChanged('cor');
+        _settle(async);
+        harness.cubit.clearScopeBrand();
         expect(harness.cubit.state.results, hasLength(3));
       });
     });
@@ -386,8 +392,8 @@ void main() {
         harness.source.gate = Completer<void>();
         harness.cubit.ensureIndex();
         _settle(async);
-        harness.cubit.onQueryChanged('toy');
         harness.cubit.selectBrand('Toyota');
+        harness.cubit.onQueryChanged('toy');
         _settle(async);
         expect(
           harness.cubit.state.indexStatus?.phase,
@@ -403,7 +409,7 @@ void main() {
         expect(state.indexStatus?.phase, SearchIndexPhase.ready);
         expect(state.query, 'toy');
         // Otro año: la marca elegida se limpia.
-        expect(state.brandFilter, isNull);
+        expect(state.scopeBrand, isNull);
         expect(state.results.every((r) => r.year == 2026), isTrue);
         expect(state.results.length, greaterThan(1));
       });
@@ -414,8 +420,8 @@ void main() {
       _run(harness, (async) {
         harness.cubit.ensureIndex();
         _settle(async);
-        harness.cubit.onQueryChanged('toy');
         harness.cubit.selectBrand('Toyota');
+        harness.cubit.onQueryChanged('toy');
         _settle(async);
         harness.context.change(null);
         _settle(async);
@@ -424,7 +430,7 @@ void main() {
         harness.context.change(mxScope);
         _settle(async);
         expect(harness.cubit.state.scope, mxScope);
-        expect(harness.cubit.state.brandFilter, isNull);
+        expect(harness.cubit.state.scopeBrand, isNull);
         expect(harness.cubit.state.brands, ['Honda', 'Hyundai', 'Toyota']);
         expect(
           harness.cubit.state.results.every((r) => r.marketCode == 'mx'),

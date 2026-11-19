@@ -212,6 +212,9 @@ void main() {
     testWidgets('el botón de versión usa la etiqueta y abre la hoja', (
       tester,
     ) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(800, 1200);
+      addTearDown(tester.view.reset);
       when(() => load(any()))
           .thenAnswer((_) async => _mx(['COROLLA', 'COROLLA HIBRIDO']));
       await pumpPage(tester, Market.mexico);

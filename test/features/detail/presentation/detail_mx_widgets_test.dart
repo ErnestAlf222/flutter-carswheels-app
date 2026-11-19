@@ -37,6 +37,31 @@ void main() {
     });
   });
 
+  group('emisiones de México', () {
+    testWidgets('usa la rejilla de la tarjeta de EE. UU. con etiqueta debajo', (
+      tester,
+    ) async {
+      final detail = testDetail(
+        cityCo2GramsPerKilometer: 150,
+        highwayCo2GramsPerKilometer: 120,
+        co2GramsPerKilometer: 135,
+      );
+      await tester.pumpWidget(host(DetailEmissionsCardWidget(detail: detail)));
+      expect(find.byType(DetailFigureGridWidget), findsOneWidget);
+      expect(find.text(AppTexts.emissionsTitle), findsOneWidget);
+      final figure = tester.getRect(
+        find.text(AppTexts.gramsPerKilometerFigure(150)),
+      );
+      final label = tester.getRect(find.text(AppTexts.cityConsumptionLabel));
+      expect(label.top, greaterThanOrEqualTo(figure.bottom - 1));
+      // Con tres cifras la rejilla es de dos columnas: la tercera baja.
+      final third = tester.getRect(
+        find.text(AppTexts.gramsPerKilometerFigure(135)),
+      );
+      expect(third.top, greaterThan(figure.bottom));
+    });
+  });
+
   group('filas de México', () {
     testWidgets('solo aparecen las filas con dato limpio', (tester) async {
       await tester.pumpWidget(

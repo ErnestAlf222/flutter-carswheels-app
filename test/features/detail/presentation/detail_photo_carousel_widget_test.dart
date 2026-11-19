@@ -60,7 +60,6 @@ void main() {
           mainAxisSize: MainAxisSize.min,
           children: [
             DetailPhotoCarouselWidget(brandName: 'Toyota', heroTag: heroTag),
-            const DetailPhotoCreditWidget(),
           ],
         ),
       ),
@@ -116,7 +115,7 @@ void main() {
     expect(dots(), findsNothing);
   });
 
-  testWidgets('la foto va a todo el ancho, de 264, sobre tinta y con la '
+  testWidgets('la foto va a todo el ancho, de config, sobre tinta y con la '
       'superposición oscura', (tester) async {
     await tester.pumpWidget(carousel(GalleryState(photos: [_photo(1)])));
     final container = tester.widget<Container>(cardFinder());
@@ -130,18 +129,21 @@ void main() {
               AppGradients.photoOverlay,
         );
     expect(overlays, hasLength(1));
-    expect(tester.getSize(cardFinder()), const Size(300, 264));
-    expect(UiConfig.detailPhotoHeight, 220 * 1.2);
+    expect(
+      tester.getSize(cardFinder()),
+      const Size(300, UiConfig.detailPhotoHeight),
+    );
+    expect(UiConfig.detailPhotoHeight, closeTo(264 * 1.2, 0.01));
   });
 
-  testWidgets('una foto: sin puntos, con Hero en la página 0 y crédito', (
+  testWidgets('una foto: sin puntos, con Hero en la página 0 y sin crédito', (
     tester,
   ) async {
     await tester.pumpWidget(carousel(GalleryState(photos: [_photo(1)])));
     expect(find.byType(PageView), findsOneWidget);
     expect(dots(), findsNothing);
     expect(tester.widget<Hero>(find.byType(Hero)).tag, 'tag');
-    expect(find.text('Foto: Autor 1 · CC BY 4.0'), findsOneWidget);
+    expect(find.textContaining('Foto:'), findsNothing);
     expect(find.byType(ImageFiltered), findsNothing);
   });
 
@@ -202,15 +204,10 @@ void main() {
       find.ancestor(of: dots().first, matching: find.byType(Container)).first,
     );
     expect(pill.center.dx, closeTo(card.center.dx, 0.01));
-    expect(
-      card.bottom - pill.bottom,
-      UiConfig.galleryDotsBottomInset + HeaderConfig.detailPanelOverlap,
-    );
+    expect(card.bottom - pill.bottom, UiConfig.galleryDotsBottomInset);
   });
 
-  testWidgets('el punto activo y el crédito siguen a la foto actual', (
-    tester,
-  ) async {
+  testWidgets('el punto activo sigue a la foto actual', (tester) async {
     await tester.pumpWidget(
       carousel(
         GalleryState(
@@ -227,30 +224,6 @@ void main() {
         (dot.decoration! as BoxDecoration).color,
     ];
     expect(colors.last, AppColors.galleryDotActive);
-    expect(find.text('Foto: Segunda · CC BY 4.0'), findsOneWidget);
-    expect(find.textContaining('Autor 1'), findsNothing);
-  });
-
-  testWidgets('sin autor usa el texto de autor no indicado', (tester) async {
-    await tester.pumpWidget(
-      carousel(GalleryState(photos: [_photo(1, author: '  ')])),
-    );
-    expect(
-      find.text(
-        AppTexts.photoCreditLabel(AppTexts.authorMissingLabel, 'CC BY 4.0'),
-      ),
-      findsOneWidget,
-    );
-  });
-
-  testWidgets('el crédito admite hasta 2 líneas y va centrado', (tester) async {
-    await tester.pumpWidget(
-      carousel(GalleryState(photos: [_photo(1, author: 'Autor ' * 20)])),
-    );
-    final text = tester.widget<Text>(find.textContaining('Foto: Autor'));
-    expect(text.maxLines, UiConfig.photoCreditMaxLines);
-    expect(text.maxLines, 2);
-    expect(text.textAlign, TextAlign.center);
   });
 
   testWidgets('la cápsula de referencia solo aparece con isReference', (
@@ -275,8 +248,7 @@ void main() {
     final chip = tester.getRect(chipBox());
     expect(chip.left - card.left, UiConfig.detailPhotoChipLeft);
     expect(chip.top - card.top, UiConfig.detailPhotoChipTop);
-    // El crédito ya no lleva la etiqueta de referencia.
-    expect(find.text('Foto: Autor 1 · CC BY 4.0'), findsOneWidget);
+    expect(find.textContaining('Foto:'), findsNothing);
   });
 
   testWidgets('solo la página 0 lleva el Hero', (tester) async {
@@ -308,7 +280,9 @@ void main() {
     expect(prefetcher.sources, ['fuente-3']);
   });
 
-  testWidgets('en la última foto no se precarga nada', (tester) async {
+  testWidgets('en la última foto se precarga la primera (vuelta)', (
+    tester,
+  ) async {
     final cubit = buildMockGalleryCubit(
       GalleryState(photos: [_photo(1), _photo(2)]),
     );
@@ -319,7 +293,7 @@ void main() {
     await tester.drag(find.byType(PageView), const Offset(-300, 0));
     await tester.pumpAndSettle();
     verify(() => cubit.selectPage(1)).called(1);
-    expect(prefetcher.sources, isEmpty);
+    expect(prefetcher.sources, ['fuente-1']);
   });
 
   testWidgets('la imagen grande usa la URL de 960 y su placeholder la de 330', (
@@ -397,6 +371,79 @@ void main() {
     },
   );
 
+  group('carrusel circular', () {
+    Future<MockDetailGalleryCubit> pumpWith(
+      WidgetTester tester,
+      int count, {
+      int current = 0,
+    }) async {
+      final cubit = buildMockGalleryCubit(
+        GalleryState(
+          photos: [
+            for (final i in Iterable<int>.generate(count)) _photo(i + 1),
+          ],
+          currentIndex: current,
+        ),
+      );
+      await tester.pumpWidget(
+        carousel(
+          const GalleryState(),
+          cubit: cubit,
+          prefetcher: _RecordingPrefetcher(),
+        ),
+      );
+      return cubit;
+    }
+
+    testWidgets('con 5 fotos, desde la última deslizar va a la primera', (
+      tester,
+    ) async {
+      final cubit = await pumpWith(tester, 5, current: 4);
+      await tester.drag(find.byType(PageView), const Offset(-300, 0));
+      await tester.pumpAndSettle();
+      verify(() => cubit.selectPage(0)).called(1);
+    });
+
+    testWidgets('con 5 fotos, desde la primera deslizar atrás va a la última', (
+      tester,
+    ) async {
+      final cubit = await pumpWith(tester, 5);
+      await tester.drag(find.byType(PageView), const Offset(300, 0));
+      await tester.pumpAndSettle();
+      verify(() => cubit.selectPage(4)).called(1);
+    });
+
+    testWidgets('con 2 fotos da la vuelta en los dos sentidos', (tester) async {
+      final cubit = await pumpWith(tester, 2);
+      await tester.drag(find.byType(PageView), const Offset(300, 0));
+      await tester.pumpAndSettle();
+      verify(() => cubit.selectPage(1)).called(1);
+      await tester.drag(find.byType(PageView), const Offset(-300, 0));
+      await tester.pumpAndSettle();
+      verify(() => cubit.selectPage(0)).called(1);
+    });
+
+    testWidgets('con una foto no hay vuelta ni cambio de página', (
+      tester,
+    ) async {
+      final cubit = await pumpWith(tester, 1);
+      await tester.drag(find.byType(PageView), const Offset(-300, 0));
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(PageView), const Offset(300, 0));
+      await tester.pumpAndSettle();
+      verifyNever(() => cubit.selectPage(any()));
+    });
+
+    test('CircularIndex: índice módulo y página inicial', () {
+      expect(CircularIndex.wrap(-1, 5), 4);
+      expect(CircularIndex.wrap(5003, 5), 3);
+      expect(CircularIndex.wrap(7, 1), 0);
+      expect(CircularIndex.pageCount(1), 1);
+      expect(CircularIndex.pageCount(2), isNull);
+      expect(CircularIndex.wrap(CircularIndex.initialPage(3, 5), 5), 3);
+    });
+  });
+
   group('visor', () {
     testWidgets('tocar la foto abre el visor con las fotos y el índice', (
       tester,
@@ -446,7 +493,7 @@ void main() {
       final controller = tester
           .widget<PageView>(find.byType(PageView))
           .controller;
-      expect(controller!.page, 1);
+      expect(CircularIndex.wrap(controller!.page!.round(), 2), 1);
     });
 
     testWidgets('la foto tiene semántica de botón para ver en grande', (

@@ -271,20 +271,47 @@ class AppTexts {
       'Faltaron algunas marcas en la búsqueda';
   static const String searchRecentsTitle = 'Recientes';
   static const String searchClearAllLabel = 'Borrar todo';
-  static const String searchAllBrandsLabel = 'Todas';
-  static const String searchAllBrandsSemanticLabel =
-      'Todas las marcas, quitar el filtro';
   static const String searchIdleHint =
-      'Escribe una marca o un modelo, o elige una marca arriba';
+      'Escribe una marca o un modelo, o explora por marca';
+  static const String searchExploreByBrandTitle = 'Explorar por marca';
+  static const String searchBrandMatchesTitle = 'Marcas';
+  static const String searchScopePrefix = 'Buscando en';
+  static const String searchOtherBrandsTitle = 'En otras marcas';
+  static const String searchOtherYearsTitle = 'También en otros años';
+  static const String searchOtherYearsPrompt = '¿No es el que buscas?';
+  static const String searchOtherYearsAction = 'Buscar en otros años';
+  static const String searchOtherYearsCancel = 'Cancelar';
+  static const String searchOtherYearsNone =
+      'Sin coincidencias en los años cercanos';
+  static const String searchOtherYearsFailed =
+      'No se pudo buscar en otros años';
   static const String searchNoResultsSuggestion =
       'Revisa la ortografía o prueba con menos letras';
-  static const String searchRemoveBrandFilterLabel = 'Quitar filtro de marca';
   static String searchResultsCountLabel(int count) =>
       count == 1 ? '1 resultado' : '$count resultados';
   static String searchResultsTruncatedLabel(int count) =>
       'Mostrando los primeros $count';
   static String searchBrandChipSemanticLabel(String brand) =>
-      'Filtrar por la marca $brand';
+      'Buscar en la marca $brand';
+  static String searchScopeSemanticLabel(String brand) =>
+      'Buscando en la marca $brand';
+  static String searchScopeClearSemanticLabel(String brand) =>
+      'Quitar la marca $brand de la búsqueda';
+  static String searchInBrandTitle(String brand) => 'En $brand';
+  static String searchNoResultsInBrand(String brand) =>
+      'Sin resultados en $brand';
+  static String searchSuggestionLabel(String text) =>
+      '¿Quisiste decir «$text»?';
+  static String searchSuggestionSemanticLabel(String text) =>
+      'Buscar $text en su lugar';
+  static String searchOtherYearChipLabel(int year) => '$year';
+  static String searchOtherYearsProgressLabel(List<int> years) =>
+      'Buscando en ${years.join(", ")}…';
+  static String searchOtherYearRowSemanticLabel(
+    String group,
+    String brand,
+    int year,
+  ) => '$group, $brand, año $year';
   static String searchContextChipLabel(String market, int year) =>
       '$market · $year';
   static String searchContextSemanticLabel(String market, int year) =>

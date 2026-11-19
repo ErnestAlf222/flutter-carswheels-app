@@ -8,6 +8,9 @@ abstract class SearchContextSource {
   /// Cada cambio de alcance (nulo cuando se está recargando el catálogo).
   Stream<SearchScopeEntity?> get scopeChanges;
 
+  /// Años disponibles del mercado vigente, del más reciente al más antiguo.
+  List<int> get availableYears;
+
   /// Libera las suscripciones.
   Future<void> close();
 }

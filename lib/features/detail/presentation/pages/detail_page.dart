@@ -39,7 +39,7 @@ class DetailPage extends StatelessWidget {
           ),
       ],
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: AppColors.surface,
         body: Stack(
           children: [
             CustomScrollView(
@@ -53,7 +53,6 @@ class DetailPage extends StatelessWidget {
                     topInset: MediaQuery.paddingOf(context).top,
                   ),
                 ),
-                const SliverToBoxAdapter(child: DetailPhotoCreditWidget()),
                 SliverToBoxAdapter(child: _DetailBody(args: args)),
               ],
             ),
@@ -278,7 +277,13 @@ class _MexicoLoadedContent extends StatelessWidget {
                 children: [
                   DetailMxFiguresCardWidget(detail: detail),
                   DetailMxInfoRowsWidget(detail: detail),
-                  DetailEmissionsCardWidget(detail: detail),
+                  // Mismo margen lateral que la tarjeta de consumo de EE. UU.
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: UiConfig.detailInfoSideMargin,
+                    ),
+                    child: DetailEmissionsCardWidget(detail: detail),
+                  ),
                 ],
               ),
             ),

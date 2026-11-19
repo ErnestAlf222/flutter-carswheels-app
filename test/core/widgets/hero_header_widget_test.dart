@@ -46,10 +46,7 @@ void main() {
     expect(glows, hasLength(1));
     final gradient =
         (glows.single.decoration! as BoxDecoration).gradient! as RadialGradient;
-    expect(
-      gradient.colors.first,
-      AppColors.accent.withValues(alpha: HeaderConfig.glowOpacity),
-    );
+    expect(gradient.colors.first, AppColors.inkSoft);
   });
 
   testWidgets('el relleno superior respeta el área segura', (tester) async {

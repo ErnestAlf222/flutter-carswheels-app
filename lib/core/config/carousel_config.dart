@@ -17,4 +17,6 @@ class CarouselConfig {
   static const int shiftFadeMilliseconds = 150;
   // Máximo de logos que se precargan.
   static const int logoPrecacheMaxItems = 60;
+  // Vueltas virtuales de margen a cada lado en los carruseles circulares.
+  static const int circularPageBase = 1000;
 }

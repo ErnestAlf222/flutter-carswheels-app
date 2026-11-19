@@ -51,22 +51,22 @@ class UiConfig {
   // Foto grande de Detalle.
   static const double detailCircleButtonSize = 48.0;
   static const double detailCircleButtonInset = 12.0;
-  // Foto de Detalle a todo el ancho: el alto anterior (220) por 1.2.
-  static const double detailPhotoHeight = 264.0;
-  // Barra fija compacta al contraer la foto, sin el área segura.
+  // Foto de Detalle a todo el ancho: el alto anterior (264) más 20 %.
+  static const double detailPhotoHeight = 316.8;
+  // Banda tinta superior con el botón de volver, sin el área segura; es
+  // también la barra fija compacta al contraer la foto.
   static const double detailCollapsedBarHeight = 64.0;
   // Fracción del desplazamiento que sigue la foto (parallax).
   static const double detailParallaxFactor = 0.5;
   // Desde qué avance del contraído aparece el nombre en la barra.
   static const double detailTitleFadeStart = 0.6;
   static const double detailBarTitleGap = 12.0;
-  // "Foto de referencia" va a la derecha del botón de volver.
-  static const double detailPhotoChipTop = 20.0;
-  static const double detailPhotoChipLeft = 68.0;
+  // "Foto de referencia" va en la esquina superior izquierda de la foto.
+  static const double detailPhotoChipTop = 12.0;
+  static const double detailPhotoChipLeft = 12.0;
   // Foto grande de Detalle.
   static const double photoCoverMinAspect = 1.2;
   static const double photoCoverMaxAspect = 2.4;
-  static const int photoCreditMaxLines = 2;
   static const double photoLoadingIconSize = 40.0;
   static const double photoEmptyLogoSize = 56.0;
   static const double photoChipHorizontalPadding = 10.0;
@@ -81,7 +81,8 @@ class UiConfig {
   static const double rowPhotoLoadingLogoOpacity = 0.4;
   static const double rowNoPhotoBadgeSize = 18.0;
   static const int detailEntryStepMilliseconds = 70;
-  static const double detailCreditGap = 4.0;
+  // Borde de las tarjetas de Detalle sobre el fondo blanco.
+  static const double detailCardBorderWidth = 1.0;
   static const double galleryDotSize = 6.0;
   static const double galleryDotSpacing = 6.0;
   static const double galleryDotsBottomInset = 8.0;
@@ -93,7 +94,9 @@ class UiConfig {
   static const double detailBottomBarHeight = 60.0;
   static const double detailBottomBarInset = 20.0;
   static const double detailBottomBarGap = 12.0;
-  static const double detailBottomClearance = 100.0;
+  static const double detailBottomClearance = 140.0;
+  // Alto del degradado de la veladura que se funde sobre el contenido.
+  static const double detailBottomVeilHeight = 48.0;
   static const double detailSheetMaxHeightFraction = 0.6;
   static const double detailSheetHandleWidth = 40.0;
   static const double detailSheetHandleHeight = 4.0;

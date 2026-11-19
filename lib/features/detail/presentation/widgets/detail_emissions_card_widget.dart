@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/detail/presentation/widgets/detail_figure_grid_widget.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 
 /// Tarjeta de CO₂ por ciclo; no aparece si la versión no trae ninguna cifra.
@@ -16,14 +17,17 @@ class DetailEmissionsCardWidget extends StatelessWidget {
     final combined = detail.co2GramsPerKilometer;
     final cells = [
       if (city != null)
-        (AppTexts.gramsPerKilometerFigure(city), AppTexts.cityConsumptionLabel),
+        EfficiencyFigureData(
+          AppTexts.gramsPerKilometerFigure(city),
+          AppTexts.cityConsumptionLabel,
+        ),
       if (highway != null)
-        (
+        EfficiencyFigureData(
           AppTexts.gramsPerKilometerFigure(highway),
           AppTexts.highwayConsumptionLabel,
         ),
       if (combined != null)
-        (
+        EfficiencyFigureData(
           AppTexts.gramsPerKilometerFigure(combined),
           AppTexts.combinedCycleLabel,
         ),
@@ -37,6 +41,10 @@ class DetailEmissionsCardWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadii.card),
+          border: Border.all(
+            color: AppColors.outline,
+            width: UiConfig.detailCardBorderWidth,
+          ),
           boxShadow: AppShadows.soft,
         ),
         child: Column(
@@ -44,24 +52,7 @@ class DetailEmissionsCardWidget extends StatelessWidget {
           children: [
             Text(AppTexts.emissionsTitle, style: AppTextStyles.sectionTitle),
             const SizedBox(height: UiConfig.efficiencyGridSpacing),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final (index, cell) in cells.indexed) ...[
-                  if (index > 0)
-                    const SizedBox(width: UiConfig.efficiencyGridSpacing),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(cell.$1, style: AppTextStyles.efficiencyFigure),
-                        Text(cell.$2, style: AppTextStyles.caption),
-                      ],
-                    ),
-                  ),
-                ],
-              ],
-            ),
+            DetailFigureGridWidget(cells: cells),
           ],
         ),
       ),

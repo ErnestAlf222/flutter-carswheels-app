@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cars_wheels_app/core/config/config.dart';
 import 'package:cars_wheels_app/core/theme/theme.dart';
 
-/// Encabezado tinta con esquinas inferiores redondeadas y un resplandor amarillo.
+/// Encabezado tinta con esquinas inferiores redondeadas y un resplandor neutro.
 class HeroHeaderWidget extends StatelessWidget {
   const HeroHeaderWidget({super.key, required this.child, this.padding});
 
@@ -34,7 +34,7 @@ class HeroHeaderWidget extends StatelessWidget {
                 child: Container(
                   width: HeaderConfig.glowSize,
                   height: HeaderConfig.glowSize,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: AppGradients.headerGlow,
                   ),

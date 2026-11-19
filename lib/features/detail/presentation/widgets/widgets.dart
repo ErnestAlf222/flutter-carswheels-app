@@ -4,6 +4,7 @@ export 'detail_attribution_widget.dart';
 export 'detail_circle_button_widget.dart';
 export 'detail_emissions_card_widget.dart';
 export 'detail_efficiency_card_widget.dart';
+export 'detail_figure_grid_widget.dart';
 export 'detail_figures_card_widget.dart';
 export 'detail_header_delegate.dart';
 export 'detail_info_row_widget.dart';

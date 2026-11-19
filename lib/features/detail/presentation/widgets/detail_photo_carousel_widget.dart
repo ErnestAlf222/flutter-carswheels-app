@@ -38,43 +38,6 @@ class DetailPhotoCarouselWidget extends StatelessWidget {
   }
 }
 
-/// Crédito de la foto actual, debajo de la foto; no se muestra sin fotos.
-class DetailPhotoCreditWidget extends StatelessWidget {
-  const DetailPhotoCreditWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<DetailGalleryCubit, GalleryState>(
-      builder: (context, state) {
-        if (state.photos.isEmpty) return const SizedBox.shrink();
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(
-            UiConfig.detailInfoSideMargin,
-            UiConfig.detailCreditGap,
-            UiConfig.detailInfoSideMargin,
-            0,
-          ),
-          child: Text(
-            _creditText(state.photos[state.currentIndex]),
-            maxLines: UiConfig.photoCreditMaxLines,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.caption,
-          ),
-        );
-      },
-    );
-  }
-
-  // Autor y licencia; la cápsula de la foto avisa si es de referencia.
-  static String _creditText(PhotoEntity photo) {
-    final author = photo.authorName.trim().isEmpty
-        ? AppTexts.authorMissingLabel
-        : photo.authorName;
-    return AppTexts.photoCreditLabel(author, photo.licenseName);
-  }
-}
-
 /// Tarjeta sin fotos: cargando o, si ya terminó, el aviso de sin foto.
 class _EmptyOrLoading extends StatelessWidget {
   const _EmptyOrLoading({required this.isLoading, required this.brandName});
@@ -116,7 +79,10 @@ class _PhotoPages extends StatefulWidget {
 class _PhotoPagesState extends State<_PhotoPages> {
   // El controlador es un recurso: empieza en la página que indica el cubit.
   late final PageController _controller = PageController(
-    initialPage: widget.state.currentIndex,
+    initialPage: CircularIndex.initialPage(
+      widget.state.currentIndex,
+      widget.state.photos.length,
+    ),
   );
 
   @override
@@ -140,13 +106,16 @@ class _PhotoPagesState extends State<_PhotoPages> {
             onTap: () => _openViewer(context),
             child: PageView.builder(
               controller: _controller,
-              itemCount: photos.length,
-              onPageChanged: (index) => _onPageChanged(context, index),
-              itemBuilder: (context, index) => _PhotoPage(
-                photo: photos[index],
-                brandName: widget.brandName,
-                heroTag: index == 0 ? widget.heroTag : null,
-              ),
+              itemCount: CircularIndex.pageCount(photos.length),
+              onPageChanged: (page) => _onPageChanged(context, page),
+              itemBuilder: (context, page) {
+                final index = CircularIndex.wrap(page, photos.length);
+                return _PhotoPage(
+                  photo: photos[index],
+                  brandName: widget.brandName,
+                  heroTag: index == 0 ? widget.heroTag : null,
+                );
+              },
             ),
           ),
         ),
@@ -168,9 +137,7 @@ class _PhotoPagesState extends State<_PhotoPages> {
           Positioned(
             left: 0,
             right: 0,
-            bottom:
-                UiConfig.galleryDotsBottomInset +
-                HeaderConfig.detailPanelOverlap,
+            bottom: UiConfig.galleryDotsBottomInset,
             child: Center(
               child: _GalleryDots(
                 count: photos.length,
@@ -194,17 +161,23 @@ class _PhotoPagesState extends State<_PhotoPages> {
     );
     if (result == null || !mounted) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_controller.hasClients) _controller.jumpToPage(result);
+      if (_controller.hasClients) {
+        _controller.jumpToPage(
+          CircularIndex.initialPage(result, widget.state.photos.length),
+        );
+      }
     });
     cubit.selectPage(result);
   }
 
-  // Avisa al cubit y precarga la foto siguiente para que ya esté al llegar.
-  void _onPageChanged(BuildContext context, int index) {
-    context.read<DetailGalleryCubit>().selectPage(index);
+  // Avisa al cubit con el índice real y precarga la foto siguiente (con vuelta).
+  void _onPageChanged(BuildContext context, int page) {
     final photos = widget.state.photos;
-    if (index + 1 >= photos.length) return;
-    context.read<PhotoPrefetcher>().prefetchLarge(context, photos[index + 1]);
+    final index = CircularIndex.wrap(page, photos.length);
+    context.read<DetailGalleryCubit>().selectPage(index);
+    if (photos.length < 2) return;
+    final next = CircularIndex.next(index, photos.length);
+    context.read<PhotoPrefetcher>().prefetchLarge(context, photos[next]);
   }
 }
 
