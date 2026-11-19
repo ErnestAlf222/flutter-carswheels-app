@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:cars_wheels_app/core/config/search_config.dart';
+
 /// Coincidencia de búsqueda: un grupo de modelo de una marca, con sus variantes.
 class SearchResultEntity extends Equatable {
   const SearchResultEntity({
@@ -21,6 +23,14 @@ class SearchResultEntity extends Equatable {
   final String marketCode;
 
   bool get isBrandOnly => groupName == null;
+
+  /// Clave estable para guardar los rasgos analizados de este resultado.
+  String get traitsKey => [
+    marketCode,
+    year,
+    brand,
+    groupName ?? '',
+  ].join(SearchConfig.scopeKeySeparator);
 
   @override
   List<Object?> get props => [brand, groupName, variantNames, year, marketCode];

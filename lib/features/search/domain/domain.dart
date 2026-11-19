@@ -1,6 +1,7 @@
 // Entidades
 export 'entities/recent_search_entity.dart';
 export 'entities/search_entry_entity.dart';
+export 'entities/search_filters_entity.dart';
 export 'entities/search_group_entity.dart';
 export 'entities/search_index_status_entity.dart';
 export 'entities/search_other_years_status_entity.dart';
@@ -11,8 +12,10 @@ export 'entities/search_scope_entity.dart';
 export 'datasources/recent_searches_datasource.dart';
 export 'datasources/search_catalog_source.dart';
 export 'datasources/search_context_source.dart';
+export 'datasources/search_traits_source.dart';
 // Servicios
 export 'services/nearest_years_selector.dart';
+export 'services/search_filter_service.dart';
 export 'services/search_index.dart';
 export 'services/search_index_store.dart';
 export 'services/search_result_ranker.dart';

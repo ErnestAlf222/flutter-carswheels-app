@@ -60,6 +60,62 @@ void main() {
     await cubit.close();
   });
 
+  group('needsLoad: la lista debe corresponder a la consulta del catálogo', () {
+    test('sin nada pedido hace falta cargar', () async {
+      final cubit = _cubit(_FakeCatalogRepository(modelCount: 2));
+      expect(cubit.needsLoad(2020, 'Honda'), isTrue);
+      await cubit.close();
+    });
+
+    test('con la misma consulta cargada no hace falta', () async {
+      final cubit = _cubit(_FakeCatalogRepository(modelCount: 2));
+      await cubit.load(2020, 'Honda');
+      expect(cubit.needsLoad(2020, 'Honda'), isFalse);
+      await cubit.close();
+    });
+
+    test('con la misma consulta en curso no hace falta', () async {
+      final cubit = _cubit(
+        _FakeCatalogRepository(
+          modelCount: 2,
+          delay: const Duration(milliseconds: 20),
+        ),
+      );
+      final pending = cubit.load(2020, 'Honda');
+      expect(cubit.needsLoad(2020, 'Honda'), isFalse);
+      await pending;
+      await cubit.close();
+    });
+
+    test('tras reset (cambio de mercado) vuelve a hacer falta', () async {
+      final cubit = _cubit(_FakeCatalogRepository(modelCount: 2));
+      await cubit.load(2020, 'Honda');
+      cubit.reset();
+      expect(cubit.needsLoad(2020, 'Honda'), isTrue);
+      await cubit.close();
+    });
+
+    test('otro año u otra marca hacen falta', () async {
+      final cubit = _cubit(_FakeCatalogRepository(modelCount: 2));
+      await cubit.load(2020, 'Honda');
+      expect(cubit.needsLoad(2019, 'Honda'), isTrue);
+      expect(cubit.needsLoad(2020, 'Acura'), isTrue);
+      await cubit.close();
+    });
+
+    test('tras un error sin datos hace falta reintentar', () async {
+      final repository = _FakeCatalogRepository(
+        modelCount: 2,
+        error: const NetworkFailure('sin red'),
+      );
+      final cubit = _cubit(repository);
+      await cubit.load(2020, 'Honda');
+      expect(cubit.state, isA<ModelsError>());
+      expect(cubit.needsLoad(2020, 'Honda'), isTrue);
+      await cubit.close();
+    });
+  });
+
   const page = CatalogConfig.defaultPageSize;
 
   blocTest<ModelsCubit, ModelsState>(

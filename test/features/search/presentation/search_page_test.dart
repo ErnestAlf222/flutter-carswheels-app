@@ -182,6 +182,35 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
+  _test('cambio de mercado: texto y foco se conservan, el loader compacto '
+      'ocupa solo la zona de resultados y luego llegan los nuevos', (
+    tester,
+  ) async {
+    final harness = SearchHarness();
+    await tester.pumpWidget(_page(harness));
+    await _settle(tester);
+    await tester.tap(find.byType(TextField));
+    await _type(tester, 'toy');
+    expect(find.byType(ModelGridCardWidget), findsWidgets);
+    final field = find.byType(TextField);
+    final headerBefore = tester.element(find.text('selector-de-prueba'));
+    harness.context.change(null);
+    await tester.pump();
+    await tester.pump();
+    // Encabezado, texto y foco siguen; solo los resultados cedieron el lugar.
+    expect(tester.element(find.text('selector-de-prueba')), same(headerBefore));
+    expect(tester.widget<TextField>(field).controller!.text, 'toy');
+    expect(tester.widget<TextField>(field).focusNode!.hasFocus, isTrue);
+    expect(tester.widget<AppLoader>(find.byType(AppLoader)).compact, isTrue);
+    expect(find.byType(ModelGridCardWidget), findsNothing);
+    harness.context.change(mxScope);
+    await _settle(tester);
+    expect(find.byType(AppLoader), findsNothing);
+    expect(tester.widget<TextField>(field).controller!.text, 'toy');
+    expect(find.byType(ModelGridCardWidget), findsWidgets);
+    await tester.pumpWidget(const SizedBox());
+  });
+
   _test('sin índice ni recientes también muestra el texto breve', (
     tester,
   ) async {

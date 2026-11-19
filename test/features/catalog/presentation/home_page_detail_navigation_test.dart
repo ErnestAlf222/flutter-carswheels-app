@@ -96,6 +96,7 @@ void main() {
         brand: 'Toyota',
       ),
     );
+    when(() => models.needsLoad(any(), any())).thenReturn(false);
     when(() => precache.state).thenReturn(const LogoPrecacheState());
     when(() => precache.precache(any(), any())).thenReturn(null);
     final router = GoRouter(

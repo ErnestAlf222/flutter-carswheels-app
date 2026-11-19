@@ -39,7 +39,7 @@ class MarketSearchContextSource implements SearchContextSource {
   @override
   List<int> get availableYears {
     final state = catalog.state;
-    return _catalogStale || state is! CatalogLoaded
+    return _catalogStale || state is! CatalogLoaded || state.isReloading
         ? const []
         : state.availableYears;
   }
@@ -53,7 +53,9 @@ class MarketSearchContextSource implements SearchContextSource {
 
   void _onCatalogState(CatalogState state) {
     // La recarga ya empezó: lo que llegue después es del mercado nuevo.
-    if (state is CatalogLoading || state is CatalogInitial) {
+    if (state is CatalogLoading ||
+        state is CatalogInitial ||
+        (state is CatalogLoaded && state.isReloading)) {
       _catalogStale = false;
     }
     _publish();
@@ -61,7 +63,9 @@ class MarketSearchContextSource implements SearchContextSource {
 
   SearchScopeEntity? _compute() {
     final state = catalog.state;
-    if (_catalogStale || state is! CatalogLoaded) return null;
+    if (_catalogStale || state is! CatalogLoaded || state.isReloading) {
+      return null;
+    }
     return SearchScopeEntity(marketCode: _lastMarket.code, year: state.year);
   }
 

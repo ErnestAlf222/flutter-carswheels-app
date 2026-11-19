@@ -10,6 +10,11 @@ class SearchConfig {
   // Tope de resultados que devuelve una búsqueda.
   static const int maxResults = 50;
 
+  // Análisis bajo demanda para los filtros: resúmenes pedidos a la vez y tope de
+  // resultados analizados (el mismo de las búsquedas).
+  static const int analysisConcurrency = 4;
+  static const int analysisMaxResults = maxResults;
+
   // Marcas cuyos grupos se piden a la vez al construir el índice.
   static const int indexBuildConcurrency = 4;
 
@@ -121,6 +126,24 @@ class SearchConfig {
   static const double idleIconOpacity = 0.35;
   static const double emptyIconSize = 40.0;
   static const double sectionGap = 20.0;
+
+  // Filtros: insignia del botón, hoja inferior y chips.
+  static const double filterBadgeSize = 18.0;
+  static const double filterBadgeOffset = -4.0;
+  static const double filterBadgeBorderWidth = 1.5;
+  static const double filterBadgeFontSize = 11.0;
+  static const double filterSheetMaxHeightFraction = 0.85;
+  static const double filterSheetHandleWidth = 40.0;
+  static const double filterSheetHandleHeight = 4.0;
+  static const double filterSectionGap = 20.0;
+  static const double filterChipHeight = 40.0;
+  static const double filterChipGap = 8.0;
+  static const double filterChipCountGap = 6.0;
+  static const double filterChipBorderWidth = 1.0;
+  static const double filterChipDisabledOpacity = 0.4;
+  static const double filterStatusMinHeight = 32.0;
+  static const double filterFooterGap = 12.0;
+  static const double filterEmptyIconSize = 40.0;
 
   // Barra de búsqueda de la pantalla de inicio.
   static const double homeBarHeight = 52.0;

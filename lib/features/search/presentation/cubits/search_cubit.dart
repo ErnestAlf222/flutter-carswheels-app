@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/search/domain/domain.dart';
+import 'package:cars_wheels_app/features/search/presentation/cubits/search_analysis_runner.dart';
 import 'package:cars_wheels_app/features/search/presentation/cubits/search_state.dart';
 
 /// Buscador de marcas y modelos: búsqueda global con alcance suave de marca,
@@ -21,6 +22,8 @@ class SearchCubit extends Cubit<SearchState> {
     required this.getRecents,
     required this.removeRecent,
     required this.clearRecents,
+    required this.analysisRunner,
+    required this.filterService,
     this.debounce = const Duration(
       milliseconds: SearchConfig.debounceMilliseconds,
     ),
@@ -39,6 +42,10 @@ class SearchCubit extends Cubit<SearchState> {
   final GetRecentSearchesUseCase getRecents;
   final RemoveRecentSearchUseCase removeRecent;
   final ClearRecentSearchesUseCase clearRecents;
+  final SearchAnalysisRunner analysisRunner;
+
+  /// Cuenta opciones y aplica filtros y orden; lo usa también la pantalla.
+  final SearchFilterService filterService;
 
   /// Espera tras la última tecla antes de buscar.
   final Duration debounce;
@@ -48,6 +55,13 @@ class SearchCubit extends Cubit<SearchState> {
   StreamSubscription<SearchScopeEntity?>? _scopeSubscription;
   StreamSubscription<SearchIndexStatusEntity>? _indexSubscription;
   StreamSubscription<SearchOtherYearsStatusEntity>? _otherYearsSubscription;
+  StreamSubscription<SearchTraitsUpdate>? _analysisSubscription;
+
+  // La hoja de filtros está abierta: el análisis corre aunque no haya filtros.
+  bool _filtersSheetOpen = false;
+
+  // Llegaron resultados nuevos mientras corría un análisis.
+  bool _analysisRerun = false;
 
   // Verdadero desde que alguien pidió el índice; antes no se construye nada.
   bool _indexWanted = false;
@@ -100,6 +114,7 @@ class SearchCubit extends Cubit<SearchState> {
   void onQueryChanged(String text) {
     _debounceTimer?.cancel();
     _cancelOtherYears();
+    _cancelAnalysis();
     final meetsMinimum =
         TextNormalizer.normalize(text).length >= SearchConfig.minQueryLength;
     emit(
@@ -124,6 +139,7 @@ class SearchCubit extends Cubit<SearchState> {
   void clearQuery() {
     _debounceTimer?.cancel();
     _cancelOtherYears();
+    _cancelAnalysis();
     emit(
       state.copyWith(
         query: '',
@@ -153,6 +169,7 @@ class SearchCubit extends Cubit<SearchState> {
   void selectBrand(String brand) {
     _debounceTimer?.cancel();
     _cancelOtherYears();
+    _cancelAnalysis();
     emit(
       state.copyWith(
         scopeBrand: brand,
@@ -170,6 +187,7 @@ class SearchCubit extends Cubit<SearchState> {
   /// Quita el alcance de marca y repite la búsqueda global con el texto.
   void clearScopeBrand() {
     _debounceTimer?.cancel();
+    _cancelAnalysis();
     emit(state.copyWith(clearScopeBrand: true));
     _applySearch();
   }
@@ -178,6 +196,7 @@ class SearchCubit extends Cubit<SearchState> {
   void applySuggestion(String suggestion) {
     _debounceTimer?.cancel();
     _cancelOtherYears();
+    _cancelAnalysis();
     emit(
       state.copyWith(
         query: suggestion,
@@ -192,6 +211,7 @@ class SearchCubit extends Cubit<SearchState> {
   Future<void> useRecent(RecentSearchEntity recent) async {
     _debounceTimer?.cancel();
     _cancelOtherYears();
+    _cancelAnalysis();
     emit(
       state.copyWith(
         query: recent.text,
@@ -272,7 +292,14 @@ class SearchCubit extends Cubit<SearchState> {
   void _applySearch() {
     if (isClosed) return;
     final scope = state.scope;
-    final brand = state.scopeBrand;
+    // Las marcas del índice salen con el primer avance y no cambian después.
+    final newBrands = scope == null || state.brands.isNotEmpty
+        ? null
+        : getIndexBrands(scope);
+    final knownBrands = newBrands ?? state.brands;
+    // Tras un cambio de mercado, la marca se conserva solo si existe en el nuevo.
+    final brandLost = _isBrandMissing(state.scopeBrand, knownBrands);
+    final brand = brandLost ? null : state.scopeBrand;
     final hasText = state.hasText;
     final canOffer =
         scope != null &&
@@ -299,26 +326,36 @@ class SearchCubit extends Cubit<SearchState> {
             : const [],
         searchedText: hasText ? TextNormalizer.normalize(state.query) : '',
         canOfferOtherYears: canOffer,
-        // Las marcas salen con el primer avance del índice y no cambian después.
-        brands: scope == null || state.brands.isNotEmpty
-            ? null
-            : getIndexBrands(scope),
+        clearScopeBrand: brandLost,
+        brands: newBrands,
       ),
     );
+    // Con filtros que lo necesitan, los resultados nuevos se analizan solos.
+    _ensureAnalysis();
   }
 
-  // Otro mercado o año: cancela, descarta lo del alcance anterior y reconstruye.
+  // Verdadero si hay marca elegida, el índice ya conoce sus marcas y no está.
+  bool _isBrandMissing(String? brand, List<String> known) {
+    if (brand == null || known.isEmpty) return false;
+    final wanted = TextNormalizer.normalize(brand);
+    return !known.any((name) => TextNormalizer.normalize(name) == wanted);
+  }
+
+  // Otro mercado o año: cancela y reconstruye; conserva texto y marca elegida.
   void _onScopeChanged(SearchScopeEntity? scope) {
     if (scope == state.scope) return;
     _cancelBuild();
     _cancelOtherYears();
+    _cancelAnalysis();
     emit(
       state.copyWith(
+        // Otro mercado o año: los filtros y lo analizado ya no valen.
+        filters: SearchFiltersEntity.none,
+        traits: const {},
         scope: scope,
         clearScope: scope == null,
         clearIndexStatus: true,
         indexFailed: false,
-        clearScopeBrand: true,
         clearOtherYears: true,
         otherYearsFailed: false,
         canOfferOtherYears: false,
@@ -337,6 +374,90 @@ class SearchCubit extends Cubit<SearchState> {
     unawaited(_indexSubscription?.cancel());
     _indexSubscription = null;
     buildIndex.cancel();
+  }
+
+  /// Elige o quita una motorización del filtro.
+  void toggleEngine(SearchEngineOption option) {
+    final engines = {...state.filters.engines};
+    if (!engines.remove(option)) engines.add(option);
+    _setFilters(state.filters.copyWith(engines: engines));
+  }
+
+  /// Elige o quita una marca del filtro.
+  void toggleBrandFilter(String brand) {
+    final brands = {...state.filters.brands};
+    if (!brands.remove(brand)) brands.add(brand);
+    _setFilters(state.filters.copyWith(brands: brands));
+  }
+
+  /// Elige un orden; tocar el que ya está elegido vuelve al orden original.
+  void setSortOrder(SearchSortOrder sort) {
+    final next = state.filters.sort == sort ? SearchSortOrder.relevance : sort;
+    _setFilters(state.filters.copyWith(sort: next));
+  }
+
+  /// Quita todos los filtros y el orden.
+  void clearFilters() => _setFilters(SearchFiltersEntity.none);
+
+  /// La hoja de filtros se abrió: analiza los resultados que falten.
+  void filtersSheetOpened() {
+    _filtersSheetOpen = true;
+    _ensureAnalysis();
+  }
+
+  /// La hoja se cerró: el análisis se cancela salvo que los filtros lo necesiten.
+  void filtersSheetClosed() {
+    _filtersSheetOpen = false;
+    if (!state.filters.needsTraits) _cancelAnalysis();
+  }
+
+  void _setFilters(SearchFiltersEntity filters) {
+    if (filters == state.filters) return;
+    emit(state.copyWith(filters: filters));
+    _ensureAnalysis();
+  }
+
+  // Pide los rasgos que faltan, solo con la hoja abierta o filtros que los usan.
+  void _ensureAnalysis() {
+    if (isClosed || !(_filtersSheetOpen || state.filters.needsTraits)) return;
+    final missing = [
+      for (final result in state.analysisCandidates)
+        if (!state.traits.containsKey(result.traitsKey)) result,
+    ];
+    if (missing.isEmpty) return;
+    if (_analysisSubscription != null) {
+      _analysisRerun = true;
+      return;
+    }
+    final subscription = analysisRunner.run(missing).listen((update) {
+      if (isClosed) return;
+      emit(
+        state.copyWith(
+          traits: {...state.traits, update.result.traitsKey: update.traits},
+        ),
+      );
+    });
+    subscription.onDone(() {
+      if (!identical(_analysisSubscription, subscription)) return;
+      _analysisSubscription = null;
+      if (isClosed) return;
+      emit(state.copyWith(isAnalyzing: false));
+      if (_analysisRerun) {
+        _analysisRerun = false;
+        _ensureAnalysis();
+      }
+    });
+    _analysisSubscription = subscription;
+    emit(state.copyWith(isAnalyzing: true));
+  }
+
+  void _cancelAnalysis() {
+    _analysisRerun = false;
+    final subscription = _analysisSubscription;
+    if (subscription == null) return;
+    _analysisSubscription = null;
+    unawaited(subscription.cancel());
+    if (!isClosed) emit(state.copyWith(isAnalyzing: false));
   }
 
   void _cancelOtherYears() {
@@ -375,6 +496,7 @@ class SearchCubit extends Cubit<SearchState> {
     await _scopeSubscription?.cancel();
     await _indexSubscription?.cancel();
     await _otherYearsSubscription?.cancel();
+    await _analysisSubscription?.cancel();
     buildIndex.cancel();
     searchOtherYears.cancel();
     await contextSource.close();

@@ -57,13 +57,59 @@ class CatalogCubit extends Cubit<CatalogState> {
     }
   }
 
+  /// Cambio de mercado: conserva la pantalla y recarga años y marcas en el
+  /// lugar. Conserva la marca elegida si existe en el mercado nuevo.
+  Future<void> reloadForMarket() async {
+    final current = state;
+    if (current is! CatalogLoaded) {
+      await loadBrands(force: true);
+      return;
+    }
+    final token = Object();
+    _latestLoad[_loadKey] = token;
+    final loadingTimer = Stopwatch()..start();
+    emit(current.reloading());
+    try {
+      final years = await getAvailableYears();
+      final preferred = preferredYear?.call();
+      final year = preferred != null && years.contains(preferred)
+          ? preferred
+          : years.first;
+      final brands = await getBrands(year);
+      await _waitMinimumLoading(loadingTimer);
+      if (_isStale(token)) return;
+      final keptIndex = _indexOfBrand(brands, current);
+      emit(
+        CatalogLoaded(
+          year: year,
+          brands: brands,
+          availableYears: years,
+          selectedIndex: keptIndex,
+          windowStart: keptIndex,
+        ),
+      );
+    } on AppFailure catch (failure) {
+      await _waitMinimumLoading(loadingTimer);
+      if (_isStale(token)) return;
+      emit(CatalogError(failure));
+    } catch (error) {
+      await _waitMinimumLoading(loadingTimer);
+      if (_isStale(token)) return;
+      emit(CatalogError(UnknownFailure(error.toString())));
+    }
+  }
+
   // Una carga nueva, o el cierre del cubit, deja viejo el resultado pendiente.
   bool _isStale(Object token) => isClosed || _latestLoad[_loadKey] != token;
 
   /// Cambia de año conservando el contenido; ignora años no disponibles.
   Future<void> selectYear(int year) async {
     final current = state;
-    if (current is! CatalogLoaded || current.isRefreshing) return;
+    if (current is! CatalogLoaded ||
+        current.isRefreshing ||
+        current.isReloading) {
+      return;
+    }
     if (year == current.year || !current.availableYears.contains(year)) return;
     final token = _latestLoad[_loadKey];
     emit(current.refreshing());
@@ -117,7 +163,7 @@ class CatalogCubit extends Cubit<CatalogState> {
   /// Marca como seleccionada la marca en [index]; ignora índices inválidos.
   void selectBrand(int index) {
     final current = state;
-    if (current is! CatalogLoaded) return;
+    if (current is! CatalogLoaded || current.isReloading) return;
     if (index < 0 || index >= current.brands.length) return;
     emit(current.copyWith(selectedIndex: index));
   }

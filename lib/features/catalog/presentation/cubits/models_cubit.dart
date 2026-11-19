@@ -16,6 +16,9 @@ class ModelsCubit extends Cubit<ModelsState> {
   final Map<String, Object> _latestLoad = {};
   static const String _loadKey = 'load';
 
+  // Consulta de la última carga pedida; vacía tras un reinicio.
+  final Map<String, ModelsRequest> _requested = {};
+
   /// Indica si quedan grupos por mostrar.
   bool get hasMore {
     final current = state;
@@ -26,7 +29,17 @@ class ModelsCubit extends Cubit<ModelsState> {
   /// Vacía la lista (cambio de mercado): nada del mercado anterior se reutiliza.
   void reset() {
     _latestLoad[_loadKey] = Object();
+    _requested.remove(_loadKey);
     emit(const ModelsInitial());
+  }
+
+  /// Verdadero si la lista no corresponde a [year] y [brand]: nada pedido,
+  /// otra consulta, o la última falló sin datos que mostrar.
+  bool needsLoad(int year, String brand) {
+    final current = state;
+    final matches =
+        _requested[_loadKey] == ModelsRequest(year: year, brand: brand);
+    return !matches || current is ModelsError || current is ModelsInitial;
   }
 
   /// Carga los modelos; con la misma marca ya cargada refresca en el lugar.
@@ -37,6 +50,7 @@ class ModelsCubit extends Cubit<ModelsState> {
         : null;
     final token = Object();
     _latestLoad[_loadKey] = token;
+    _requested[_loadKey] = ModelsRequest(year: year, brand: brand);
     emit(base == null ? const ModelsLoading() : base.refreshing());
     try {
       final groups = await getModelGroups(year, brand);

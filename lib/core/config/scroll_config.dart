@@ -12,8 +12,13 @@ class ScrollConfig {
   // Márgenes: derecho y separación sobre la barra flotante de navegación.
   static const double topButtonRightMargin = 20.0;
   static const double topButtonNavGap = 12.0;
-  // Espacio previsto encima para apilar después un botón flotante de filtros.
-  static const double futureStackedButtonSlotHeight = 0.0;
+  // Botón flotante de filtros: apilado encima del de subir, mismo tamaño.
+  static const double filterButtonSize = topButtonSize;
+  static const double filterButtonIconSize = 24.0;
+  static const double filterButtonStackGap = 12.0;
+  // Hueco encima del botón de subir que ocupa el de filtros.
+  static const double futureStackedButtonSlotHeight =
+      filterButtonSize + filterButtonStackGap;
 
   // Desde cuántos píxeles de scroll aparece el botón.
   static const double topButtonShowThreshold = 400.0;

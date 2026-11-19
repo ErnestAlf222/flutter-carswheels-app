@@ -29,8 +29,16 @@ class MarketConfig {
   static const double selectorInnerPadding =
       2.0; // Entre el borde y el contenido.
   static const double flagGap = 4.0; // Hueco entre las dos banderas.
-  static const double flagDiscSize = 34.0;
-  static const double flagFontSize = 18.0;
+  // Disco activo: blanco muy tenue sobre la tinta, con un aro fino.
+  static const double flagDiscSize = 32.0;
+  static const double flagDiscOpacity = 0.14;
+  static const double flagDiscRingWidth = 1.0;
+  static const double flagDiscRingOpacity = 0.28;
+  // Insignia circular de la bandera: tamaño visible, glifo y borde finísimo.
+  static const double flagBadgeSize = 22.0;
+  static const double flagFontSize = 28.0;
+  static const double flagBadgeBorderWidth = 0.5;
+  static const double flagBadgeBorderOpacity = 0.35;
   static const double inactiveFlagOpacity = 0.45;
   static const double dividerGap = 6.0; // A cada lado de la raya.
   static const double dividerWidth = 1.0;

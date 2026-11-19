@@ -408,8 +408,8 @@ void main() {
         expect(harness.source.scopes.last, _usScope2026);
         expect(state.indexStatus?.phase, SearchIndexPhase.ready);
         expect(state.query, 'toy');
-        // Otro año: la marca elegida se limpia.
-        expect(state.scopeBrand, isNull);
+        // Otro año con la misma marca en el catálogo: el alcance se conserva.
+        expect(state.scopeBrand, 'Toyota');
         expect(state.results.every((r) => r.year == 2026), isTrue);
         expect(state.results.length, greaterThan(1));
       });
@@ -430,13 +430,53 @@ void main() {
         harness.context.change(mxScope);
         _settle(async);
         expect(harness.cubit.state.scope, mxScope);
-        expect(harness.cubit.state.scopeBrand, isNull);
+        // Toyota también existe en el mercado nuevo: el alcance se conserva.
+        expect(harness.cubit.state.scopeBrand, 'Toyota');
+        expect(harness.cubit.state.query, 'toy');
         expect(harness.cubit.state.brands, ['Honda', 'Hyundai', 'Toyota']);
         expect(
           harness.cubit.state.results.every((r) => r.marketCode == 'mx'),
           isTrue,
         );
         expect(harness.cubit.state.results, isNotEmpty);
+      });
+    });
+
+    test('al cambiar de mercado sin la marca elegida, el alcance se limpia '
+        'y el texto se conserva', () {
+      final harness = SearchHarness();
+      _run(harness, (async) {
+        harness.cubit.ensureIndex();
+        _settle(async);
+        harness.cubit.selectBrand('Toyota');
+        harness.cubit.onQueryChanged('civ');
+        _settle(async);
+        // El mercado nuevo no tiene Toyota.
+        harness.source.groupsByBrand.remove('Toyota');
+        harness.context.change(null);
+        harness.context.change(mxScope);
+        _settle(async);
+        final state = harness.cubit.state;
+        expect(state.scopeBrand, isNull);
+        expect(state.query, 'civ');
+        expect(state.brands, ['Honda', 'Hyundai']);
+        expect(state.results.map((r) => r.groupName), contains('Civic'));
+      });
+    });
+
+    test('mientras el alcance es nulo conserva texto y marca sin buscar', () {
+      final harness = SearchHarness();
+      _run(harness, (async) {
+        harness.cubit.ensureIndex();
+        _settle(async);
+        harness.cubit.selectBrand('Toyota');
+        harness.cubit.onQueryChanged('toy');
+        _settle(async);
+        harness.context.change(null);
+        _settle(async);
+        expect(harness.cubit.state.query, 'toy');
+        expect(harness.cubit.state.scopeBrand, 'Toyota');
+        expect(harness.cubit.state.isPreparing, isTrue);
       });
     });
 

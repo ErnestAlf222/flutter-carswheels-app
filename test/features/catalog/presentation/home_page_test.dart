@@ -104,7 +104,28 @@ void main() {
     );
     when(() => logosCubit.state).thenReturn(const BrandLogosInitial());
     when(() => logosCubit.urlFor(any())).thenReturn(null);
-    when(() => modelsCubit.load(any(), any())).thenAnswer((_) async {});
+    // El mock imita al cubit real: una consulta ya pedida no se vuelve a cargar.
+    final requested = <ModelsRequest>[];
+    when(() => modelsCubit.load(any(), any())).thenAnswer((invocation) async {
+      requested
+        ..clear()
+        ..add(
+          ModelsRequest(
+            year: invocation.positionalArguments[0] as int,
+            brand: invocation.positionalArguments[1] as String,
+          ),
+        );
+    });
+    when(() => modelsCubit.needsLoad(any(), any())).thenAnswer((invocation) {
+      final request = ModelsRequest(
+        year: invocation.positionalArguments[0] as int,
+        brand: invocation.positionalArguments[1] as String,
+      );
+      if (requested.isNotEmpty) return requested.first != request;
+      final shown = modelsCubit.state;
+      return !(shown is ModelsLoaded &&
+          ModelsRequest(year: shown.year, brand: shown.brand) == request);
+    });
     when(() => modelsCubit.loadMore()).thenReturn(null);
     when(() => modelsCubit.retry()).thenAnswer((_) async {});
     when(() => catalogCubit.retry()).thenAnswer((_) async {});
@@ -166,6 +187,68 @@ void main() {
     expect(find.byType(ModelsSectionWidget), findsOneWidget);
     expect(find.byType(ModelGridCardWidget), findsNWidgets(3));
     expect(find.text('3 modelos'), findsOneWidget);
+  });
+
+  group('al entrar a Inicio la lista se alinea con el catálogo', () {
+    testWidgets('con la lista vacía (mercado cambiado fuera) la carga', (
+      tester,
+    ) async {
+      await pumpHome(tester, catalog: _loaded());
+      verify(() => modelsCubit.load(2026, 'Marca0')).called(1);
+    });
+
+    testWidgets('con la lista de otro año carga la del catálogo', (
+      tester,
+    ) async {
+      final stale = ModelsLoaded(
+        groups: _models(3, 3).groups,
+        visibleCount: 3,
+        year: 2025,
+        brand: 'Marca0',
+      );
+      await pumpHome(tester, catalog: _loaded(), models: stale);
+      verify(() => modelsCubit.load(2026, 'Marca0')).called(1);
+    });
+
+    testWidgets('con la lista ya cargada no recarga y pide sus fotos', (
+      tester,
+    ) async {
+      await pumpHome(tester, catalog: _loaded(), models: _models(3, 3));
+      verifyNever(() => modelsCubit.load(any(), any()));
+      verify(() => photosCubit.requestPhotos(any())).called(1);
+    });
+  });
+
+  group('cambio de mercado en el lugar', () {
+    testWidgets('recargando: el encabezado y la barra siguen y solo la zona '
+        'de contenido muestra el loader compacto', (tester) async {
+      await pumpHome(tester, catalog: _loaded(), models: _models(3, 3));
+      final pillBefore = tester.element(find.byType(MarketSwitchWidget));
+      catalogEvents.add(_loaded().reloading());
+      await tester.pump();
+      await tester.pump();
+      expect(tester.element(find.byType(MarketSwitchWidget)), same(pillBefore));
+      expect(find.byType(HomeSearchBarWidget), findsOneWidget);
+      expect(find.byType(MarketYearSelectorWidget), findsOneWidget);
+      final loader = tester.widget<AppLoader>(find.byType(AppLoader));
+      expect(loader.compact, isTrue);
+      expect(find.byType(BrandCarouselWidget), findsNothing);
+      expect(find.byType(ModelGridCardWidget), findsNothing);
+    });
+
+    testWidgets('al terminar vuelve el contenido sin recrear la píldora', (
+      tester,
+    ) async {
+      await pumpHome(tester, catalog: _loaded(), models: _models(3, 3));
+      final pillBefore = tester.element(find.byType(MarketSwitchWidget));
+      catalogEvents.add(_loaded().reloading());
+      await tester.pump();
+      catalogEvents.add(_loaded());
+      await tester.pump();
+      expect(find.byType(AppLoader), findsNothing);
+      expect(find.byType(BrandCarouselWidget), findsOneWidget);
+      expect(tester.element(find.byType(MarketSwitchWidget)), same(pillBefore));
+    });
   });
 
   testWidgets('la barra de búsqueda va entre el encabezado y el carrusel', (
@@ -359,7 +442,7 @@ void main() {
   });
 
   testWidgets('cambiar solo windowStart no carga modelos', (tester) async {
-    await pumpHome(tester, catalog: _loaded());
+    await pumpHome(tester, catalog: _loaded(), models: _models(3, 3));
     catalogEvents.add(_loaded(windowStart: 1));
     await tester.pump();
     verifyNever(() => modelsCubit.load(any(), any()));
@@ -454,6 +537,9 @@ void main() {
     testWidgets('un refresco fallido no pide fotos', (tester) async {
       final loaded = _models(3, 3);
       await pumpHome(tester, catalog: _loaded(), models: loaded);
+      // Lo que la entrada a la pantalla pidió no es parte de lo que se prueba.
+      clearInteractions(photosCubit);
+      clearInteractions(summariesCubit);
       modelsEvents.add(loaded.refreshing());
       await tester.pump();
       modelsEvents.add(
@@ -468,6 +554,9 @@ void main() {
     ) async {
       final loaded = _models(3, 3);
       await pumpHome(tester, catalog: _loaded(), models: loaded);
+      // Lo que la entrada a la pantalla pidió no es parte de lo que se prueba.
+      clearInteractions(photosCubit);
+      clearInteractions(summariesCubit);
       final failed = loaded.failedRefresh(
         _failedRequest,
         const NetworkFailure('sin red'),
@@ -563,6 +652,9 @@ void main() {
       tester,
     ) async {
       await pumpHome(tester, catalog: _loaded());
+      // Lo que la entrada a la pantalla pidió no es parte de lo que se prueba.
+      clearInteractions(photosCubit);
+      clearInteractions(summariesCubit);
       catalogEvents.add(_loaded(selectedIndex: 2));
       await tester.pump();
       modelsEvents.add(
@@ -589,6 +681,9 @@ void main() {
 
     testWidgets('al cambiar de año cancela ambos cubits', (tester) async {
       await pumpHome(tester, catalog: _loaded());
+      // Lo que la entrada a la pantalla pidió no es parte de lo que se prueba.
+      clearInteractions(photosCubit);
+      clearInteractions(summariesCubit);
       catalogEvents.add(_loaded(year: 2025));
       await tester.pump();
       verify(() => photosCubit.cancelPending()).called(1);
@@ -600,6 +695,9 @@ void main() {
     ) async {
       final loaded = _models(3, 3);
       await pumpHome(tester, catalog: _loaded(), models: loaded);
+      // Lo que la entrada a la pantalla pidió no es parte de lo que se prueba.
+      clearInteractions(photosCubit);
+      clearInteractions(summariesCubit);
       modelsEvents.add(loaded.refreshing());
       await tester.pump();
       modelsEvents.add(

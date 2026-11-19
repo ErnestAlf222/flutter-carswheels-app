@@ -59,6 +59,95 @@ CatalogCubit _cubit(
 );
 
 void main() {
+  group('reloadForMarket: recarga en el lugar', () {
+    const usBrands = [BrandEntity(name: 'Acura'), BrandEntity(name: 'Buick')];
+
+    Future<CatalogCubit> loadedCubit(
+      _FakeCatalogRepository repository, {
+      int? Function()? preferredYear,
+    }) async {
+      final cubit = _cubit(repository, preferredYear: preferredYear);
+      await cubit.loadBrands();
+      return cubit;
+    }
+
+    test('emite Loaded recargando, nunca Loading, y termina cargado', () async {
+      final repository = _FakeCatalogRepository(
+        years: [2026],
+        brandsByYear: {2026: usBrands},
+      );
+      final cubit = await loadedCubit(repository);
+      final states = <CatalogState>[];
+      final subscription = cubit.stream.listen(states.add);
+      await cubit.reloadForMarket();
+      await Future<void>.delayed(Duration.zero);
+      await subscription.cancel();
+      expect(states.first, isA<CatalogLoaded>());
+      expect((states.first as CatalogLoaded).isReloading, isTrue);
+      expect(states.whereType<CatalogLoading>(), isEmpty);
+      expect((states.last as CatalogLoaded).isReloading, isFalse);
+      await cubit.close();
+    });
+
+    test('conserva la marca elegida si existe en el mercado nuevo', () async {
+      final repository = _FakeCatalogRepository(
+        years: [2026],
+        brandsByYear: {2026: usBrands},
+      );
+      final cubit = await loadedCubit(repository);
+      cubit.selectBrand(1);
+      await cubit.reloadForMarket();
+      final state = cubit.state as CatalogLoaded;
+      expect(state.brands[state.selectedIndex].name, 'Buick');
+      await cubit.close();
+    });
+
+    test('elige la primera marca si la elegida no existe', () async {
+      final brandsByYear = {2026: usBrands};
+      final cubit = await loadedCubit(
+        _FakeCatalogRepository(years: [2026], brandsByYear: brandsByYear),
+      );
+      cubit.selectBrand(1);
+      brandsByYear[2026] = const [
+        BrandEntity(name: 'Chevrolet'),
+        BrandEntity(name: 'Dodge'),
+      ];
+      await cubit.reloadForMarket();
+      final state = cubit.state as CatalogLoaded;
+      expect(state.selectedIndex, 0);
+      expect(state.brands.first.name, 'Chevrolet');
+      await cubit.close();
+    });
+
+    test('un fallo termina en error y no deja la recarga colgada', () async {
+      final repository = _FakeCatalogRepository(
+        years: [2026],
+        brandsByYear: {2026: usBrands},
+      );
+      final cubit = await loadedCubit(repository);
+      repository.error = const NetworkFailure('sin red');
+      await cubit.reloadForMarket();
+      expect(cubit.state, isA<CatalogError>());
+      await cubit.close();
+    });
+
+    test('mientras recarga ignora el cambio de año y de marca', () async {
+      final repository = _FakeCatalogRepository(
+        years: [2026, 2025],
+        brandsByYear: {2026: usBrands, 2025: usBrands},
+      );
+      final cubit = await loadedCubit(repository);
+      final pending = cubit.reloadForMarket();
+      cubit.selectBrand(1);
+      await cubit.selectYear(2025);
+      await pending;
+      final state = cubit.state as CatalogLoaded;
+      expect(state.year, 2026);
+      expect(state.selectedIndex, 0);
+      await cubit.close();
+    });
+  });
+
   group('año preferido y recarga forzada (cambio de mercado)', () {
     test('arranca en el año preferido si existe', () async {
       final cubit = _cubit(

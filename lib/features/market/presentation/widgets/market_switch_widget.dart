@@ -5,7 +5,7 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/market/domain/entities/market_entity.dart';
 import 'package:cars_wheels_app/features/market/presentation/cubits/cubits.dart';
 
-/// Segmento de banderas: dos banderas siempre visibles y un disco amarillo que se desliza.
+/// Segmento de banderas: dos insignias siempre visibles y un disco tenue que se desliza.
 class MarketSwitchWidget extends StatelessWidget {
   const MarketSwitchWidget({super.key});
 
@@ -42,9 +42,17 @@ class MarketSwitchWidget extends StatelessWidget {
                 child: Container(
                   width: MarketConfig.flagDiscSize,
                   height: MarketConfig.flagDiscSize,
-                  decoration: const BoxDecoration(
-                    color: AppColors.accent,
+                  decoration: BoxDecoration(
+                    color: AppColors.onDark.withValues(
+                      alpha: MarketConfig.flagDiscOpacity,
+                    ),
                     shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.onDark.withValues(
+                        alpha: MarketConfig.flagDiscRingOpacity,
+                      ),
+                      width: MarketConfig.flagDiscRingWidth,
+                    ),
                   ),
                 ),
               ),
@@ -109,11 +117,45 @@ class _FlagSlot extends StatelessWidget {
             child: AnimatedOpacity(
               opacity: active ? 1.0 : MarketConfig.inactiveFlagOpacity,
               duration: duration,
-              child: Text(
-                market.flag,
-                style: const TextStyle(fontSize: MarketConfig.flagFontSize),
-              ),
+              child: _FlagBadge(flag: market.flag),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Bandera recortada en círculo con un borde finísimo, como una insignia.
+class _FlagBadge extends StatelessWidget {
+  const _FlagBadge({required this.flag});
+
+  final String flag;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: MarketConfig.flagBadgeSize,
+      height: MarketConfig.flagBadgeSize,
+      // El borde va por encima del recorte para no achicar la insignia.
+      foregroundDecoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: AppColors.onDark.withValues(
+            alpha: MarketConfig.flagBadgeBorderOpacity,
+          ),
+          width: MarketConfig.flagBadgeBorderWidth,
+        ),
+      ),
+      child: ClipOval(
+        child: OverflowBox(
+          maxWidth: double.infinity,
+          maxHeight: double.infinity,
+          child: Text(
+            flag,
+            softWrap: false,
+            overflow: TextOverflow.visible,
+            style: const TextStyle(fontSize: MarketConfig.flagFontSize),
           ),
         ),
       ),

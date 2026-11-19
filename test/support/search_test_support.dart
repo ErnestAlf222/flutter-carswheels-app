@@ -21,6 +21,12 @@ const SortStrategy<SuggestionCandidate> suggestionSort =
       largeListStrategy: ShellSortStrategy<SuggestionCandidate>(),
     );
 
+const SortStrategy<SearchResultEntity> resultSort =
+    AdaptiveSortStrategy<SearchResultEntity>(
+      smallListStrategy: BubbleSortStrategy<SearchResultEntity>(),
+      largeListStrategy: ShellSortStrategy<SearchResultEntity>(),
+    );
+
 const SortStrategy<int> yearSort = AdaptiveSortStrategy<int>(
   smallListStrategy: BubbleSortStrategy<int>(),
   largeListStrategy: ShellSortStrategy<int>(),
@@ -87,6 +93,36 @@ class FakeSearchCatalogSource implements SearchCatalogSource {
   }
 }
 
+/// Rasgos falsos: por nombre de grupo, con cuenta de pedidos y control de ritmo.
+class FakeSearchTraitsSource implements SearchTraitsSource {
+  /// Rasgos por nombre de grupo; sin entrada devuelve "sin dato".
+  final Map<String, SearchResultTraitsEntity> byGroup = {};
+
+  /// Grupos cuyo pedido falla.
+  final Set<String> failing = {};
+  final List<String> requests = [];
+  int inFlight = 0;
+  int maxInFlight = 0;
+
+  /// Si no es nulo, cada pedido espera a que se complete.
+  Completer<void>? gate;
+
+  @override
+  Future<SearchResultTraitsEntity> traitsOf(SearchResultEntity result) async {
+    requests.add(result.groupName ?? result.brand);
+    inFlight++;
+    if (inFlight > maxInFlight) maxInFlight = inFlight;
+    try {
+      final pending = gate;
+      if (pending != null) await pending.future;
+      if (failing.contains(result.groupName)) throw StateError('falla');
+      return byGroup[result.groupName] ?? SearchResultTraitsEntity.unknown;
+    } finally {
+      inFlight--;
+    }
+  }
+}
+
 /// Recientes en memoria.
 class FakeRecentSearches implements RecentSearchesDatasource {
   List<RecentSearchEntity> stored = [];
@@ -141,6 +177,7 @@ class SearchHarness {
     this.initialScope = usScope,
     this.debounce = const Duration(milliseconds: 300),
     this.clock,
+    this.analysisConcurrency = SearchConfig.analysisConcurrency,
   }) : source = FakeSearchCatalogSource(
          groupsByBrand ??
              {
@@ -192,12 +229,24 @@ class SearchHarness {
       getRecents: GetRecentSearchesUseCase(recents),
       removeRecent: RemoveRecentSearchUseCase(recents),
       clearRecents: ClearRecentSearchesUseCase(recents),
+      analysisRunner: SearchAnalysisRunner(
+        source: traits,
+        maxConcurrent: analysisConcurrency,
+      ),
+      filterService: filterService,
       debounce: debounce,
     );
   }
 
   final Duration debounce;
   final DateTime Function()? clock;
+  final int analysisConcurrency;
+
+  /// Rasgos falsos de los resultados; la prueba los fija por clave de grupo.
+  final FakeSearchTraitsSource traits = FakeSearchTraitsSource();
+  final SearchFilterService filterService = const SearchFilterService(
+    sortStrategy: resultSort,
+  );
   final FakeSearchCatalogSource source;
   final SearchScopeEntity? initialScope;
 

@@ -319,6 +319,40 @@ class AppTexts {
       'Sin modelos de $brand';
   static String searchNoResultsScope(String market, int year) =>
       'Se buscó en $market, año $year';
+  // Filtros de la búsqueda.
+  static const String searchFiltersTitle = 'Filtrar resultados';
+  static const String searchFiltersButtonLabel = 'Filtrar resultados';
+  static const String searchFiltersEngineTitle = 'Motorización';
+  static const String searchFiltersBrandTitle = 'Marca';
+  static const String searchFiltersSortTitle = 'Ordenar';
+  static const String searchFiltersEngineElectric = 'Eléctrico';
+  static const String searchFiltersEngineHybrid = 'Híbrido';
+  static const String searchFiltersEnginePluginHybrid = 'Enchufable';
+  static const String searchFiltersEngineCombustion = 'Combustión';
+  static const String searchFiltersSortAlphabetical = 'A–Z';
+  static const String searchFiltersSortMostEfficient = 'Más eficiente';
+  static const String searchFiltersSortEfficiencyHelp =
+      'Los eléctricos y los que no tienen dato van al final';
+  static const String searchFiltersClear = 'Limpiar';
+  static const String searchFiltersClearAll = 'Limpiar filtros';
+  static const String searchFiltersEmptyTitle =
+      'Ningún resultado con estos filtros';
+  static const String searchFiltersEmptyHint =
+      'Quita algún filtro para ver más modelos';
+  static String searchFiltersButtonSemanticLabel(int active) => active == 0
+      ? searchFiltersButtonLabel
+      : '$searchFiltersButtonLabel, $active activos';
+  static String searchFilterNumberLabel(int number) => '$number';
+  static String searchFiltersApplyLabel(int count) =>
+      count == 1 ? 'Ver 1 resultado' : 'Ver $count resultados';
+  static String searchFiltersAnalyzingLabel(int done, int total) =>
+      'Analizando $done de $total…';
+  static String searchFiltersPendingLabel(int count) => count == 1
+      ? 'Falta 1 resultado por analizar'
+      : 'Faltan $count resultados por analizar';
+  static String searchFilterChipSemanticLabel(String label, int? count) =>
+      count == null ? label : '$label, ${searchResultsCountLabel(count)}';
+
   static String searchRecentSemanticLabel(String text) =>
       'Repetir la búsqueda $text';
   static String searchRecentRemoveSemanticLabel(String text) =>

@@ -162,6 +162,11 @@ class _SearchPageState extends State<SearchPage> {
                     ],
                   ),
                   ScrollToTopButton(controller: scrollController),
+                  SearchFilterButton(
+                    activeCount: state.filters.activeCount,
+                    visible: state.totalResults > 0 || state.filters.isActive,
+                    onTap: () => showSearchFiltersSheet(context),
+                  ),
                 ],
               ),
             );
@@ -186,6 +191,18 @@ class _SearchPageState extends State<SearchPage> {
         ),
       ];
     }
+    // Índice en reconstrucción (p. ej. otro mercado): loader solo en esta zona.
+    if (state.isPreparing && state.totalResults == 0 && state.hasQuery) {
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Padding(
+            padding: EdgeInsets.only(bottom: bottomPadding),
+            child: const AppLoader(compact: true),
+          ),
+        ),
+      ];
+    }
     if (!state.hasQuery) return _idleSlivers(context, state, bottomPadding);
     final scope = state.scope;
     final brand = state.scopeBrand;
@@ -202,12 +219,48 @@ class _SearchPageState extends State<SearchPage> {
       );
     }
     if (state.totalResults > 0) {
+      // Los filtros se aplican a las secciones de resultados, no a otros años.
+      final service = cubit.filterService;
+      final shown = service.apply(state.results, state.filters, state.traits);
+      final shownOthers = service.apply(
+        state.otherResults,
+        state.filters,
+        state.traits,
+      );
+      final pending = state.filters.engines.isEmpty
+          ? 0
+          : service.unanalyzedCount(
+              [...state.results, ...state.otherResults],
+              state.filters,
+              state.traits,
+            );
+      final status = SearchAnalysisStatusWidget(
+        isAnalyzing: state.isAnalyzing,
+        analyzed: state.analyzedCount,
+        total: state.analysisCandidates.length,
+        pending: pending,
+      );
+      // El avance solo se muestra si los filtros dependen de lo analizado.
+      final showStatus =
+          state.filters.needsTraits && (state.isAnalyzing || pending > 0);
       // Con texto y alcance: "En {marca}" y "En otras marcas"; sin alcance, el conteo.
       final note = state.isTruncated
           ? AppTexts.searchResultsTruncatedLabel(state.totalResults)
           : null;
-      if (brand != null && state.hasText) {
-        if (state.results.isNotEmpty) {
+      if (state.filters.isActive && shown.isEmpty && shownOthers.isEmpty) {
+        slivers.add(
+          SliverToBoxAdapter(
+            child: SearchFilteredEmptyWidget(
+              onClear: cubit.clearFilters,
+              status: showStatus ? status : null,
+            ),
+          ),
+        );
+      } else if (brand != null && state.hasText) {
+        if (showStatus) {
+          slivers.add(_padded(child: status, top: 0, bottom: 0));
+        }
+        if (shown.isNotEmpty) {
           slivers.addAll(
             _section(
               context,
@@ -216,11 +269,11 @@ class _SearchPageState extends State<SearchPage> {
                 title: AppTexts.searchInBrandTitle(brand),
                 note: state.otherResults.isEmpty ? note : null,
               ),
-              results: state.results,
+              results: shown,
               resetKey: state.resultsKey,
             ),
           );
-        } else {
+        } else if (state.results.isEmpty) {
           slivers.add(
             _padded(
               child: SearchScopeNoticeWidget(brand: brand),
@@ -229,7 +282,7 @@ class _SearchPageState extends State<SearchPage> {
             ),
           );
         }
-        if (state.otherResults.isNotEmpty) {
+        if (shownOthers.isNotEmpty) {
           slivers.addAll(
             _section(
               context,
@@ -238,22 +291,25 @@ class _SearchPageState extends State<SearchPage> {
                 title: AppTexts.searchOtherBrandsTitle,
                 note: note,
               ),
-              results: state.otherResults,
+              results: shownOthers,
               resetKey: '${state.resultsKey} others',
             ),
           );
         }
       } else {
+        if (showStatus) {
+          slivers.add(_padded(child: status, top: 0, bottom: 0));
+        }
         slivers.addAll(
           _section(
             context,
             state,
             header: SearchSectionHeaderWidget(
-              title: AppTexts.searchResultsCountLabel(state.results.length),
+              title: AppTexts.searchResultsCountLabel(shown.length),
               subtitle: brand,
               note: note,
             ),
-            results: state.results,
+            results: shown,
             resetKey: state.resultsKey,
           ),
         );

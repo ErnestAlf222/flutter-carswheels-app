@@ -92,6 +92,76 @@ void main() {
     );
   });
 
+  testWidgets('el disco activo es blanco tenue con aro y sin amarillo', (
+    tester,
+  ) async {
+    final cubit = buildMarketCubit();
+    addTearDown(cubit.close);
+    await tester.pumpWidget(_host(cubit, onYearSelected: (_) {}));
+    await tester.pump();
+    final disc = tester.widget<Container>(
+      find.descendant(of: _disc, matching: find.byType(Container)),
+    );
+    final decoration = disc.decoration! as BoxDecoration;
+    expect(
+      decoration.color,
+      AppColors.onDark.withValues(alpha: MarketConfig.flagDiscOpacity),
+    );
+    expect(decoration.color, isNot(AppColors.accent));
+    final ring = decoration.border! as Border;
+    expect(
+      ring.top.color,
+      AppColors.onDark.withValues(alpha: MarketConfig.flagDiscRingOpacity),
+    );
+    expect(ring.top.width, MarketConfig.flagDiscRingWidth);
+  });
+
+  testWidgets('las banderas son insignias circulares con área táctil de 44', (
+    tester,
+  ) async {
+    final cubit = buildMarketCubit();
+    addTearDown(cubit.close);
+    await tester.pumpWidget(_host(cubit, onYearSelected: (_) {}));
+    await tester.pump();
+    for (final market in Market.values) {
+      final badge = find.ancestor(
+        of: find.text(market.flag),
+        matching: find.byType(ClipOval),
+      );
+      expect(badge, findsOneWidget);
+      expect(tester.getSize(badge).width, lessThan(MarketConfig.flagTouchSize));
+      expect(tester.getSize(badge).width, MarketConfig.flagBadgeSize);
+      final slot = find.ancestor(
+        of: badge,
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is SizedBox &&
+              widget.width == MarketConfig.flagTouchSize &&
+              widget.height == MarketConfig.flagTouchSize,
+        ),
+      );
+      expect(slot, findsOneWidget);
+    }
+  });
+
+  testWidgets('el año y el chevron de la píldora van en blanco', (
+    tester,
+  ) async {
+    final cubit = buildMarketCubit();
+    addTearDown(cubit.close);
+    await tester.pumpWidget(_host(cubit, onYearSelected: (_) {}));
+    await tester.pump();
+    final year = tester.widget<Text>(find.text('2026'));
+    expect(year.style!.color, AppColors.onDark);
+    final chevron = tester.widget<Icon>(
+      find.descendant(
+        of: find.byType(MarketYearSelectorWidget),
+        matching: find.byType(Icon),
+      ),
+    );
+    expect(chevron.color, AppColors.onDark);
+  });
+
   testWidgets('tocar la inactiva alterna el mercado y lo guarda', (
     tester,
   ) async {
@@ -485,8 +555,14 @@ void main() {
       addTearDown(cubit.close);
       await tester.pumpWidget(_host(cubit, onYearSelected: (_) {}));
       await tester.pump();
-      final first = tester.getRect(find.text(Market.mexico.flag));
-      final second = tester.getRect(find.text(Market.unitedStates.flag));
+      Rect badgeOf(Market market) => tester.getRect(
+        find.ancestor(
+          of: find.text(market.flag),
+          matching: find.byType(ClipOval),
+        ),
+      );
+      final first = badgeOf(Market.mexico);
+      final second = badgeOf(Market.unitedStates);
       expect(
         second.left - first.right,
         greaterThanOrEqualTo(MarketConfig.flagGap),

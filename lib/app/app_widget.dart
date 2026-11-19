@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cars_wheels_app/app/app_dependencies.dart';
 import 'package:cars_wheels_app/app/market_catalog/market_search_context_source.dart';
 import 'package:cars_wheels_app/app/router/app_router_setup.dart';
+import 'package:cars_wheels_app/app/search_results/market_search_traits_source.dart';
 import 'package:cars_wheels_app/app/search_results/search_card_cubits_factory.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
@@ -48,13 +49,12 @@ class _AppState extends State<App> {
     super.dispose();
   }
 
-  // Cambio de mercado: capa de carga, listas vacías y recarga desde el año por defecto.
+  // Cambio de mercado: listas vacías y recarga en el lugar desde el año por defecto.
   void _onMarketChanged(BuildContext context, MarketState state) {
-    context.read<SectionLoaderCubit>().onSectionChanged();
     context.read<PhotosCubit>().cancelPending();
     context.read<SummariesCubit>().cancelPending();
     context.read<ModelsCubit>().reset();
-    unawaited(context.read<CatalogCubit>().loadBrands(force: true));
+    unawaited(context.read<CatalogCubit>().reloadForMarket());
   }
 
   @override
@@ -180,6 +180,17 @@ class _AppState extends State<App> {
               getRecents: _dependencies.getRecentSearchesUseCase,
               removeRecent: _dependencies.removeRecentSearchUseCase,
               clearRecents: _dependencies.clearRecentSearchesUseCase,
+              analysisRunner: SearchAnalysisRunner(
+                source: MarketSearchTraitsSource(
+                  _dependencies.resolveGroupSummaryUseCase,
+                ),
+              ),
+              filterService: const SearchFilterService(
+                sortStrategy: AdaptiveSortStrategy<SearchResultEntity>(
+                  smallListStrategy: BubbleSortStrategy<SearchResultEntity>(),
+                  largeListStrategy: ShellSortStrategy<SearchResultEntity>(),
+                ),
+              ),
             ),
           ),
           BlocProvider<LogoPrecacheCubit>(create: (_) => LogoPrecacheCubit()),

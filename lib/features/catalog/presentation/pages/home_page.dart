@@ -26,17 +26,8 @@ class HomePage extends StatelessWidget {
     return MultiBlocListener(
       listeners: [
         BlocListener<CatalogCubit, CatalogState>(
-          listenWhen: _shouldLoadModels,
-          listener: (context, state) {
-            if (state is! CatalogLoaded) return;
-            // Lo que no empezó con la selección anterior ya no hace falta.
-            context.read<PhotosCubit>().cancelPending();
-            context.read<SummariesCubit>().cancelPending();
-            context.read<ModelsCubit>().load(
-              state.year,
-              state.brands[state.selectedIndex].name,
-            );
-          },
+          listenWhen: (previous, current) => _isReady(current),
+          listener: (context, _) => _syncModels(context),
         ),
         BlocListener<CatalogCubit, CatalogState>(
           listenWhen: (previous, current) => current is CatalogLoaded,
@@ -51,54 +42,58 @@ class HomePage extends StatelessWidget {
           listener: (context, _) => _precacheLogos(context),
         ),
       ],
-      child: NotificationListener<ScrollNotification>(
-        onNotification: (notification) {
-          _loadMoreNearEnd(context, notification);
-          // Devuelve false para que el menú flotante también la reciba.
-          return false;
-        },
-        child: Scaffold(
-          // El fondo con degradado lo pone el marco de la app.
-          backgroundColor: Colors.transparent,
-          body: BlocBuilder<CatalogCubit, CatalogState>(
-            builder: (context, state) => switch (state) {
-              CatalogInitial() || CatalogLoading() => const CustomScrollView(
-                slivers: [
-                  SliverToBoxAdapter(child: _HomeHeader()),
-                  SliverFillRemaining(hasScrollBody: false, child: AppLoader()),
-                ],
-              ),
-              CatalogError() => CustomScrollView(
-                slivers: [
-                  // El selector queda fuera del error para poder cambiar de mercado.
-                  const SliverToBoxAdapter(child: _HomeHeader()),
-                  SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: ErrorStateWidget(
-                      onRetry: context.read<CatalogCubit>().retry,
-                    ),
-                  ),
-                ],
-              ),
-              CatalogLoaded() => _LoadedContent(
-                state: state,
-                onSearchTap: () => onSearchTap(context),
-              ),
-            },
+      child: HomeEntrySync(
+        onEnter: _syncOnEnter,
+        child: NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            _loadMoreNearEnd(context, notification);
+            // Devuelve false para que el menú flotante también la reciba.
+            return false;
+          },
+          child: Scaffold(
+            // El fondo con degradado lo pone el marco de la app.
+            backgroundColor: Colors.transparent,
+            // Un solo árbol para todos los estados: el encabezado no se reconstruye.
+            body: BlocBuilder<CatalogCubit, CatalogState>(
+              builder: (context, state) =>
+                  _HomeContent(state: state, onSearchTap: onSearchTap),
+            ),
           ),
         ),
       ),
     );
   }
 
-  // Solo carga modelos si cambió el año o la marca seleccionada.
-  static bool _shouldLoadModels(CatalogState previous, CatalogState current) {
-    if (current is! CatalogLoaded || current.brands.isEmpty) return false;
-    if (current.isRefreshing || current.refreshFailure != null) return false;
-    if (previous is! CatalogLoaded || previous.brands.isEmpty) return true;
-    return previous.year != current.year ||
-        previous.brands[previous.selectedIndex].name !=
-            current.brands[current.selectedIndex].name;
+  // Catálogo con marcas, sin cambio de año, recarga ni fallo en curso.
+  static bool _isReady(CatalogState state) =>
+      state is CatalogLoaded &&
+      state.brands.isNotEmpty &&
+      !state.isRefreshing &&
+      !state.isReloading &&
+      state.refreshFailure == null;
+
+  // La lista de modelos debe corresponder a la marca y año del catálogo.
+  static void _syncModels(BuildContext context) {
+    final catalog = context.read<CatalogCubit>().state;
+    if (catalog is! CatalogLoaded || !_isReady(catalog)) return;
+    final models = context.read<ModelsCubit>();
+    final brand = catalog.brands[catalog.selectedIndex].name;
+    if (!models.needsLoad(catalog.year, brand)) return;
+    // Lo que no empezó con la selección anterior ya no hace falta.
+    context.read<PhotosCubit>().cancelPending();
+    context.read<SummariesCubit>().cancelPending();
+    unawaited(models.load(catalog.year, brand));
+  }
+
+  // Al mostrarse: el catálogo pudo cambiar mientras la pantalla estaba fuera.
+  static void _syncOnEnter(BuildContext context) {
+    _syncModels(context);
+    final models = context.read<ModelsCubit>().state;
+    if (models is ModelsLoaded &&
+        !models.isRefreshing &&
+        models.refreshFailure == null) {
+      _requestPhotosAndSummaries(context, models);
+    }
   }
 
   // Pide fotos solo con una lista cargada y sin refresco en curso o fallido.
@@ -226,31 +221,29 @@ class HomePage extends StatelessWidget {
   }
 }
 
-/// Contenido de la pantalla con las marcas cargadas.
-class _LoadedContent extends StatefulWidget {
-  const _LoadedContent({required this.state, required this.onSearchTap});
+/// Contenido de la pantalla; el encabezado persiste en todos los estados.
+class _HomeContent extends StatefulWidget {
+  const _HomeContent({required this.state, required this.onSearchTap});
 
-  final CatalogLoaded state;
-  final VoidCallback onSearchTap;
+  final CatalogState state;
+  final void Function(BuildContext context) onSearchTap;
 
   @override
-  State<_LoadedContent> createState() => _LoadedContentState();
+  State<_HomeContent> createState() => _HomeContentState();
 }
 
-class _LoadedContentState extends State<_LoadedContent>
+class _HomeContentState extends State<_HomeContent>
     with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final state = widget.state;
-    final cubit = context.read<CatalogCubit>();
-    final hasBrands = state.brands.isNotEmpty;
-    final snapDuration = MediaQuery.of(context).disableAnimations
-        ? Duration.zero
-        : const Duration(milliseconds: AnimationConfig.headerSnapMilliseconds);
+    final loaded = state is CatalogLoaded ? state : null;
+    final settled = loaded != null && !loaded.isReloading;
+    final market = context.read<MarketCubit>().market;
     return RememberedScroll(
       store: context.read<ScrollOffsetStore>(),
       sectionKey: ScrollConfig.homeSectionKey,
-      contextKey: '${context.read<MarketCubit>().market.code}|${state.year}',
+      contextKey: '${market.code}|${settled ? loaded.year : ''}',
       builder: (context, scrollController) => Stack(
         children: [
           CustomScrollView(
@@ -258,96 +251,134 @@ class _LoadedContentState extends State<_LoadedContent>
             slivers: [
               SliverToBoxAdapter(
                 child: _HomeHeader(
-                  state: state,
-                  onSearchTap: widget.onSearchTap,
+                  state: loaded,
+                  onSearchTap: loaded == null
+                      ? null
+                      : () => widget.onSearchTap(context),
                 ),
               ),
-              if (hasBrands)
-                SliverPersistentHeader(
-                  pinned: true,
-                  floating: true,
-                  delegate: BrandHeaderDelegate(
-                    year: state.year,
-                    availableYears: state.availableYears,
-                    brandCount: state.brands.length,
-                    selectedIndex: state.selectedIndex,
-                    windowStart: state.windowStart,
-                    brandName: state.brands[state.selectedIndex].name,
-                    isRefreshing: state.isRefreshing,
-                    snapDuration: snapDuration,
-                    topInset: MediaQuery.paddingOf(context).top,
-                    onYearSelected: cubit.selectYear,
-                    vsync: this,
-                  ),
-                )
-              else
-                const SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: UiConfig.pageHorizontalPadding,
-                    ),
-                    child: _BrandsHeader(),
-                  ),
-                ),
-              if (state.refreshFailure != null)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      UiConfig.pageHorizontalPadding,
-                      AppSpacing.m,
-                      UiConfig.pageHorizontalPadding,
-                      0,
-                    ),
-                    child: InlineMessageWidget(
-                      message: AppTexts.refreshFailedLabel,
-                      actionLabel: AppTexts.retryButtonLabel,
-                      onAction: cubit.retry,
-                    ),
-                  ),
-                ),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(
-                  UiConfig.pageHorizontalPadding,
-                  AppSpacing.m,
-                  UiConfig.pageHorizontalPadding,
-                  0,
-                ),
-                sliver: RefreshableSliverWidget(
-                  isRefreshing: state.isRefreshing,
-                  sliver: hasBrands
-                      ? BlocBuilder<ModelsCubit, ModelsState>(
-                          builder: (context, modelsState) =>
-                              ModelsSectionWidget(
-                                brandName:
-                                    state.brands[state.selectedIndex].name,
-                                state: modelsState,
-                                onGroupTap: modelsState is ModelsLoaded
-                                    ? (group) => HomePage._openDetail(
-                                        context,
-                                        modelsState,
-                                        group,
-                                      )
-                                    : null,
-                              ),
-                        )
-                      : const SliverToBoxAdapter(child: EmptyStateWidget()),
-                ),
-              ),
-              // Deja la última fila por encima del menú flotante y el área segura.
-              SliverToBoxAdapter(
-                child: SizedBox(
-                  height:
-                      NavConfig.footprint +
-                      MediaQuery.paddingOf(context).bottom +
-                      ModelGridConfig.listBottomGap,
-                ),
-              ),
+              ..._bodySlivers(context, state),
             ],
           ),
-          ScrollToTopButton(controller: scrollController),
+          if (settled) ScrollToTopButton(controller: scrollController),
         ],
       ),
     );
+  }
+
+  List<Widget> _bodySlivers(BuildContext context, CatalogState state) {
+    return switch (state) {
+      CatalogInitial() || CatalogLoading() => const [
+        SliverFillRemaining(hasScrollBody: false, child: AppLoader()),
+      ],
+      CatalogError() => [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: ErrorStateWidget(onRetry: context.read<CatalogCubit>().retry),
+        ),
+      ],
+      // Cambio de mercado: solo la zona de contenido muestra el loader.
+      CatalogLoaded(:final isReloading) when isReloading => const [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: UiConfig.pageHorizontalPadding,
+            ),
+            child: _BrandsHeader(),
+          ),
+        ),
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: AppLoader(compact: true),
+        ),
+      ],
+      CatalogLoaded() => _loadedSlivers(context, state),
+    };
+  }
+
+  List<Widget> _loadedSlivers(BuildContext context, CatalogLoaded state) {
+    final cubit = context.read<CatalogCubit>();
+    final hasBrands = state.brands.isNotEmpty;
+    final snapDuration = MediaQuery.of(context).disableAnimations
+        ? Duration.zero
+        : const Duration(milliseconds: AnimationConfig.headerSnapMilliseconds);
+    return [
+      if (hasBrands)
+        SliverPersistentHeader(
+          pinned: true,
+          floating: true,
+          delegate: BrandHeaderDelegate(
+            year: state.year,
+            availableYears: state.availableYears,
+            brandCount: state.brands.length,
+            selectedIndex: state.selectedIndex,
+            windowStart: state.windowStart,
+            brandName: state.brands[state.selectedIndex].name,
+            isRefreshing: state.isRefreshing,
+            snapDuration: snapDuration,
+            topInset: MediaQuery.paddingOf(context).top,
+            onYearSelected: cubit.selectYear,
+            vsync: this,
+          ),
+        )
+      else
+        const SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: UiConfig.pageHorizontalPadding,
+            ),
+            child: _BrandsHeader(),
+          ),
+        ),
+      if (state.refreshFailure != null)
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              UiConfig.pageHorizontalPadding,
+              AppSpacing.m,
+              UiConfig.pageHorizontalPadding,
+              0,
+            ),
+            child: InlineMessageWidget(
+              message: AppTexts.refreshFailedLabel,
+              actionLabel: AppTexts.retryButtonLabel,
+              onAction: cubit.retry,
+            ),
+          ),
+        ),
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(
+          UiConfig.pageHorizontalPadding,
+          AppSpacing.m,
+          UiConfig.pageHorizontalPadding,
+          0,
+        ),
+        sliver: RefreshableSliverWidget(
+          isRefreshing: state.isRefreshing,
+          sliver: hasBrands
+              ? BlocBuilder<ModelsCubit, ModelsState>(
+                  builder: (context, modelsState) => ModelsSectionWidget(
+                    brandName: state.brands[state.selectedIndex].name,
+                    state: modelsState,
+                    onGroupTap: modelsState is ModelsLoaded
+                        ? (group) =>
+                              HomePage._openDetail(context, modelsState, group)
+                        : null,
+                  ),
+                )
+              : const SliverToBoxAdapter(child: EmptyStateWidget()),
+        ),
+      ),
+      // Deja la última fila por encima del menú flotante y el área segura.
+      SliverToBoxAdapter(
+        child: SizedBox(
+          height:
+              NavConfig.footprint +
+              MediaQuery.paddingOf(context).bottom +
+              ModelGridConfig.listBottomGap,
+        ),
+      ),
+    ];
   }
 }
 

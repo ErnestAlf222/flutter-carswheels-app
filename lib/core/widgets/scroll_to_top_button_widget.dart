@@ -15,13 +15,15 @@ class ScrollToTopButton extends StatefulWidget {
   State<ScrollToTopButton> createState() => _ScrollToTopButtonState();
 }
 
-class _ScrollToTopButtonState extends State<ScrollToTopButton> {
+class _ScrollToTopButtonState extends State<ScrollToTopButton>
+    with WidgetsBindingObserver {
   // Único estado: si el scroll pasó el umbral.
   final ValueNotifier<bool> _past = ValueNotifier<bool>(false);
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     widget.controller.addListener(_update);
     // Al restaurar la posición no hay notificación de scroll: se evalúa tras el primer cuadro.
     WidgetsBinding.instance.addPostFrameCallback((_) => _update());
@@ -36,8 +38,15 @@ class _ScrollToTopButtonState extends State<ScrollToTopButton> {
     _past.value = false;
   }
 
+  // El teclado se lee de la vista al construir: se reconstruye al cambiar.
+  @override
+  void didChangeMetrics() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     widget.controller.removeListener(_update);
     _past.dispose();
     super.dispose();

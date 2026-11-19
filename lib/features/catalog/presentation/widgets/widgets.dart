@@ -2,6 +2,7 @@
 export 'brand_carousel_widget.dart';
 export 'brand_header_delegate.dart';
 export 'brand_tile_widget.dart';
+export 'home_entry_sync_widget.dart';
 export 'home_search_bar_widget.dart';
 export 'model_grid_card_skeleton_widget.dart';
 export 'model_grid_card_widget.dart';

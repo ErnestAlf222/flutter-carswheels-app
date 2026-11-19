@@ -189,6 +189,48 @@ void main() {
     );
   });
 
+  group('MarketSearchContextSource con recarga en el lugar', () {
+    test(
+      'mientras recarga no hay alcance ni años; luego llega el nuevo',
+      () async {
+        final market = buildMarketCubit();
+        await _pump();
+        final catalog = _catalogCubit(_Repository([2026]), market);
+        final source = MarketSearchContextSource(
+          market: market,
+          catalog: catalog,
+        );
+        await catalog.loadBrands();
+        await _pump();
+        final changes = <SearchScopeEntity?>[];
+        source.scopeChanges.listen(changes.add);
+        await market.select(Market.mexico);
+        await _pump();
+        final duringReload = <(SearchScopeEntity?, List<int>)>[];
+        catalog.stream.listen((state) {
+          if (state is CatalogLoaded && state.isReloading) {
+            duringReload.add((source.scope, source.availableYears));
+          }
+        });
+        final reload = catalog.reloadForMarket();
+        await _pump();
+        await reload;
+        await _pump();
+        expect(
+          source.scope,
+          const SearchScopeEntity(marketCode: 'mx', year: 2026),
+        );
+        expect(changes, [
+          null,
+          const SearchScopeEntity(marketCode: 'mx', year: 2026),
+        ]);
+        await source.close();
+        await catalog.close();
+        await market.close();
+      },
+    );
+  });
+
   group('MarketSearchDetailArgsBuilder', () {
     MarketSearchDetailArgsBuilder builder(Market Function() market) =>
         MarketSearchDetailArgsBuilder(

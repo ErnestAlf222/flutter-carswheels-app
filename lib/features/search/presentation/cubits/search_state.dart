@@ -22,6 +22,9 @@ class SearchState extends Equatable {
     this.otherYears,
     this.otherYearsFailed = false,
     this.canOfferOtherYears = false,
+    this.filters = SearchFiltersEntity.none,
+    this.traits = const {},
+    this.isAnalyzing = false,
   });
 
   /// Texto tal como está en el campo.
@@ -69,6 +72,26 @@ class SearchState extends Equatable {
 
   /// El catálogo del mercado tiene otros años donde buscar.
   final bool canOfferOtherYears;
+
+  /// Filtros y orden elegidos para las secciones de resultados.
+  final SearchFiltersEntity filters;
+
+  /// Rasgos ya analizados de los resultados, por clave de resultado.
+  final Map<String, SearchResultTraitsEntity> traits;
+
+  /// Hay un análisis de motorización y consumo en curso.
+  final bool isAnalyzing;
+
+  /// Resultados que se analizan (los de la marca primero), hasta el tope.
+  List<SearchResultEntity> get analysisCandidates => [
+    ...results,
+    ...otherResults,
+  ].take(SearchConfig.analysisMaxResults).toList();
+
+  /// Cuántos de los resultados a analizar ya tienen sus rasgos.
+  int get analyzedCount => analysisCandidates
+      .where((result) => traits.containsKey(result.traitsKey))
+      .length;
 
   /// Hay algo que buscar: una marca como alcance o texto que llega al mínimo.
   bool get hasQuery =>
@@ -139,6 +162,9 @@ class SearchState extends Equatable {
     bool clearOtherYears = false,
     bool? otherYearsFailed,
     bool? canOfferOtherYears,
+    SearchFiltersEntity? filters,
+    Map<String, SearchResultTraitsEntity>? traits,
+    bool? isAnalyzing,
   }) => SearchState(
     query: query ?? this.query,
     scope: clearScope ? null : scope ?? this.scope,
@@ -156,6 +182,9 @@ class SearchState extends Equatable {
     otherYears: clearOtherYears ? null : otherYears ?? this.otherYears,
     otherYearsFailed: otherYearsFailed ?? this.otherYearsFailed,
     canOfferOtherYears: canOfferOtherYears ?? this.canOfferOtherYears,
+    filters: filters ?? this.filters,
+    traits: traits ?? this.traits,
+    isAnalyzing: isAnalyzing ?? this.isAnalyzing,
   );
 
   @override
@@ -176,5 +205,8 @@ class SearchState extends Equatable {
     otherYears,
     otherYearsFailed,
     canOfferOtherYears,
+    filters,
+    traits,
+    isAnalyzing,
   ];
 }

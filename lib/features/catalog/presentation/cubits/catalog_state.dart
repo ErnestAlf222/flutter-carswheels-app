@@ -27,6 +27,7 @@ class CatalogLoaded extends CatalogState {
     this.selectedIndex = 0,
     this.windowStart = 0,
     this.isRefreshing = false,
+    this.isReloading = false,
     this.failedYear,
     this.refreshFailure,
   });
@@ -46,6 +47,10 @@ class CatalogLoaded extends CatalogState {
   /// Verdadero mientras se piden las marcas de otro año.
   final bool isRefreshing;
 
+  /// Verdadero mientras se recarga todo por un cambio de mercado: las marcas
+  /// y años guardados son del mercado anterior y no se muestran.
+  final bool isReloading;
+
   /// Año cuyo cambio falló; nulo si no hubo fallo.
   final int? failedYear;
 
@@ -60,9 +65,20 @@ class CatalogLoaded extends CatalogState {
         selectedIndex: selectedIndex ?? this.selectedIndex,
         windowStart: windowStart ?? this.windowStart,
         isRefreshing: isRefreshing,
+        isReloading: isReloading,
         failedYear: failedYear,
         refreshFailure: refreshFailure,
       );
+
+  /// Mismo contenido guardado, recargando por un cambio de mercado.
+  CatalogLoaded reloading() => CatalogLoaded(
+    year: year,
+    brands: brands,
+    availableYears: availableYears,
+    selectedIndex: selectedIndex,
+    windowStart: windowStart,
+    isReloading: true,
+  );
 
   /// Mismo contenido, refrescando y sin el fallo anterior.
   CatalogLoaded refreshing() => CatalogLoaded(
@@ -94,6 +110,7 @@ class CatalogLoaded extends CatalogState {
     selectedIndex,
     windowStart,
     isRefreshing,
+    isReloading,
     failedYear,
     refreshFailure,
   ];
