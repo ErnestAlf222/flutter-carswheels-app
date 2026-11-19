@@ -27,14 +27,7 @@ class SafetyStarsWidget extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(
                   horizontal: UiConfig.safetyStarGap,
                 ),
-                child: Icon(
-                  Symbols.star,
-                  fill: index < stars ? 1 : 0,
-                  size: UiConfig.safetyStarSize,
-                  color: index < stars
-                      ? AppColors.starFilled
-                      : AppColors.starEmpty,
-                ),
+                child: _Star(filled: index < stars),
               ),
           ],
         ),
@@ -48,6 +41,38 @@ class SafetyStarsWidget extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// Estrella: llena es amarilla con contorno tinta; vacía solo el contorno suave.
+class _Star extends StatelessWidget {
+  const _Star({required this.filled});
+
+  final bool filled;
+
+  // Contorno tinta fino: cuatro sombras sin desenfoque alrededor del glifo.
+  static const List<Shadow> _outline = [
+    Shadow(color: AppColors.ink, offset: Offset(UiConfig.safetyStarOutline, 0)),
+    Shadow(
+      color: AppColors.ink,
+      offset: Offset(-UiConfig.safetyStarOutline, 0),
+    ),
+    Shadow(color: AppColors.ink, offset: Offset(0, UiConfig.safetyStarOutline)),
+    Shadow(
+      color: AppColors.ink,
+      offset: Offset(0, -UiConfig.safetyStarOutline),
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      Symbols.star,
+      fill: filled ? 1 : 0,
+      size: UiConfig.safetyStarSize,
+      color: filled ? AppColors.accent : AppColors.outline,
+      shadows: filled ? _outline : null,
     );
   }
 }

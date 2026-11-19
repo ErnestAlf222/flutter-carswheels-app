@@ -25,9 +25,8 @@ class YearSelectorWidget extends StatelessWidget {
     return Container(
       height: CarouselConfig.yearSelectorHeight,
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: AppColors.ink,
         borderRadius: BorderRadius.circular(AppRadii.pill),
-        boxShadow: AppShadows.soft,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -45,7 +44,7 @@ class YearSelectorWidget extends StatelessWidget {
             child: Text(
               year.toString(),
               textAlign: TextAlign.center,
-              style: AppTextStyles.bodyStrong,
+              style: AppTextStyles.bodyStrong.copyWith(color: AppColors.onDark),
             ),
           ),
           _YearArrow(
@@ -95,8 +94,8 @@ class _YearArrow extends StatelessWidget {
                 icon,
                 size: CarouselConfig.arrowIconSize,
                 color: enabled
-                    ? AppColors.ink
-                    : AppColors.subtle.withValues(
+                    ? AppColors.accent
+                    : AppColors.mutedOnDark.withValues(
                         alpha: CarouselConfig.disabledArrowOpacity,
                       ),
               ),

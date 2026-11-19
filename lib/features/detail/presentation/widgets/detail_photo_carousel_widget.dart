@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,7 +9,7 @@ import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/detail/presentation/cubits/cubits.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 
-/// Tarjeta deslizable con las fotos del modelo y, debajo, el crédito de la actual.
+/// Foto a todo el ancho con las fotos del modelo deslizables.
 class DetailPhotoCarouselWidget extends StatelessWidget {
   const DetailPhotoCarouselWidget({
     super.key,
@@ -27,48 +25,48 @@ class DetailPhotoCarouselWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<DetailGalleryCubit, GalleryState>(
+      builder: (context, state) => Container(
+        height: UiConfig.detailPhotoHeight,
+        width: double.infinity,
+        // La tinta se ve en las fotos "contain" y en las de respaldo.
+        color: AppColors.ink,
+        child: state.photos.isNotEmpty
+            ? _PhotoPages(state: state, brandName: brandName, heroTag: heroTag)
+            : _EmptyOrLoading(isLoading: state.isLoading, brandName: brandName),
+      ),
+    );
+  }
+}
+
+/// Crédito de la foto actual, debajo de la foto; no se muestra sin fotos.
+class DetailPhotoCreditWidget extends StatelessWidget {
+  const DetailPhotoCreditWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<DetailGalleryCubit, GalleryState>(
       builder: (context, state) {
-        final hasPhotos = state.photos.isNotEmpty;
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              height: UiConfig.detailPhotoHeight,
-              width: double.infinity,
-              clipBehavior: Clip.antiAlias,
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(AppRadii.detailPhotoCard),
-                boxShadow: AppShadows.soft,
-              ),
-              child: hasPhotos
-                  ? _PhotoPages(
-                      state: state,
-                      brandName: brandName,
-                      heroTag: heroTag,
-                    )
-                  : _EmptyOrLoading(
-                      isLoading: state.isLoading,
-                      brandName: brandName,
-                    ),
-            ),
-            if (hasPhotos) ...[
-              const SizedBox(height: UiConfig.detailCreditGap),
-              Text(
-                _creditText(state.photos[state.currentIndex]),
-                maxLines: UiConfig.photoCreditMaxLines,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: AppTextStyles.caption,
-              ),
-            ],
-          ],
+        if (state.photos.isEmpty) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(
+            UiConfig.detailInfoSideMargin,
+            UiConfig.detailCreditGap,
+            UiConfig.detailInfoSideMargin,
+            0,
+          ),
+          child: Text(
+            _creditText(state.photos[state.currentIndex]),
+            maxLines: UiConfig.photoCreditMaxLines,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.caption,
+          ),
         );
       },
     );
   }
 
-  // Autor y licencia; la cápsula de la tarjeta avisa si es de referencia.
+  // Autor y licencia; la cápsula de la foto avisa si es de referencia.
   static String _creditText(PhotoEntity photo) {
     final author = photo.authorName.trim().isEmpty
         ? AppTexts.authorMissingLabel
@@ -152,17 +150,27 @@ class _PhotoPagesState extends State<_PhotoPages> {
             ),
           ),
         ),
+        // Superposición oscura hacia tinta para leer los textos sobre la foto.
+        Positioned.fill(
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(gradient: AppGradients.photoOverlay),
+            ),
+          ),
+        ),
         if (current.isReference)
           const Positioned(
-            top: UiConfig.photoChipInset,
-            left: UiConfig.photoChipInset,
+            top: UiConfig.detailPhotoChipTop,
+            left: UiConfig.detailPhotoChipLeft,
             child: _ReferenceChip(),
           ),
         if (photos.length > 1)
           Positioned(
             left: 0,
             right: 0,
-            bottom: UiConfig.galleryDotsBottomInset,
+            bottom:
+                UiConfig.galleryDotsBottomInset +
+                HeaderConfig.detailPanelOverlap,
             child: Center(
               child: _GalleryDots(
                 count: photos.length,
@@ -200,7 +208,7 @@ class _PhotoPagesState extends State<_PhotoPages> {
   }
 }
 
-/// Una foto: llena la tarjeta o va completa sobre su propio fondo difuminado.
+/// Una foto: llena el recuadro o va completa sobre el degradado.
 class _PhotoPage extends StatelessWidget {
   const _PhotoPage({
     required this.photo,
@@ -254,30 +262,7 @@ class _PhotoPage extends StatelessWidget {
             flightShuttleBuilder: PhotoHeroShuttle.builder,
             child: sharp,
           );
-    if (mode == PhotoFitMode.cover) return image;
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        ImageFiltered(
-          imageFilter: ImageFilter.blur(
-            sigmaX: UiConfig.detailPhotoBlurSigma,
-            sigmaY: UiConfig.detailPhotoBlurSigma,
-          ),
-          child: CachedNetworkImage(
-            imageUrl: smallUrl,
-            httpHeaders: PhotosConfig.requestHeaders,
-            fit: BoxFit.cover,
-            fadeInDuration: fade,
-            fadeOutDuration: fade,
-            placeholder: (context, _) =>
-                const ColoredBox(color: AppColors.tint),
-            errorWidget: (context, _, _) =>
-                const ColoredBox(color: AppColors.tint),
-          ),
-        ),
-        image,
-      ],
-    );
+    return image;
   }
 }
 
@@ -304,7 +289,7 @@ class _ReferenceChip extends StatelessWidget {
             const Icon(
               Symbols.info,
               size: UiConfig.photoChipIconSize,
-              color: AppColors.onGradient,
+              color: AppColors.onDark,
             ),
             Text(
               AppTexts.referencePhotoLabel,

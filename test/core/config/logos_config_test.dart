@@ -37,7 +37,7 @@ void main() {
     final ring = AppShadows.selectedRing(3);
     expect(ring.spreadRadius, 3);
     expect(ring.blurRadius, 0);
-    expect(ring.color, AppColors.gradientStart);
+    expect(ring.color, AppColors.ink);
   });
 
   test('brandTileLabel antepone Marca', () {

@@ -24,7 +24,7 @@ void main() {
         );
     return [
       for (final box in boxes)
-        (box.decoration! as BoxDecoration).gradient != null,
+        (box.decoration! as BoxDecoration).color == AppColors.accent,
     ];
   }
 

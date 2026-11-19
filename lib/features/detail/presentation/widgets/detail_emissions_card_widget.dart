@@ -35,7 +35,7 @@ class DetailEmissionsCardWidget extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(UiConfig.efficiencyCardPadding),
         decoration: BoxDecoration(
-          color: AppColors.card,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadii.card),
           boxShadow: AppShadows.soft,
         ),

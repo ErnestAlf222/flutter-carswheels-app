@@ -152,13 +152,64 @@ void main() {
     final pending = Completer<GroupDetailsEntity>();
     when(() => load(any())).thenAnswer((_) => pending.future);
     await pumpPage(tester);
-    expect(find.byType(DetailHeroHeaderWidget), findsOneWidget);
+    expect(find.byType(DetailPhotoCarouselWidget), findsOneWidget);
     expect(find.text('TOYOTA · 2020'), findsOneWidget);
     expect(find.byType(DetailSkeletonWidget), findsOneWidget);
     expect(find.byType(AppLoader), findsNothing);
     // Sin cápsula de clase hasta que haya datos.
     expect(find.text('Compacto'), findsNothing);
     verify(() => load(any())).called(1);
+  });
+
+  testWidgets('la foto va a todo el ancho con el alto de config y el botón '
+      'de volver', (tester) async {
+    when(() => load(any())).thenAnswer((_) async => _details());
+    await pumpPage(tester);
+    await tester.pumpAndSettle();
+    final photo = tester.getRect(find.byType(DetailPhotoCarouselWidget));
+    final screen = tester.getRect(find.byType(DetailPage));
+    expect(photo.left, screen.left);
+    expect(photo.width, screen.width);
+    expect(photo.height, UiConfig.detailPhotoHeight);
+    expect(find.bySemanticsLabel(AppTexts.backLabel), findsOneWidget);
+    // Panel claro que se superpone a la foto, con esquinas superiores.
+    final panels = tester
+        .widgetList<DecoratedBox>(find.byType(DecoratedBox))
+        .where(
+          (box) =>
+              (box.decoration as BoxDecoration).color == AppColors.background &&
+              (box.decoration as BoxDecoration).borderRadius ==
+                  const BorderRadius.vertical(
+                    top: Radius.circular(HeaderConfig.detailPanelOverlap),
+                  ),
+        );
+    expect(panels, hasLength(1));
+    // La acción principal es el botón amarillo.
+    expect(find.byType(AccentButton), findsOneWidget);
+  });
+
+  testWidgets('al hacer scroll queda una barra fija con volver y el nombre', (
+    tester,
+  ) async {
+    // Pantalla baja para que el contenido sí alcance a contraer la foto.
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(400, 500);
+    addTearDown(tester.view.reset);
+    when(() => load(any())).thenAnswer((_) async => _details());
+    await pumpPage(tester);
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
+    await tester.pumpAndSettle();
+    final back = tester.getRect(find.byIcon(Symbols.chevron_left));
+    expect(back.top, greaterThanOrEqualTo(0));
+    expect(find.bySemanticsLabel(AppTexts.backLabel), findsOneWidget);
+    final titles = tester.widgetList<Opacity>(
+      find.ancestor(
+        of: find.text('Corolla').first,
+        matching: find.byType(Opacity),
+      ),
+    );
+    expect(titles.any((opacity) => opacity.opacity == 1.0), isTrue);
   });
 
   testWidgets('cargado muestra cápsula, versión, cifras y filas', (
@@ -332,8 +383,9 @@ void main() {
     );
     await pumpPage(tester);
     await tester.pumpAndSettle();
-    expect(find.byType(DetailHeroHeaderWidget), findsOneWidget);
-    expect(find.text('Corolla'), findsOneWidget);
+    expect(find.byType(DetailPhotoCarouselWidget), findsOneWidget);
+    // Título del cuerpo y nombre de la barra compacta (transparente al inicio).
+    expect(find.text('Corolla'), findsNWidgets(2));
     expect(find.byType(EmptyStateWidget), findsOneWidget);
   });
 
@@ -351,7 +403,7 @@ void main() {
     await pumpPage(tester);
     await tester.pumpAndSettle();
     expect(find.byType(ErrorStateWidget), findsOneWidget);
-    expect(find.byType(DetailHeroHeaderWidget), findsOneWidget);
+    expect(find.byType(DetailPhotoCarouselWidget), findsOneWidget);
     await tester.tap(find.text(AppTexts.retryButtonLabel));
     await tester.pumpAndSettle();
     expect(calls, hasLength(2));

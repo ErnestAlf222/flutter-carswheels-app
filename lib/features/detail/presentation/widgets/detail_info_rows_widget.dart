@@ -105,7 +105,7 @@ class _RecallsRow extends StatelessWidget {
             const Icon(
               Symbols.chevron_right,
               size: UiConfig.iconSize,
-              color: AppColors.subtle,
+              color: AppColors.mutedText,
             ),
         ],
       ),

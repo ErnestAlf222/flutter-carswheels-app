@@ -21,7 +21,7 @@ class SkeletonBarWidget extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: AppColors.line,
+        color: AppColors.outline,
         borderRadius: BorderRadius.circular(AppRadii.skeletonBar),
       ),
     );

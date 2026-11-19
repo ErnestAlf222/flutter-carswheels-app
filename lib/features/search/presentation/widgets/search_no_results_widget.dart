@@ -26,7 +26,7 @@ class SearchNoResultsWidget extends StatelessWidget {
           const Icon(
             Symbols.search_off,
             size: SearchConfig.emptyIconSize,
-            color: AppColors.subtle,
+            color: AppColors.mutedText,
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(

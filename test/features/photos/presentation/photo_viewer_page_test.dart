@@ -108,7 +108,7 @@ void main() {
     final colors = [
       for (final dot in dots) (dot.decoration! as BoxDecoration).color,
     ];
-    expect(colors, [AppColors.galleryDotInactive, AppColors.onGradient]);
+    expect(colors, [AppColors.galleryDotInactive, AppColors.onDark]);
   });
 
   testWidgets('con una sola foto no hay puntos', (tester) async {
@@ -134,7 +134,7 @@ void main() {
       findsOneWidget,
     );
     final icon = tester.widget<Icon>(find.byIcon(Symbols.close));
-    expect(icon.color, AppColors.onGradient);
+    expect(icon.color, AppColors.onDark);
     expect(
       tester.getSize(find.byIcon(Symbols.close).first),
       isNot(const Size(0, 0)),

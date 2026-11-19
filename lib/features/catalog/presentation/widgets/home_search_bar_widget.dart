@@ -12,18 +12,13 @@ class HomeSearchBarWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.xl,
-        0,
-        AppSpacing.xl,
-        AppSpacing.m,
-      ),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, 0),
       child: Semantics(
         button: true,
         label: AppTexts.searchHomeBarSemanticLabel,
         excludeSemantics: true,
         child: Material(
-          color: AppColors.card,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadii.pill),
           child: InkWell(
             onTap: onTap,
@@ -33,7 +28,6 @@ class HomeSearchBarWidget extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.m),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(AppRadii.pill),
-                border: Border.all(color: AppColors.line),
                 boxShadow: AppShadows.soft,
               ),
               child: Row(
@@ -41,14 +35,14 @@ class HomeSearchBarWidget extends StatelessWidget {
                   const Icon(
                     Symbols.search,
                     size: SearchConfig.fieldIconSize,
-                    color: AppColors.subtle,
+                    color: AppColors.ink,
                   ),
                   const SizedBox(width: AppSpacing.xs),
                   Expanded(
                     child: Text(
                       AppTexts.searchHomeBarLabel,
                       style: AppTextStyles.body.copyWith(
-                        color: AppColors.subtle,
+                        color: AppColors.mutedText,
                       ),
                     ),
                   ),

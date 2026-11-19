@@ -20,6 +20,7 @@ class BrandHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.snapDuration,
     required this.onOlderYear,
     required this.onNewerYear,
+    this.topInset = 0,
     this.vsync,
   });
 
@@ -34,6 +35,9 @@ class BrandHeaderDelegate extends SliverPersistentHeaderDelegate {
   final VoidCallback onOlderYear;
   final VoidCallback onNewerYear;
 
+  /// Área segura superior: la barra compacta queda por debajo de ella.
+  final double topInset;
+
   /// Necesario para animar el ajuste del encabezado flotante.
   @override
   final TickerProvider? vsync;
@@ -42,7 +46,7 @@ class BrandHeaderDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => UiConfig.headerExpandedHeight;
 
   @override
-  double get minExtent => UiConfig.headerCompactHeight;
+  double get minExtent => UiConfig.headerCompactHeight + topInset;
 
   @override
   FloatingHeaderSnapConfiguration get snapConfiguration =>
@@ -73,6 +77,7 @@ class BrandHeaderDelegate extends SliverPersistentHeaderDelegate {
             decoration: BoxDecoration(boxShadow: AppShadows.headerBottom),
           ),
         ),
+        // Fondo sólido: al fijarse tapa el contenido que pasa por debajo.
         const ColoredBox(color: AppColors.background),
         _fading(
           opacity: expandedOpacity,
@@ -138,7 +143,12 @@ class BrandHeaderDelegate extends SliverPersistentHeaderDelegate {
 
   Widget _compactContent() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+      padding: EdgeInsets.fromLTRB(
+        UiConfig.pageHorizontalPadding,
+        topInset,
+        UiConfig.pageHorizontalPadding,
+        0,
+      ),
       child: Row(
         children: [
           BrandLogoWidget(
@@ -171,6 +181,7 @@ class BrandHeaderDelegate extends SliverPersistentHeaderDelegate {
         isRefreshing != oldDelegate.isRefreshing ||
         snapDuration != oldDelegate.snapDuration ||
         onOlderYear != oldDelegate.onOlderYear ||
-        onNewerYear != oldDelegate.onNewerYear;
+        onNewerYear != oldDelegate.onNewerYear ||
+        topInset != oldDelegate.topInset;
   }
 }

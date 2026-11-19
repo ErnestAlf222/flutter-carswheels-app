@@ -93,7 +93,7 @@ void main() {
           )
           .first,
     );
-    expect(material.color, AppColors.tint);
+    expect(material.color, AppColors.accentTint);
   });
 
   testWidgets('elegir una versión llama a onSelected y cierra la hoja', (

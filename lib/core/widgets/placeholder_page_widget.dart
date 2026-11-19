@@ -13,6 +13,7 @@ class PlaceholderPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         bottom: false,
         child: ListView.separated(
@@ -33,7 +34,7 @@ class PlaceholderPage extends StatelessWidget {
               alignment: Alignment.centerLeft,
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               decoration: BoxDecoration(
-                color: AppColors.card,
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(AppRadii.card),
                 boxShadow: AppShadows.soft,
               ),

@@ -172,7 +172,7 @@ class _Tappable extends StatelessWidget {
     final callback = onTap;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: AppColors.surface,
         borderRadius: radius,
         boxShadow: AppShadows.soft,
       ),

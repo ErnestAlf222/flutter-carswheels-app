@@ -29,7 +29,7 @@ class PhotoPlaceholderWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: AppColors.tint,
+      color: AppColors.photoPlaceholder,
       child: Center(
         child: kind == PhotoPlaceholderKind.loading
             ? _buildLoading(context)
@@ -42,7 +42,7 @@ class PhotoPlaceholderWidget extends StatelessWidget {
     final icon = Icon(
       Symbols.photo_camera,
       size: UiConfig.photoLoadingIconSize,
-      color: AppColors.tintText.withValues(
+      color: AppColors.mutedText.withValues(
         alpha: UiConfig.photoLoadingIconOpacity,
       ),
     );
@@ -79,7 +79,7 @@ class PhotoPlaceholderWidget extends StatelessWidget {
               const Icon(
                 Symbols.directions_car,
                 size: UiConfig.photoEmptyLogoSize,
-                color: AppColors.tintText,
+                color: AppColors.mutedText,
               ),
           if (!compact)
             Padding(
@@ -91,7 +91,7 @@ class PhotoPlaceholderWidget extends StatelessWidget {
                   const Icon(
                     Symbols.no_photography,
                     size: UiConfig.photoChipIconSize,
-                    color: AppColors.tintText,
+                    color: AppColors.mutedText,
                   ),
                   Flexible(
                     child: Text(

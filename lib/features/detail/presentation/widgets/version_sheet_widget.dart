@@ -18,7 +18,7 @@ Future<void> showVersionSheet(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    backgroundColor: AppColors.card,
+    backgroundColor: AppColors.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadii.card)),
     ),
@@ -61,7 +61,7 @@ class VersionSheetWidget extends StatelessWidget {
             width: UiConfig.detailSheetHandleWidth,
             height: UiConfig.detailSheetHandleHeight,
             decoration: BoxDecoration(
-              color: AppColors.line,
+              color: AppColors.outline,
               borderRadius: BorderRadius.circular(
                 UiConfig.detailSheetHandleHeight,
               ),
@@ -121,7 +121,7 @@ class _VersionRow extends StatelessWidget {
       label: ownLabel ?? '$title, ${version.variantName}',
       excludeSemantics: true,
       child: Material(
-        color: isSelected ? AppColors.tint : Colors.transparent,
+        color: isSelected ? AppColors.accentTint : Colors.transparent,
         child: InkWell(
           onTap: onTap,
           child: ConstrainedBox(
@@ -157,7 +157,7 @@ class _VersionRow extends StatelessWidget {
                     const Icon(
                       Symbols.check,
                       size: UiConfig.iconSize,
-                      color: AppColors.link,
+                      color: AppColors.ink,
                     ),
                   ],
                 ],

@@ -19,8 +19,8 @@ class SearchProgressWidget extends StatelessWidget {
           child: LinearProgressIndicator(
             value: progress,
             minHeight: SearchConfig.progressHeight,
-            color: AppColors.link,
-            backgroundColor: AppColors.line,
+            color: AppColors.ink,
+            backgroundColor: AppColors.outline,
           ),
         ),
         const SizedBox(height: AppSpacing.xs),

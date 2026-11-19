@@ -35,7 +35,7 @@ class SearchResultRowWidget extends StatelessWidget {
       label: semanticLabel,
       excludeSemantics: true,
       child: Material(
-        color: AppColors.card,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadii.tile),
         child: InkWell(
           onTap: onTap,
@@ -45,7 +45,7 @@ class SearchResultRowWidget extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.m),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppRadii.tile),
-              border: Border.all(color: AppColors.line),
+              border: Border.all(color: AppColors.outline),
             ),
             child: Row(
               children: [
@@ -77,7 +77,7 @@ class SearchResultRowWidget extends StatelessWidget {
                 const Icon(
                   Symbols.chevron_right,
                   size: SearchConfig.fieldIconSize,
-                  color: AppColors.subtle,
+                  color: AppColors.mutedText,
                 ),
               ],
             ),

@@ -20,7 +20,7 @@ class DetailEfficiencyCardWidget extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(UiConfig.efficiencyCardPadding),
         decoration: BoxDecoration(
-          color: AppColors.card,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadii.card),
           boxShadow: AppShadows.soft,
         ),
@@ -220,8 +220,7 @@ class _ScoreSegment extends StatelessWidget {
       width: UiConfig.efficiencyScoreSegmentWidth,
       height: UiConfig.efficiencyScoreSegmentHeight,
       decoration: BoxDecoration(
-        gradient: filled ? AppGradients.primary : null,
-        color: filled ? null : AppColors.scoreSegmentEmpty,
+        color: filled ? AppColors.accent : AppColors.outline,
         borderRadius: BorderRadius.circular(
           UiConfig.efficiencyScoreSegmentRadius,
         ),

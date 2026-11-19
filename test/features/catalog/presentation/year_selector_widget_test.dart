@@ -61,7 +61,9 @@ void main() {
     for (final icon in icons) {
       expect(
         icon.color,
-        AppColors.subtle.withValues(alpha: CarouselConfig.disabledArrowOpacity),
+        AppColors.mutedOnDark.withValues(
+          alpha: CarouselConfig.disabledArrowOpacity,
+        ),
       );
     }
   });

@@ -7,7 +7,10 @@ import 'package:cars_wheels_app/features/market/presentation/cubits/cubits.dart'
 
 /// Control segmentado compacto "EE. UU." | "México".
 class MarketSelectorWidget extends StatelessWidget {
-  const MarketSelectorWidget({super.key});
+  const MarketSelectorWidget({super.key, this.onDark = false});
+
+  /// Variante para fondo oscuro: píldora tinta suave y texto blanco.
+  final bool onDark;
 
   /// Texto de cada mercado.
   static String labelOf(Market market) => switch (market) {
@@ -29,7 +32,7 @@ class MarketSelectorWidget extends StatelessWidget {
           height: MarketConfig.selectorHeight,
           padding: const EdgeInsets.all(MarketConfig.selectorPadding),
           decoration: BoxDecoration(
-            color: AppColors.chipBackground,
+            color: onDark ? AppColors.inkSoft : AppColors.chipBackground,
             borderRadius: BorderRadius.circular(AppRadii.pill),
           ),
           child: Row(
@@ -39,6 +42,7 @@ class MarketSelectorWidget extends StatelessWidget {
                 _Segment(
                   market: market,
                   selected: market == current,
+                  onDark: onDark,
                   duration: duration,
                   onTap: () => context.read<MarketCubit>().select(market),
                 ),
@@ -55,12 +59,14 @@ class _Segment extends StatelessWidget {
   const _Segment({
     required this.market,
     required this.selected,
+    required this.onDark,
     required this.duration,
     required this.onTap,
   });
 
   final Market market;
   final bool selected;
+  final bool onDark;
   final Duration duration;
   final VoidCallback onTap;
 
@@ -86,15 +92,16 @@ class _Segment extends StatelessWidget {
           ),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: selected ? AppColors.card : Colors.transparent,
+            color: selected ? AppColors.accent : Colors.transparent,
             borderRadius: BorderRadius.circular(AppRadii.pill),
-            boxShadow: selected ? AppShadows.soft : null,
           ),
           child: Text(
             label,
             style: AppTextStyles.caption.copyWith(
-              color: selected ? AppColors.ink : AppColors.subtle,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+              color: selected
+                  ? AppColors.ink
+                  : (onDark ? AppColors.mutedOnDark : AppColors.mutedText),
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
             ),
           ),
         ),

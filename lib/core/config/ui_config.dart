@@ -6,6 +6,13 @@ class UiConfig {
   static const double loaderSize = 96.0;
   static const double iconSize = 24.0;
   static const double primaryButtonHeight = 60.0;
+  // Relleno horizontal de las páginas y separación entre secciones.
+  static const double pageHorizontalPadding = 24.0;
+  static const double sectionGap = 24.0;
+  // Subrayado corto amarillo bajo los títulos de sección.
+  static const double titleUnderlineWidth = 40.0;
+  static const double titleUnderlineHeight = 4.0;
+  static const double titleUnderlineGap = 6.0;
   static const double navClearance = 120.0;
   // Foto y relleno de la tarjeta de modelo.
   static const double modelPhotoWidth = 104.0;
@@ -41,15 +48,20 @@ class UiConfig {
   static const double headerCompactLogoSize = 40.0;
   // Medidas de la maqueta de Detalle.
   // Foto grande de Detalle.
-  static const double detailHeroHeight = 336.0;
-  static const double detailBlobCanvasWidth = 390.0;
-  static const double detailBlobCanvasHeight = 320.0;
-  static const double detailGhostTop = 56.0;
   static const double detailCircleButtonSize = 48.0;
-  static const double detailCircleButtonInset = 20.0;
-  static const double detailPhotoTop = 84.0;
-  static const double detailPhotoHeight = 220.0;
-  static const double detailPhotoSideMargin = 20.0;
+  static const double detailCircleButtonInset = 12.0;
+  // Foto de Detalle a todo el ancho: el alto anterior (220) por 1.2.
+  static const double detailPhotoHeight = 264.0;
+  // Barra fija compacta al contraer la foto, sin el área segura.
+  static const double detailCollapsedBarHeight = 64.0;
+  // Fracción del desplazamiento que sigue la foto (parallax).
+  static const double detailParallaxFactor = 0.5;
+  // Desde qué avance del contraído aparece el nombre en la barra.
+  static const double detailTitleFadeStart = 0.6;
+  static const double detailBarTitleGap = 12.0;
+  // "Foto de referencia" va a la derecha del botón de volver.
+  static const double detailPhotoChipTop = 20.0;
+  static const double detailPhotoChipLeft = 68.0;
   // Foto grande de Detalle.
   static const double photoCoverMinAspect = 1.2;
   static const double photoCoverMaxAspect = 2.4;
@@ -68,7 +80,6 @@ class UiConfig {
   static const double rowPhotoLoadingLogoOpacity = 0.4;
   static const double rowNoPhotoBadgeSize = 18.0;
   static const int detailEntryStepMilliseconds = 70;
-  static const double detailPhotoBlurSigma = 18.0;
   static const double detailCreditGap = 4.0;
   static const double galleryDotSize = 6.0;
   static const double galleryDotSpacing = 6.0;
@@ -85,11 +96,11 @@ class UiConfig {
   static const double detailSheetMaxHeightFraction = 0.6;
   static const double detailSheetHandleWidth = 40.0;
   static const double detailSheetHandleHeight = 4.0;
-  static const double detailGhostOpacity = 0.22;
   static const double detailChipVerticalPadding = 6.0;
   static const double detailChipHorizontalPadding = 14.0;
   static const double detailSelectorHorizontalPadding = 18.0;
   static const double detailStatDividerWidth = 1.0;
+  static const double detailHighlightGap = 3.0;
   static const double detailSkeletonChipWidth = 96.0;
   static const double detailSkeletonChipHeight = 28.0;
   static const double detailSkeletonStatsHeight = 96.0;
@@ -107,6 +118,7 @@ class UiConfig {
   static const int safetyStarCount = 5;
   static const double safetyStarSize = 14.0;
   static const double safetyStarGap = 1.0;
+  static const double safetyStarOutline = 0.8;
   static const double safetyNoteTopGap = 2.0;
   static const double safetySkeletonFigureWidth = 40.0;
   static const double safetySkeletonFigureHeight = 26.0;

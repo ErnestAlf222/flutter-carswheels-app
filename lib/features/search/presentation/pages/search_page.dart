@@ -86,6 +86,7 @@ class _SearchPageState extends State<SearchPage> {
         ),
       ],
       child: Scaffold(
+        backgroundColor: Colors.transparent,
         body: SafeArea(
           bottom: false,
           child: Padding(

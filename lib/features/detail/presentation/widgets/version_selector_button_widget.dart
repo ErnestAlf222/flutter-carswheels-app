@@ -37,7 +37,7 @@ class VersionSelectorButtonWidget extends StatelessWidget {
         excludeSemantics: true,
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: AppColors.card,
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(AppRadii.versionSelector),
             boxShadow: AppShadows.soft,
           ),
@@ -77,7 +77,7 @@ class VersionSelectorButtonWidget extends StatelessWidget {
                       const Icon(
                         Symbols.expand_more,
                         size: UiConfig.iconSize,
-                        color: AppColors.subtle,
+                        color: AppColors.mutedText,
                       ),
                   ],
                 ),

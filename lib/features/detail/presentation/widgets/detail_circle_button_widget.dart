@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 
-/// Botón circular blanco con un icono y sombra suave.
+/// Botón circular con un icono: blanco con sombra suave, o tinta translúcido sobre foto.
 class DetailCircleButtonWidget extends StatelessWidget {
   const DetailCircleButtonWidget({
     super.key,
@@ -11,6 +11,7 @@ class DetailCircleButtonWidget extends StatelessWidget {
     required this.iconSize,
     required this.semanticLabel,
     this.onTap,
+    this.onPhoto = false,
   });
 
   final IconData icon;
@@ -21,6 +22,9 @@ class DetailCircleButtonWidget extends StatelessWidget {
   /// Nulo mientras el botón no tenga acción.
   final VoidCallback? onTap;
 
+  /// Sobre la foto: círculo tinta translúcido con ícono blanco.
+  final bool onPhoto;
+
   @override
   Widget build(BuildContext context) {
     return Semantics(
@@ -28,10 +32,10 @@ class DetailCircleButtonWidget extends StatelessWidget {
       label: semanticLabel,
       excludeSemantics: true,
       child: DecoratedBox(
-        decoration: const BoxDecoration(
-          color: AppColors.card,
+        decoration: BoxDecoration(
+          color: onPhoto ? AppColors.circleButtonOnPhoto : AppColors.surface,
           shape: BoxShape.circle,
-          boxShadow: AppShadows.soft,
+          boxShadow: onPhoto ? null : AppShadows.soft,
         ),
         child: Material(
           type: MaterialType.transparency,
@@ -42,7 +46,11 @@ class DetailCircleButtonWidget extends StatelessWidget {
             child: SizedBox(
               width: size,
               height: size,
-              child: Icon(icon, size: iconSize, color: AppColors.ink),
+              child: Icon(
+                icon,
+                size: iconSize,
+                color: onPhoto ? AppColors.onDark : AppColors.ink,
+              ),
             ),
           ),
         ),

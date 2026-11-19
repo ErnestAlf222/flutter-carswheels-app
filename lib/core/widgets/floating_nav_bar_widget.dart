@@ -4,7 +4,7 @@ import 'package:cars_wheels_app/core/config/config.dart';
 import 'package:cars_wheels_app/core/theme/theme.dart';
 import 'package:cars_wheels_app/core/widgets/floating_nav_item_model.dart';
 
-/// Menú flotante de botones cuadrados que se oculta al desplazar.
+/// Píldora flotante tinta con los íconos; se oculta al desplazar.
 class FloatingNavBar extends StatelessWidget {
   const FloatingNavBar({
     super.key,
@@ -30,7 +30,7 @@ class FloatingNavBar extends StatelessWidget {
         : const Duration(milliseconds: NavConfig.hideFadeMilliseconds);
     const Offset hiddenOffset = Offset(
       0,
-      NavConfig.hideOffsetY / NavConfig.buttonSize,
+      NavConfig.hideOffsetY / NavConfig.pillHeight,
     );
     return IgnorePointer(
       ignoring: !visible,
@@ -45,18 +45,25 @@ class FloatingNavBar extends StatelessWidget {
             scale: visible ? 1.0 : NavConfig.hideScale,
             duration: moveDuration,
             curve: AppCurves.reboundCurve,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              spacing: NavConfig.buttonGap,
-              children: [
-                for (int i = 0; i < items.length; i++)
-                  _NavButton(
-                    item: items[i],
-                    active: i == currentIndex,
-                    onTap: () => onSelected(i),
-                  ),
-              ],
+            child: Container(
+              padding: const EdgeInsets.all(NavConfig.pillPadding),
+              decoration: BoxDecoration(
+                color: AppColors.ink,
+                borderRadius: BorderRadius.circular(AppRadii.pill),
+                boxShadow: AppShadows.navBar,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                spacing: NavConfig.buttonGap,
+                children: [
+                  for (int i = 0; i < items.length; i++)
+                    _NavButton(
+                      item: items[i],
+                      active: i == currentIndex,
+                      onTap: () => onSelected(i),
+                    ),
+                ],
+              ),
             ),
           ),
         ),
@@ -78,7 +85,6 @@ class _NavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final BorderRadius radius = BorderRadius.circular(AppRadii.navButton);
     return Semantics(
       button: true,
       selected: active,
@@ -86,16 +92,14 @@ class _NavButton extends StatelessWidget {
       excludeSemantics: true,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: active ? null : AppColors.card,
-          gradient: active ? AppGradients.primary : null,
-          borderRadius: radius,
-          boxShadow: active ? AppShadows.accent : AppShadows.soft,
+          color: active ? AppColors.accent : Colors.transparent,
+          shape: BoxShape.circle,
         ),
         child: Material(
           type: MaterialType.transparency,
           child: InkWell(
             onTap: onTap,
-            borderRadius: radius,
+            customBorder: const CircleBorder(),
             child: SizedBox(
               width: NavConfig.buttonSize,
               height: NavConfig.buttonSize,
@@ -103,7 +107,7 @@ class _NavButton extends StatelessWidget {
                 item.icon,
                 size: UiConfig.iconSize,
                 fill: active ? 1.0 : 0.0,
-                color: active ? AppColors.onGradient : AppColors.ink,
+                color: active ? AppColors.ink : AppColors.navInactive,
               ),
             ),
           ),

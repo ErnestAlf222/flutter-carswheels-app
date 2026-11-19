@@ -40,7 +40,7 @@ void main() {
     expect(find.byType(SvgPicture), findsNothing);
     expect(find.byType(CachedNetworkImage), findsNothing);
     final text = tester.widget<Text>(find.text('A'));
-    expect(text.style!.color, AppColors.tintText);
+    expect(text.style!.color, AppColors.mutedText);
   });
 
   testWidgets('con URL .svg construye SvgPicture', (tester) async {

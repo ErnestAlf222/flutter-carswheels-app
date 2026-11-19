@@ -82,7 +82,7 @@ void main() {
           .ancestor(of: find.byType(Opacity), matching: find.byType(ColoredBox))
           .first,
     );
-    expect(box.color, AppColors.tint);
+    expect(box.color, AppColors.photoPlaceholder);
   }
 
   void expectNoPhoto(WidgetTester tester) {
@@ -104,7 +104,7 @@ void main() {
           )
           .first,
     );
-    expect((circle.decoration as BoxDecoration).color, AppColors.card);
+    expect((circle.decoration as BoxDecoration).color, AppColors.surface);
     final photoBox = tester.getRect(find.byType(ModelPhotoWidget));
     final badgeBox = tester.getRect(
       find

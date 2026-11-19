@@ -21,7 +21,7 @@ Future<void> showRecallsSheet(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    backgroundColor: AppColors.card,
+    backgroundColor: AppColors.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadii.card)),
     ),
@@ -73,7 +73,7 @@ class RecallsSheetWidget extends StatelessWidget {
             width: UiConfig.detailSheetHandleWidth,
             height: UiConfig.detailSheetHandleHeight,
             decoration: BoxDecoration(
-              color: AppColors.line,
+              color: AppColors.outline,
               borderRadius: BorderRadius.circular(
                 UiConfig.detailSheetHandleHeight,
               ),

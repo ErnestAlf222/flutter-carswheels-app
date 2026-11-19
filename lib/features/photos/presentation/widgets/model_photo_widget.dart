@@ -158,7 +158,7 @@ class _BrandMark extends StatelessWidget {
         : const Icon(
             Symbols.directions_car,
             size: UiConfig.iconSize,
-            color: AppColors.tintText,
+            color: AppColors.mutedText,
           );
   }
 }
@@ -176,7 +176,7 @@ class _LoadingBox extends StatelessWidget {
       child: _BrandMark(brand: brand),
     );
     return ColoredBox(
-      color: AppColors.tint,
+      color: AppColors.photoPlaceholder,
       child: Center(
         child: MediaQuery.of(context).disableAnimations
             ? mark
@@ -206,7 +206,7 @@ class _NoPhotoBox extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         ColoredBox(
-          color: AppColors.tint,
+          color: AppColors.photoPlaceholder,
           child: Center(child: _BrandMark(brand: brand)),
         ),
         if (showBadge)
@@ -226,13 +226,13 @@ class _NoPhotoBadge extends StatelessWidget {
       label: AppTexts.noPhotoSemanticLabel,
       child: const DecoratedBox(
         decoration: BoxDecoration(
-          color: AppColors.card,
+          color: AppColors.surface,
           shape: BoxShape.circle,
         ),
         child: Icon(
           Symbols.no_photography,
           size: UiConfig.rowNoPhotoBadgeSize,
-          color: AppColors.tintText,
+          color: AppColors.mutedText,
         ),
       ),
     );

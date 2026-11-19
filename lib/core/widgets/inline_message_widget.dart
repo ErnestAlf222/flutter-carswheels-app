@@ -25,12 +25,12 @@ class InlineMessageWidget extends StatelessWidget {
         TextButton(
           onPressed: onAction,
           style: TextButton.styleFrom(
-            foregroundColor: AppColors.link,
+            foregroundColor: AppColors.ink,
             minimumSize: const Size(0, CarouselConfig.arrowTouchTargetSize),
           ),
           child: Text(
             actionLabel,
-            style: AppTextStyles.caption.copyWith(color: AppColors.link),
+            style: AppTextStyles.caption.copyWith(color: AppColors.ink),
           ),
         ),
       ],

@@ -43,6 +43,7 @@ class DetailMxFiguresCardWidget extends StatelessWidget {
         DetailFigureData(
           figure: AppTexts.kmPerLiterFigure(combined),
           caption: AppTexts.detailCombinedCaption,
+          highlight: true,
         ),
       if (!hasKmPerLiter && power != null)
         DetailFigureData(

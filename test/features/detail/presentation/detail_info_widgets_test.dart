@@ -35,8 +35,9 @@ void main() {
         ),
       );
       final decoration = chip.decoration! as BoxDecoration;
-      expect(decoration.color, AppColors.tint);
-      expect(decoration.borderRadius, BorderRadius.circular(14));
+      expect(decoration.color, isNull);
+      expect(decoration.border, Border.all(color: AppColors.outline));
+      expect(decoration.borderRadius, BorderRadius.circular(AppRadii.pill));
       expect(
         chip.padding,
         const EdgeInsets.symmetric(vertical: 6, horizontal: 14),
@@ -122,11 +123,11 @@ void main() {
       expect(find.text(AppTexts.detailSafetyCaption), findsOneWidget);
     });
 
-    testWidgets('la cifra usa Outfit 26 en color de enlace', (tester) async {
+    testWidgets('la cifra usa Outfit 30 en tinta', (tester) async {
       await tester.pumpWidget(stats(testDetail()));
       final style = tester.widget<Text>(find.text('14.6')).style!;
-      expect(style.fontSize, 26);
-      expect(style.color, AppColors.link);
+      expect(style.fontSize, 30);
+      expect(style.color, AppColors.ink);
     });
 
     testWidgets('eléctrico muestra la etiqueta de motor', (tester) async {
@@ -300,7 +301,7 @@ void main() {
             .first,
       );
       expect(heart.size, const Size(60, 60));
-      final button = tester.getRect(find.byType(GradientButton));
+      final button = tester.getRect(find.byType(AccentButton));
       expect(button.left - heart.right, UiConfig.detailBottomBarGap);
       expect(button.height, UiConfig.detailBottomBarHeight);
     });

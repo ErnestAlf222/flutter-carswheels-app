@@ -40,7 +40,7 @@ void main() {
     await tester.pumpWidget(host(() {}));
     await tester.pumpAndSettle();
     final text = tester.widget<Text>(find.text(AppTexts.retryButtonLabel));
-    expect(text.style?.color, AppColors.link);
+    expect(text.style?.color, AppColors.ink);
     final size = tester.getSize(find.byType(TextButton));
     expect(
       size.height,

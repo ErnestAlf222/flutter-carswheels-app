@@ -20,7 +20,7 @@ void main() {
     expect(tester.getSize(find.byType(SkeletonBarWidget)), const Size(56, 10));
     final box = tester.widget<Container>(find.byType(Container));
     final decoration = box.decoration! as BoxDecoration;
-    expect(decoration.color, AppColors.line);
+    expect(decoration.color, AppColors.outline);
     expect(
       decoration.borderRadius,
       BorderRadius.circular(AppRadii.skeletonBar),

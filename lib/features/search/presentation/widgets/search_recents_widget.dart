@@ -34,10 +34,10 @@ class SearchRecentsWidget extends StatelessWidget {
             ),
             TextButton(
               onPressed: onClearAll,
-              style: TextButton.styleFrom(foregroundColor: AppColors.link),
+              style: TextButton.styleFrom(foregroundColor: AppColors.ink),
               child: Text(
                 AppTexts.searchClearAllLabel,
-                style: AppTextStyles.caption.copyWith(color: AppColors.link),
+                style: AppTextStyles.caption.copyWith(color: AppColors.ink),
               ),
             ),
           ],
@@ -84,7 +84,7 @@ class _RecentRow extends StatelessWidget {
                     const Icon(
                       Symbols.history,
                       size: SearchConfig.fieldIconSize,
-                      color: AppColors.subtle,
+                      color: AppColors.mutedText,
                     ),
                     const SizedBox(width: AppSpacing.s),
                     Expanded(
@@ -106,7 +106,7 @@ class _RecentRow extends StatelessWidget {
             icon: const Icon(
               Symbols.close,
               size: SearchConfig.fieldIconSize,
-              color: AppColors.subtle,
+              color: AppColors.mutedText,
             ),
           ),
         ],

@@ -9,6 +9,7 @@ class DetailFigureData {
     required this.caption,
     this.isLabel = false,
     this.isLoading = false,
+    this.highlight = false,
     this.extra,
     this.semanticLabel,
   });
@@ -19,6 +20,9 @@ class DetailFigureData {
 
   /// Cifra aún en camino: se dibuja un esqueleto en su lugar.
   final bool isLoading;
+
+  /// Cifra principal: lleva un marcador amarillo debajo.
+  final bool highlight;
 
   /// Contenido bajo la cifra, como las estrellas.
   final Widget? extra;
@@ -54,7 +58,7 @@ class DetailFiguresCardWidget extends StatelessWidget {
             vertical: UiConfig.detailStatsVerticalPadding,
           ),
           decoration: BoxDecoration(
-            color: AppColors.card,
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(AppRadii.card),
             boxShadow: AppShadows.soft,
           ),
@@ -103,6 +107,7 @@ class _StatCell extends StatelessWidget {
                   ? AppTextStyles.cardTitle
                   : AppTextStyles.statFigure,
             ),
+          if (data.highlight && !data.isLoading) const _HighlightMarker(),
           ?data.extra,
           Text(
             data.caption,
@@ -110,6 +115,32 @@ class _StatCell extends StatelessWidget {
             style: AppTextStyles.caption.copyWith(height: 1.3),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Marcador amarillo corto bajo la cifra principal.
+class _HighlightMarker extends StatelessWidget {
+  const _HighlightMarker();
+
+  @override
+  Widget build(BuildContext context) {
+    return const ExcludeSemantics(
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: UiConfig.detailHighlightGap),
+        child: SizedBox(
+          width: UiConfig.titleUnderlineWidth,
+          height: UiConfig.titleUnderlineHeight,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: AppColors.accent,
+              borderRadius: BorderRadius.all(
+                Radius.circular(UiConfig.titleUnderlineHeight),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -123,7 +154,7 @@ class _StatDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return const SizedBox(
       width: UiConfig.detailStatDividerWidth,
-      child: ColoredBox(color: AppColors.line),
+      child: ColoredBox(color: AppColors.outline),
     );
   }
 }

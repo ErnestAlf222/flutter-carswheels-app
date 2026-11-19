@@ -2,12 +2,14 @@
 class NavConfig {
   const NavConfig._();
 
-  // Valores de la maqueta aprobada.
-  static const double buttonSize = 52.0;
-  static const double buttonGap = 8.0;
+  // Círculo de cada ítem, separación y relleno de la píldora.
+  static const double buttonSize = 48.0;
+  static const double buttonGap = 6.0;
+  static const double pillPadding = 8.0;
+  static const double pillHeight = buttonSize + 2 * pillPadding;
   static const double bottomMargin = 24.0;
   // Espacio que ocupa el menú desde el borde inferior, sin el área segura.
-  static const double footprint = bottomMargin + buttonSize;
+  static const double footprint = bottomMargin + pillHeight;
   static const double hideOffsetY = 130.0;
   static const double hideScale = 0.8;
   static const int hideDurationMilliseconds = 550;

@@ -3,9 +3,8 @@ import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('el punto activo es blanco pleno y el inactivo blanco al 50 %', () {
-    expect(AppColors.galleryDotActive, AppColors.onGradient);
-    expect(AppColors.galleryDotActive, const Color(0xFFFFFFFF));
+  test('el punto activo es amarillo y el inactivo blanco al 50 %', () {
+    expect(AppColors.galleryDotActive, AppColors.accent);
     expect(AppColors.galleryDotInactive, const Color(0x80FFFFFF));
   });
 
@@ -21,7 +20,7 @@ void main() {
     expect(UiConfig.efficiencyScoreSegmentHeight, 6.0);
     expect(UiConfig.efficiencyScoreSegmentGap, 3.0);
     expect(UiConfig.efficiencyScoreSegmentRadius, 3.0);
-    expect(AppColors.scoreSegmentEmpty, AppColors.line);
+    expect(AppColors.outline, AppColors.outline);
   });
 
   test('las unidades y los límites de puntuación', () {

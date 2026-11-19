@@ -189,6 +189,28 @@ void main() {
     expect(taps, hasLength(1));
   });
 
+  testWidgets('Inicio muestra el encabezado tinta, el selector y la '
+      'barra de búsqueda', (tester) async {
+    await pumpHome(tester, catalog: _loaded());
+    final header = find.byType(HeroHeaderWidget);
+    expect(header, findsOneWidget);
+    expect(
+      find.descendant(of: header, matching: find.byType(MarketSelectorWidget)),
+      findsOneWidget,
+    );
+    expect(
+      tester
+          .widget<MarketSelectorWidget>(find.byType(MarketSelectorWidget))
+          .onDark,
+      isTrue,
+    );
+    // La barra de búsqueda sobresale por el borde inferior del encabezado.
+    final bar = tester.getRect(find.byType(HomeSearchBarWidget));
+    final headerRect = tester.getRect(header);
+    expect(bar.center.dy, closeTo(headerRect.bottom, 0.01));
+    expect(find.byType(CustomScrollView), findsOneWidget);
+  });
+
   testWidgets('loading muestra el AppLoader y no hay selector de año', (
     tester,
   ) async {

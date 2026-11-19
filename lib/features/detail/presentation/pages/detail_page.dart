@@ -44,7 +44,16 @@ class DetailPage extends StatelessWidget {
           children: [
             CustomScrollView(
               slivers: [
-                SliverToBoxAdapter(child: DetailHeroHeaderWidget(args: args)),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: DetailHeaderDelegate(
+                    brandName: args.brand,
+                    groupName: args.groupName,
+                    heroTag: args.heroTag,
+                    topInset: MediaQuery.paddingOf(context).top,
+                  ),
+                ),
+                const SliverToBoxAdapter(child: DetailPhotoCreditWidget()),
                 SliverToBoxAdapter(child: _DetailBody(args: args)),
               ],
             ),
@@ -106,7 +115,12 @@ class _DetailBody extends StatelessWidget {
             _FadeSwitcher(child: _content(context, state)),
             if (isMexico && loaded != null)
               _entry(5, const DetailAttributionWidget()),
-            const SizedBox(height: UiConfig.detailBottomClearance),
+            // Deja el final por encima de la barra inferior y el área segura.
+            SizedBox(
+              height:
+                  UiConfig.detailBottomClearance +
+                  MediaQuery.paddingOf(context).bottom,
+            ),
           ],
         );
       },

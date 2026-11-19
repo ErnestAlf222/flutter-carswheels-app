@@ -159,7 +159,7 @@ class _CloseButton extends StatelessWidget {
           child: const Icon(
             Symbols.close,
             size: UiConfig.iconSize,
-            color: AppColors.onGradient,
+            color: AppColors.onDark,
           ),
         ),
       ),
@@ -242,7 +242,7 @@ class _Dots extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: index == activeIndex
-                    ? AppColors.onGradient
+                    ? AppColors.onDark
                     : AppColors.galleryDotInactive,
               ),
             ),

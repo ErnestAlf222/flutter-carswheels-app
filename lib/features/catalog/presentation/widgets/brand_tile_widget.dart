@@ -35,14 +35,13 @@ class BrandTileWidget extends StatelessWidget {
               height: CarouselConfig.brandTileSize,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: AppColors.card,
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(AppRadii.tile),
                 boxShadow: selected
                     ? [
                         AppShadows.selectedRing(
                           CarouselConfig.selectedRingWidth,
                         ),
-                        ...AppShadows.accent,
                       ]
                     : AppShadows.soft,
               ),

@@ -8,12 +8,14 @@ void main() {
     GoogleFonts.config.allowRuntimeFetching = false;
   });
 
-  testWidgets('llama a onPressed y usa el degradado', (tester) async {
+  testWidgets('llama a onPressed, es amarillo y el texto va en tinta', (
+    tester,
+  ) async {
     int calls = 0;
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: GradientButton(
+          body: AccentButton(
             label: AppTexts.retryButtonLabel,
             onPressed: () => calls++,
           ),
@@ -22,8 +24,17 @@ void main() {
     );
     await tester.tap(find.text(AppTexts.retryButtonLabel));
     expect(calls, 1);
-    final box = tester.widget<DecoratedBox>(find.byType(DecoratedBox).first);
-    final decoration = box.decoration as BoxDecoration;
-    expect(decoration.gradient, AppGradients.primary);
+    final material = tester.widget<Material>(
+      find
+          .descendant(
+            of: find.byType(AccentButton),
+            matching: find.byType(Material),
+          )
+          .first,
+    );
+    expect(material.color, AppColors.accent);
+    final text = tester.widget<Text>(find.text(AppTexts.retryButtonLabel));
+    expect(text.style!.color, AppColors.ink);
+    expect(text.style!.fontWeight, FontWeight.w700);
   });
 }

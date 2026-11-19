@@ -8,7 +8,7 @@ class CarouselConfig {
   static const double arrowButtonSize = 32.0;
   static const double arrowIconSize = 18.0;
   static const double arrowTouchTargetSize = 48.0;
-  static const double selectedRingWidth = 3.0;
+  static const double selectedRingWidth = 2.0;
   static const double yearSelectorHeight = 48.0;
   static const double yearTextMinWidth = 56.0;
   // Opacidad de una flecha deshabilitada.

@@ -10,12 +10,12 @@ class AppShadows {
     BoxShadow(color: AppColors.shadow, blurRadius: 24, offset: Offset(0, 8)),
   ];
 
-  // Sombra de acento: el color del degradado al 35% de opacidad.
-  static final List<BoxShadow> accent = [
+  // Sombra de la píldora flotante de la barra inferior.
+  static const List<BoxShadow> navBar = [
     BoxShadow(
-      color: AppColors.gradientStart.withValues(alpha: 0.35),
+      color: AppColors.navShadow,
       blurRadius: 24,
-      offset: const Offset(0, 10),
+      offset: Offset(0, 10),
     ),
   ];
 
@@ -24,10 +24,7 @@ class AppShadows {
     BoxShadow(color: AppColors.shadow, blurRadius: 12, offset: Offset(0, 4)),
   ];
 
-  // Anillo sólido del color del degradado, sin desenfoque.
-  static BoxShadow selectedRing(double width) => BoxShadow(
-    color: AppColors.gradientStart,
-    blurRadius: 0,
-    spreadRadius: width,
-  );
+  // Anillo sólido de tinta, sin desenfoque.
+  static BoxShadow selectedRing(double width) =>
+      BoxShadow(color: AppColors.ink, blurRadius: 0, spreadRadius: width);
 }

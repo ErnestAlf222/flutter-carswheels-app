@@ -118,7 +118,7 @@ class _ArrowButton extends StatelessWidget {
                 width: CarouselConfig.arrowButtonSize,
                 height: CarouselConfig.arrowButtonSize,
                 decoration: const BoxDecoration(
-                  color: AppColors.card,
+                  color: AppColors.surface,
                   shape: BoxShape.circle,
                   boxShadow: AppShadows.soft,
                 ),

@@ -60,7 +60,7 @@ class _Monogram extends StatelessWidget {
       height: size,
       alignment: Alignment.center,
       decoration: const BoxDecoration(
-        color: AppColors.tint,
+        color: AppColors.photoPlaceholder,
         shape: BoxShape.circle,
       ),
       child: FittedBox(
@@ -68,7 +68,7 @@ class _Monogram extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.xs),
           child: Text(
             initial,
-            style: AppTextStyles.figure.copyWith(color: AppColors.tintText),
+            style: AppTextStyles.figure.copyWith(color: AppColors.mutedText),
           ),
         ),
       ),

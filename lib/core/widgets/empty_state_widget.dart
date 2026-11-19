@@ -23,7 +23,7 @@ class EmptyStateWidget extends StatelessWidget {
             const Icon(
               Symbols.search_off,
               size: UiConfig.iconSize,
-              color: AppColors.subtle,
+              color: AppColors.mutedText,
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(AppTexts.emptyStateTitle, style: AppTextStyles.bodyStrong),

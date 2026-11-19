@@ -34,11 +34,18 @@ class ModelsSectionWidget extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(
-                  child: Text(
-                    brandName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.sectionTitle,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        brandName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.sectionTitle,
+                      ),
+                      const SizedBox(height: UiConfig.titleUnderlineGap),
+                      const _TitleUnderline(),
+                    ],
                   ),
                 ),
                 if (current is ModelsLoaded)
@@ -181,6 +188,29 @@ class _LoadedGrid extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Subrayado corto amarillo bajo el título de la marca.
+class _TitleUnderline extends StatelessWidget {
+  const _TitleUnderline();
+
+  @override
+  Widget build(BuildContext context) {
+    return const ExcludeSemantics(
+      child: SizedBox(
+        width: UiConfig.titleUnderlineWidth,
+        height: UiConfig.titleUnderlineHeight,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppColors.accent,
+            borderRadius: BorderRadius.all(
+              Radius.circular(UiConfig.titleUnderlineHeight),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

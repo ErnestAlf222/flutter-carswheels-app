@@ -54,7 +54,7 @@ class _QuickBrandChip extends StatelessWidget {
       label: AppTexts.searchQuickBrandSemanticLabel(brand),
       excludeSemantics: true,
       child: Material(
-        color: AppColors.card,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadii.chip),
         child: InkWell(
           onTap: onTap,
@@ -66,7 +66,7 @@ class _QuickBrandChip extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppRadii.chip),
-              border: Border.all(color: AppColors.line),
+              border: Border.all(color: AppColors.outline),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,

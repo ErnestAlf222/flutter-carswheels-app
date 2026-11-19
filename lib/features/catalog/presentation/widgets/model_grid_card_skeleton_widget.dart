@@ -12,7 +12,7 @@ class ModelGridCardSkeletonWidget extends StatelessWidget {
     final scaler = MediaQuery.textScalerOf(context);
     final card = DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadii.card),
         boxShadow: AppShadows.soft,
       ),
@@ -23,7 +23,7 @@ class ModelGridCardSkeletonWidget extends StatelessWidget {
             aspectRatio: ModelGridConfig.photoAspectRatio,
             child: DecoratedBox(
               decoration: BoxDecoration(
-                color: AppColors.tint,
+                color: AppColors.photoPlaceholder,
                 borderRadius: BorderRadius.vertical(
                   top: Radius.circular(AppRadii.card),
                 ),

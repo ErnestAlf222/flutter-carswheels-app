@@ -36,15 +36,31 @@ void main() {
     expect(taps, [1]);
   });
 
-  testWidgets('el botón activo usa el degradado principal', (tester) async {
+  testWidgets('es una sola píldora tinta y el ítem activo es amarillo', (
+    tester,
+  ) async {
     await tester.pumpWidget(build(visible: true, onSelected: (_) {}));
     final decorations = tester
         .widgetList<DecoratedBox>(find.byType(DecoratedBox))
         .map((box) => box.decoration as BoxDecoration);
-    expect(
-      decorations.where((d) => d.gradient == AppGradients.primary),
-      hasLength(1),
+    expect(decorations.where((d) => d.color == AppColors.accent), hasLength(1));
+    final pills = tester
+        .widgetList<Container>(find.byType(Container))
+        .where((c) => (c.decoration as BoxDecoration?)?.color == AppColors.ink);
+    expect(pills, hasLength(1));
+    final active = tester.widget<Icon>(find.byIcon(Symbols.home));
+    expect(active.color, AppColors.ink);
+    final inactive = tester.widget<Icon>(find.byIcon(Symbols.search));
+    expect(inactive.color, AppColors.navInactive);
+  });
+
+  testWidgets('la altura de la píldora sale de NavConfig', (tester) async {
+    await tester.pumpWidget(build(visible: true, onSelected: (_) {}));
+    final pill = find.ancestor(
+      of: find.byIcon(Symbols.home),
+      matching: find.byType(Container),
     );
+    expect(tester.getSize(pill.last).height, NavConfig.pillHeight);
   });
 
   testWidgets('oculto no recibe toques', (tester) async {

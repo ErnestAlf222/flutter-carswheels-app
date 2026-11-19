@@ -41,7 +41,7 @@ void main() {
           matching: find.byType(ColoredBox),
         ),
       );
-      expect(box.color, AppColors.tint);
+      expect(box.color, AppColors.photoPlaceholder);
     });
 
     testWidgets('compact omite el texto', (tester) async {

@@ -25,12 +25,12 @@ class SearchContextChipWidget extends StatelessWidget {
           vertical: SearchConfig.chipVerticalPadding,
         ),
         decoration: BoxDecoration(
-          color: AppColors.tint,
+          color: AppColors.accentTint,
           borderRadius: BorderRadius.circular(AppRadii.classChip),
         ),
         child: Text(
           AppTexts.searchContextChipLabel(market, year),
-          style: AppTextStyles.caption.copyWith(color: AppColors.tintText),
+          style: AppTextStyles.caption.copyWith(color: AppColors.mutedText),
         ),
       ),
     );

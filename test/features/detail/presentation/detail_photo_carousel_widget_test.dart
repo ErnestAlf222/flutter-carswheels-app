@@ -56,7 +56,13 @@ void main() {
     Center(
       child: SizedBox(
         width: 300,
-        child: DetailPhotoCarouselWidget(brandName: 'Toyota', heroTag: heroTag),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            DetailPhotoCarouselWidget(brandName: 'Toyota', heroTag: heroTag),
+            const DetailPhotoCreditWidget(),
+          ],
+        ),
       ),
     ),
     galleryCubit: cubit ?? buildMockGalleryCubit(state),
@@ -110,42 +116,22 @@ void main() {
     expect(dots(), findsNothing);
   });
 
-  testWidgets('la tarjeta es blanca, de 220, esquinas de 32 y sombra suave', (
-    tester,
-  ) async {
+  testWidgets('la foto va a todo el ancho, de 264, sobre tinta y con la '
+      'superposición oscura', (tester) async {
     await tester.pumpWidget(carousel(GalleryState(photos: [_photo(1)])));
     final container = tester.widget<Container>(cardFinder());
-    final decoration = container.decoration! as BoxDecoration;
-    expect(decoration.color, AppColors.card);
-    expect(decoration.borderRadius, BorderRadius.circular(32));
-    expect(decoration.boxShadow, AppShadows.soft);
-    expect(container.clipBehavior, Clip.antiAlias);
-    expect(tester.getSize(cardFinder()).height, 220);
-    expect(UiConfig.detailPhotoHeight, 220);
-  });
-
-  testWidgets('en el encabezado la tarjeta queda a 20 del borde', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      detailHost(
-        const DetailHeroHeaderWidget(
-          args: DetailArgsEntity(
-            brand: 'Toyota',
-            groupName: 'Corolla',
-            year: 2020,
-            variantNames: ['Corolla'],
-            photo: null,
-            heroTag: 'tag',
-          ),
-        ),
-        galleryCubit: buildMockGalleryCubit(GalleryState(photos: [_photo(1)])),
-      ),
-    );
-    final card = tester.getRect(cardFinder());
-    expect(card.left, 20);
-    expect(UiConfig.detailPhotoSideMargin, 20);
-    expect(card.top, UiConfig.detailPhotoTop);
+    expect(container.color, AppColors.ink);
+    expect(container.decoration, isNull);
+    final overlays = tester
+        .widgetList<DecoratedBox>(find.byType(DecoratedBox))
+        .where(
+          (box) =>
+              (box.decoration as BoxDecoration).gradient ==
+              AppGradients.photoOverlay,
+        );
+    expect(overlays, hasLength(1));
+    expect(tester.getSize(cardFinder()), const Size(300, 264));
+    expect(UiConfig.detailPhotoHeight, 220 * 1.2);
   });
 
   testWidgets('una foto: sin puntos, con Hero en la página 0 y crédito', (
@@ -205,7 +191,7 @@ void main() {
     );
   });
 
-  testWidgets('los puntos quedan centrados y a 8 del borde inferior', (
+  testWidgets('los puntos quedan centrados y sobre el panel claro', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -216,7 +202,10 @@ void main() {
       find.ancestor(of: dots().first, matching: find.byType(Container)).first,
     );
     expect(pill.center.dx, closeTo(card.center.dx, 0.01));
-    expect(card.bottom - pill.bottom, UiConfig.galleryDotsBottomInset);
+    expect(
+      card.bottom - pill.bottom,
+      UiConfig.galleryDotsBottomInset + HeaderConfig.detailPanelOverlap,
+    );
   });
 
   testWidgets('el punto activo y el crédito siguen a la foto actual', (
@@ -284,8 +273,8 @@ void main() {
     );
     final card = tester.getRect(cardFinder());
     final chip = tester.getRect(chipBox());
-    expect(chip.left - card.left, UiConfig.photoChipInset);
-    expect(chip.top - card.top, UiConfig.photoChipInset);
+    expect(chip.left - card.left, UiConfig.detailPhotoChipLeft);
+    expect(chip.top - card.top, UiConfig.detailPhotoChipTop);
     // El crédito ya no lleva la etiqueta de referencia.
     expect(find.text('Foto: Autor 1 · CC BY 4.0'), findsOneWidget);
   });
@@ -373,22 +362,17 @@ void main() {
     expect(large.alignment, Alignment.center);
   });
 
-  testWidgets('proporción 3.0: contain con el fondo difuminado', (
+  testWidgets('proporción 3.0: contain sobre el degradado, sin desenfoque', (
     tester,
   ) async {
     await tester.pumpWidget(
       carousel(GalleryState(photos: [_photo(1, aspectRatio: 3.0)])),
     );
-    expect(find.byType(ImageFiltered), findsOneWidget);
-    final images = tester
+    expect(find.byType(ImageFiltered), findsNothing);
+    final large = tester
         .widgetList<CachedNetworkImage>(find.byType(CachedNetworkImage))
-        .toList();
-    final large = images.firstWhere((i) => i.imageUrl.contains('960px'));
+        .firstWhere((i) => i.imageUrl.contains('960px'));
     expect(large.fit, BoxFit.contain);
-    final blurred = images.where(
-      (i) => i.fit == BoxFit.cover && i.imageUrl.contains('330px'),
-    );
-    expect(blurred, hasLength(1));
   });
 
   testWidgets(

@@ -25,6 +25,9 @@ class AppTexts {
   static const String navFavoritesLabel = 'Favoritos';
   static const String navSettingsLabel = 'Ajustes';
   static const String brandsSectionTitle = 'Marcas';
+  // Wordmark: la primera palabra va en blanco y la segunda en amarillo.
+  static const String wordmarkFirst = 'Cars ';
+  static const String wordmarkSecond = 'Wheels';
   static const String previousBrandsLabel = 'Marcas anteriores';
   static const String nextBrandsLabel = 'Marcas siguientes';
 

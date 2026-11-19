@@ -28,9 +28,9 @@ class SearchFieldWidget extends StatelessWidget {
       child: Container(
         height: SearchConfig.fieldHeight,
         decoration: BoxDecoration(
-          color: AppColors.card,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadii.pill),
-          border: Border.all(color: AppColors.line),
+          border: Border.all(color: AppColors.outline),
           boxShadow: AppShadows.soft,
         ),
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.m),
@@ -39,7 +39,7 @@ class SearchFieldWidget extends StatelessWidget {
             const Icon(
               Symbols.search,
               size: SearchConfig.fieldIconSize,
-              color: AppColors.subtle,
+              color: AppColors.mutedText,
             ),
             const SizedBox(width: AppSpacing.xs),
             Expanded(
@@ -50,13 +50,13 @@ class SearchFieldWidget extends StatelessWidget {
                 onSubmitted: onSubmitted,
                 textInputAction: TextInputAction.search,
                 style: AppTextStyles.body,
-                cursorColor: AppColors.link,
+                cursorColor: AppColors.ink,
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   isCollapsed: true,
                   hintText: AppTexts.searchFieldHint,
                   hintStyle: AppTextStyles.body.copyWith(
-                    color: AppColors.subtle,
+                    color: AppColors.mutedText,
                   ),
                 ),
               ),
@@ -71,7 +71,7 @@ class SearchFieldWidget extends StatelessWidget {
                       icon: const Icon(
                         Symbols.close,
                         size: SearchConfig.fieldIconSize,
-                        color: AppColors.subtle,
+                        color: AppColors.mutedText,
                       ),
                     ),
             ),

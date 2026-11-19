@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 
-/// Marca, año y nombre del modelo, con la cápsula de clase a la derecha.
+/// Overline de marca y año, nombre del modelo y la cápsula de clase debajo.
 class DetailTitleRowWidget extends StatelessWidget {
   const DetailTitleRowWidget({
     super.key,
@@ -27,41 +27,35 @@ class DetailTitleRowWidget extends StatelessWidget {
         UiConfig.detailInfoSideMargin,
         0,
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  AppTexts.brandYearLabel(brand, year),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.detailBrandYearLabel.copyWith(
-                    color: AppColors.subtle,
-                  ),
-                ),
-                Text(
-                  groupName,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.detailTitle,
-                ),
-              ],
+      child: SizedBox(
+        width: double.infinity,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              AppTexts.brandYearLabel(brand, year).toUpperCase(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.detailBrandYearLabel,
             ),
-          ),
-          if (label != null) ...[
-            const SizedBox(width: AppSpacing.xs),
-            Flexible(child: _ClassChip(label: label)),
+            Text(
+              groupName,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.detailTitle,
+            ),
+            if (label != null) ...[
+              const SizedBox(height: AppSpacing.xs),
+              _ClassChip(label: label),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
 }
 
-/// Cápsula con la clase del vehículo.
+/// Píldora con borde suave con la clase del vehículo.
 class _ClassChip extends StatelessWidget {
   const _ClassChip({required this.label});
 
@@ -75,8 +69,8 @@ class _ClassChip extends StatelessWidget {
         horizontal: UiConfig.detailChipHorizontalPadding,
       ),
       decoration: BoxDecoration(
-        color: AppColors.tint,
-        borderRadius: BorderRadius.circular(AppRadii.classChip),
+        borderRadius: BorderRadius.circular(AppRadii.pill),
+        border: Border.all(color: AppColors.outline),
       ),
       child: Text(
         label,

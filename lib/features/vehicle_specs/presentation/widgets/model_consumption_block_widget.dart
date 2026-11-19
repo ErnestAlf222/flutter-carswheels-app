@@ -116,7 +116,7 @@ class _FigureBlock extends StatelessWidget {
                   const Icon(
                     Symbols.speed,
                     size: ModelGridConfig.consumptionIconSize,
-                    color: AppColors.consumptionAccent,
+                    color: AppColors.ink,
                   ),
                   Text(
                     figure,
@@ -162,7 +162,7 @@ class _EfficiencyBar extends StatelessWidget {
         height: ModelGridConfig.efficiencyBarHeight,
         width: double.infinity,
         child: ColoredBox(
-          color: AppColors.efficiencyBarTrack,
+          color: AppColors.outline,
           child: TweenAnimationBuilder<double>(
             tween: Tween<double>(begin: 0, end: fraction),
             duration: duration,
@@ -174,7 +174,7 @@ class _EfficiencyBar extends StatelessWidget {
                 heightFactor: 1,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: AppColors.efficiencyBarFill,
+                    color: AppColors.accent,
                     borderRadius: radius,
                   ),
                 ),

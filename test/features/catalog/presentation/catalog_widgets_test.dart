@@ -89,13 +89,11 @@ void main() {
       expect(taps, 1);
     });
 
-    testWidgets('seleccionado añade el anillo y la sombra de acento', (
-      tester,
-    ) async {
+    testWidgets('seleccionado añade el anillo de tinta', (tester) async {
       await tester.pumpWidget(tile(selected: true, onTap: () {}));
       final shadows = decorationOf(tester).boxShadow!;
       expect(shadows.first.spreadRadius, CarouselConfig.selectedRingWidth);
-      expect(shadows.length, 1 + AppShadows.accent.length);
+      expect(shadows.length, 1);
       final name = tester.widget<Text>(find.text('Audi'));
       expect(name.style!.color, AppColors.ink);
       expect(name.style!.fontWeight, FontWeight.w700);

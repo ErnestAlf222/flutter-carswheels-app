@@ -58,37 +58,33 @@ class HomePage extends StatelessWidget {
           return false;
         },
         child: Scaffold(
-          body: SafeArea(
-            bottom: false,
-            child: BlocBuilder<CatalogCubit, CatalogState>(
-              builder: (context, state) => switch (state) {
-                CatalogInitial() || CatalogLoading() => const CustomScrollView(
-                  slivers: [
-                    SliverToBoxAdapter(child: _TitleRow()),
-                    SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: AppLoader(),
+          // El fondo con degradado lo pone el marco de la app.
+          backgroundColor: Colors.transparent,
+          body: BlocBuilder<CatalogCubit, CatalogState>(
+            builder: (context, state) => switch (state) {
+              CatalogInitial() || CatalogLoading() => const CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(child: _HomeHeader()),
+                  SliverFillRemaining(hasScrollBody: false, child: AppLoader()),
+                ],
+              ),
+              CatalogError() => CustomScrollView(
+                slivers: [
+                  // El selector queda fuera del error para poder cambiar de mercado.
+                  const SliverToBoxAdapter(child: _HomeHeader()),
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: ErrorStateWidget(
+                      onRetry: context.read<CatalogCubit>().retry,
                     ),
-                  ],
-                ),
-                CatalogError() => CustomScrollView(
-                  slivers: [
-                    // El selector queda fuera del error para poder cambiar de mercado.
-                    const SliverToBoxAdapter(child: _TitleRow()),
-                    SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: ErrorStateWidget(
-                        onRetry: context.read<CatalogCubit>().retry,
-                      ),
-                    ),
-                  ],
-                ),
-                CatalogLoaded() => _LoadedContent(
-                  state: state,
-                  onSearchTap: () => onSearchTap(context),
-                ),
-              },
-            ),
+                  ),
+                ],
+              ),
+              CatalogLoaded() => _LoadedContent(
+                state: state,
+                onSearchTap: () => onSearchTap(context),
+              ),
+            },
           ),
         ),
       ),
@@ -253,10 +249,7 @@ class _LoadedContentState extends State<_LoadedContent>
         : const Duration(milliseconds: AnimationConfig.headerSnapMilliseconds);
     return CustomScrollView(
       slivers: [
-        const SliverToBoxAdapter(child: _TitleRow()),
-        SliverToBoxAdapter(
-          child: HomeSearchBarWidget(onTap: widget.onSearchTap),
-        ),
+        SliverToBoxAdapter(child: _HomeHeader(onSearchTap: widget.onSearchTap)),
         if (hasBrands)
           SliverPersistentHeader(
             pinned: true,
@@ -270,6 +263,7 @@ class _LoadedContentState extends State<_LoadedContent>
               brandName: state.brands[state.selectedIndex].name,
               isRefreshing: state.isRefreshing,
               snapDuration: snapDuration,
+              topInset: MediaQuery.paddingOf(context).top,
               onOlderYear: cubit.showOlderYear,
               onNewerYear: cubit.showNewerYear,
               vsync: this,
@@ -278,7 +272,9 @@ class _LoadedContentState extends State<_LoadedContent>
         else
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              padding: const EdgeInsets.symmetric(
+                horizontal: UiConfig.pageHorizontalPadding,
+              ),
               child: _BrandsHeader(state: state),
             ),
           ),
@@ -286,9 +282,9 @@ class _LoadedContentState extends State<_LoadedContent>
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(
-                AppSpacing.xl,
+                UiConfig.pageHorizontalPadding,
                 AppSpacing.m,
-                AppSpacing.xl,
+                UiConfig.pageHorizontalPadding,
                 0,
               ),
               child: InlineMessageWidget(
@@ -300,9 +296,9 @@ class _LoadedContentState extends State<_LoadedContent>
           ),
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(
-            AppSpacing.xl,
+            UiConfig.pageHorizontalPadding,
             AppSpacing.m,
-            AppSpacing.xl,
+            UiConfig.pageHorizontalPadding,
             0,
           ),
           sliver: RefreshableSliverWidget(
@@ -338,27 +334,68 @@ class _LoadedContentState extends State<_LoadedContent>
   }
 }
 
-/// Nombre de la app con el selector de mercado, siempre visible.
-class _TitleRow extends StatelessWidget {
-  const _TitleRow();
+/// Encabezado tinta: wordmark, selector de mercado y barra de búsqueda a caballo.
+class _HomeHeader extends StatelessWidget {
+  const _HomeHeader({this.onSearchTap});
+
+  /// Nulo mientras no hay marcas cargadas: entonces no se muestra la barra.
+  final VoidCallback? onSearchTap;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.xl,
-        AppSpacing.xl,
-        AppSpacing.xl,
-        AppSpacing.m,
+    final onTap = onSearchTap;
+    final topInset = MediaQuery.paddingOf(context).top;
+    final hasBar = onTap != null;
+    final header = HeroHeaderWidget(
+      padding: EdgeInsets.only(
+        top: topInset + HeaderConfig.contentTopPadding,
+        bottom: hasBar
+            ? HeaderConfig.contentBottomPadding + HeaderConfig.searchBarOverlap
+            : HeaderConfig.contentBottomPadding,
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(AppConfig.appName, style: AppTextStyles.cardTitle),
-          ),
-          const MarketSelectorWidget(),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: UiConfig.pageHorizontalPadding,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: AppTexts.wordmarkFirst,
+                      style: AppTextStyles.onDarkWordmark,
+                    ),
+                    TextSpan(
+                      text: AppTexts.wordmarkSecond,
+                      style: AppTextStyles.onDarkWordmarkAccent,
+                    ),
+                  ],
+                ),
+                semanticsLabel: AppConfig.appName,
+              ),
+            ),
+            const MarketSelectorWidget(onDark: true),
+          ],
+        ),
       ),
+    );
+    if (!hasBar) return header;
+    // La barra sobresale por abajo: el espacio extra la deja dentro del sliver.
+    return Stack(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: HeaderConfig.searchBarOverlap),
+          child: header,
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: HomeSearchBarWidget(onTap: onTap),
+        ),
+      ],
     );
   }
 }

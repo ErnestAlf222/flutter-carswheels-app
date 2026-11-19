@@ -60,6 +60,7 @@ class _MainShellPageState extends State<MainShellPage> {
       create: (_) => NavVisibilityCubit(),
       child: Builder(
         builder: (context) => Scaffold(
+          backgroundColor: AppColors.background,
           body: Stack(
             children: [
               NotificationListener<ScrollUpdateNotification>(

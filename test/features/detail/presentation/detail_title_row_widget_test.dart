@@ -35,6 +35,6 @@ void main() {
     );
     final text = tester.widget<Text>(find.text('TOYOTA · 2020'));
     expect(text.style?.letterSpacing, 1.2);
-    expect(text.style?.color, AppColors.subtle);
+    expect(text.style?.color, AppColors.mutedText);
   });
 }

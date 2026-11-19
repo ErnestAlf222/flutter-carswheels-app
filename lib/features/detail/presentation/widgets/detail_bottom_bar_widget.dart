@@ -26,7 +26,7 @@ class DetailBottomBarWidget extends StatelessWidget {
             ),
             const SizedBox(width: UiConfig.detailBottomBarGap),
             Expanded(
-              child: GradientButton(
+              child: AccentButton(
                 label: AppTexts.compareWithOtherLabel,
                 onPressed: onCompare,
               ),
