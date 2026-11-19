@@ -126,10 +126,15 @@ class SearchCubit extends Cubit<SearchState> {
         otherResults: meetsMinimum ? null : const [],
         brandMatches: meetsMinimum ? null : const [],
         suggestions: const [],
+        // Con texto suficiente, el vacío espera a que la búsqueda termine y se calme.
+        isSearching: meetsMinimum,
       ),
     );
     if (meetsMinimum) {
-      _debounceTimer = Timer(debounce, _applySearch);
+      _debounceTimer = Timer(debounce, () {
+        _debounceTimer = null;
+        _applySearch();
+      });
     } else if (state.scopeBrand != null) {
       _applySearch();
     }
@@ -148,6 +153,7 @@ class SearchCubit extends Cubit<SearchState> {
         brandMatches: const [],
         suggestions: const [],
         searchedText: '',
+        isSearching: false,
         clearOtherYears: true,
         otherYearsFailed: false,
       ),
@@ -312,20 +318,27 @@ class SearchCubit extends Cubit<SearchState> {
     } else {
       response = SearchResponseEntity.empty;
     }
-    final finished =
-        state.indexStatus != null &&
-        state.indexStatus!.phase != SearchIndexPhase.building;
+    // Solo con el índice completo hay certeza de que no hay coincidencias.
+    final finished = state.indexStatus?.phase == SearchIndexPhase.ready;
+    // Un avance del índice no salta la espera: el texto aún puede estar cambiando.
+    final settling = _debounceTimer?.isActive ?? false;
     emit(
       state.copyWith(
         results: response.primary,
         otherResults: response.others,
         brandMatches: response.brandMatches,
         // Sin nada que mostrar y con el índice completo, se proponen correcciones.
-        suggestions: scope != null && hasText && response.isEmpty && finished
+        suggestions:
+            scope != null &&
+                hasText &&
+                response.isEmpty &&
+                finished &&
+                !settling
             ? suggestTerms(scope, state.query)
             : const [],
         searchedText: hasText ? TextNormalizer.normalize(state.query) : '',
         canOfferOtherYears: canOffer,
+        isSearching: settling,
         clearScopeBrand: brandLost,
         brands: newBrands,
       ),

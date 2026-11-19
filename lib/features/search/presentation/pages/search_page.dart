@@ -191,8 +191,11 @@ class _SearchPageState extends State<SearchPage> {
         ),
       ];
     }
-    // Índice en reconstrucción (p. ej. otro mercado): loader solo en esta zona.
-    if (state.isPreparing && state.totalResults == 0 && state.hasQuery) {
+    // Sin resultados previos y sin certeza (índice en obra o texto cambiando):
+    // loader solo en esta zona, nunca el vacío.
+    if ((state.isPreparing || state.isSearching) &&
+        state.totalResults == 0 &&
+        state.hasQuery) {
       return [
         SliverFillRemaining(
           hasScrollBody: false,

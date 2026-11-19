@@ -211,6 +211,35 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
+  _test('al cambiar o borrar letras la lista previa sigue y nunca aparece '
+      '"sin resultados" en un fotograma intermedio', (tester) async {
+    final harness = SearchHarness();
+    await tester.pumpWidget(_page(harness));
+    await _settle(tester);
+    await tester.tap(find.byType(TextField));
+    await _type(tester, 'toy');
+    expect(find.byType(ModelGridCardWidget), findsWidgets);
+    final noResults = find.byType(SearchNoResultsWidget);
+    // Cada tecla se revisa fotograma a fotograma, antes y después de la calma.
+    for (final text in ['toyo', 'toy', 'to', 'toy']) {
+      await tester.enterText(find.byType(TextField), text);
+      for (int frame = 0; frame < 8; frame++) {
+        await tester.pump(const Duration(milliseconds: 50));
+        expect(noResults, findsNothing);
+        if (text.length >= SearchConfig.minQueryLength) {
+          expect(find.byType(ModelGridCardWidget), findsWidgets);
+        }
+      }
+    }
+    // Un texto sin coincidencias: loader mientras se calma, vacío después.
+    await tester.enterText(find.byType(TextField), 'zzzx');
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(noResults, findsNothing);
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(noResults, findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
   _test('sin índice ni recientes también muestra el texto breve', (
     tester,
   ) async {

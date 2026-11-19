@@ -25,6 +25,7 @@ class SearchState extends Equatable {
     this.filters = SearchFiltersEntity.none,
     this.traits = const {},
     this.isAnalyzing = false,
+    this.isSearching = false,
   });
 
   /// Texto tal como está en el campo.
@@ -82,6 +83,9 @@ class SearchState extends Equatable {
   /// Hay un análisis de motorización y consumo en curso.
   final bool isAnalyzing;
 
+  /// El texto vigente aún no se calma o su búsqueda no termina: no hay certeza.
+  final bool isSearching;
+
   /// Resultados que se analizan (los de la marca primero), hasta el tope.
   List<SearchResultEntity> get analysisCandidates => [
     ...results,
@@ -123,12 +127,12 @@ class SearchState extends Equatable {
   /// Terminó con marcas sin grupos.
   bool get isPartial => indexStatus?.phase == SearchIndexPhase.partial;
 
-  /// Con consulta, el índice terminó y no hubo coincidencias.
+  /// Con consulta, la búsqueda terminó, el texto se calmó y el índice está completo.
   bool get hasNoResults =>
       hasQuery &&
+      !isSearching &&
       totalResults == 0 &&
-      indexStatus != null &&
-      indexStatus!.phase != SearchIndexPhase.building;
+      indexStatus?.phase == SearchIndexPhase.ready;
 
   /// Con alcance y texto, ninguna coincidencia cayó dentro de la marca.
   bool get hasNoResultsInScope =>
@@ -165,6 +169,7 @@ class SearchState extends Equatable {
     SearchFiltersEntity? filters,
     Map<String, SearchResultTraitsEntity>? traits,
     bool? isAnalyzing,
+    bool? isSearching,
   }) => SearchState(
     query: query ?? this.query,
     scope: clearScope ? null : scope ?? this.scope,
@@ -185,6 +190,7 @@ class SearchState extends Equatable {
     filters: filters ?? this.filters,
     traits: traits ?? this.traits,
     isAnalyzing: isAnalyzing ?? this.isAnalyzing,
+    isSearching: isSearching ?? this.isSearching,
   );
 
   @override
@@ -208,5 +214,6 @@ class SearchState extends Equatable {
     filters,
     traits,
     isAnalyzing,
+    isSearching,
   ];
 }
