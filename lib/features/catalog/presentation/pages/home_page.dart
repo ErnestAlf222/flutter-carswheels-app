@@ -61,6 +61,7 @@ class HomePage extends StatelessWidget {
               builder: (context, state) => switch (state) {
                 CatalogInitial() || CatalogLoading() => const CustomScrollView(
                   slivers: [
+                    SliverToBoxAdapter(child: _TitleRow()),
                     SliverFillRemaining(
                       hasScrollBody: false,
                       child: AppLoader(),
@@ -69,6 +70,8 @@ class HomePage extends StatelessWidget {
                 ),
                 CatalogError() => CustomScrollView(
                   slivers: [
+                    // El selector queda fuera del error para poder cambiar de mercado.
+                    const SliverToBoxAdapter(child: _TitleRow()),
                     SliverFillRemaining(
                       hasScrollBody: false,
                       child: ErrorStateWidget(
@@ -178,26 +181,6 @@ class HomePage extends StatelessWidget {
     ModelsLoaded state,
     ModelGroupEntity group,
   ) {
-    // El Detalle de México aún no existe: se avisa y no se navega.
-    if (context.read<MarketCubit>().market == Market.mexico) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: const Text(AppTexts.mexicoDetailSoonMessage),
-            behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.fromLTRB(
-              AppSpacing.xl,
-              0,
-              AppSpacing.xl,
-              NavConfig.footprint +
-                  MediaQuery.paddingOf(context).bottom +
-                  AppSpacing.m,
-            ),
-          ),
-        );
-      return;
-    }
     final photos = context.read<PhotosCubit>();
     final heroTag = photos.keyFor(
       PhotoRequest(brand: state.brand, model: group.name, year: state.year),
@@ -217,6 +200,7 @@ class HomePage extends StatelessWidget {
       variantNames: [for (final variant in group.variants) variant.name],
       photo: cachedPhoto,
       heroTag: heroTag,
+      market: context.read<MarketCubit>().market,
     );
     context.push(RoutesConfig.detail, extra: args);
   }
@@ -262,27 +246,7 @@ class _LoadedContentState extends State<_LoadedContent>
         : const Duration(milliseconds: AnimationConfig.headerSnapMilliseconds);
     return CustomScrollView(
       slivers: [
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.xl,
-              AppSpacing.xl,
-              AppSpacing.xl,
-              AppSpacing.m,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    AppConfig.appName,
-                    style: AppTextStyles.cardTitle,
-                  ),
-                ),
-                const MarketSelectorWidget(),
-              ],
-            ),
-          ),
-        ),
+        const SliverToBoxAdapter(child: _TitleRow()),
         if (hasBrands)
           SliverPersistentHeader(
             pinned: true,
@@ -360,6 +324,31 @@ class _LoadedContentState extends State<_LoadedContent>
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Nombre de la app con el selector de mercado, siempre visible.
+class _TitleRow extends StatelessWidget {
+  const _TitleRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xl,
+        AppSpacing.xl,
+        AppSpacing.xl,
+        AppSpacing.m,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(AppConfig.appName, style: AppTextStyles.cardTitle),
+          ),
+          const MarketSelectorWidget(),
+        ],
+      ),
     );
   }
 }

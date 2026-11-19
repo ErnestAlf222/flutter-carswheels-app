@@ -27,6 +27,13 @@ class VehicleDetailEntity extends Equatable {
     this.hybridGasKmPerLiter,
     this.fuelScore,
     this.emissionsScore,
+    this.cylindersLabel,
+    this.displacementCubicCentimeters,
+    this.cityCo2GramsPerKilometer,
+    this.highwayCo2GramsPerKilometer,
+    this.powerText,
+    this.torqueText,
+    this.compressionRatioText,
   });
 
   final int id;
@@ -68,6 +75,17 @@ class VehicleDetailEntity extends Equatable {
   final int? fuelScore;
   final int? emissionsScore;
 
+  /// Solo México: cilindros ya con su etiqueta, cilindrada en cm³ y CO₂ por ciclo.
+  final String? cylindersLabel;
+  final int? displacementCubicCentimeters;
+  final double? cityCo2GramsPerKilometer;
+  final double? highwayCo2GramsPerKilometer;
+
+  /// Solo México: textos limpios como "190 @ 6000", "350 @ 1500-4000" y "10.5:1".
+  final String? powerText;
+  final String? torqueText;
+  final String? compressionRatioText;
+
   @override
   List<Object?> get props => [
     id,
@@ -92,5 +110,12 @@ class VehicleDetailEntity extends Equatable {
     hybridGasKmPerLiter,
     fuelScore,
     emissionsScore,
+    cylindersLabel,
+    displacementCubicCentimeters,
+    cityCo2GramsPerKilometer,
+    highwayCo2GramsPerKilometer,
+    powerText,
+    torqueText,
+    compressionRatioText,
   ];
 }

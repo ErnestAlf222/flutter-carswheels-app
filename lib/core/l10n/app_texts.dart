@@ -55,8 +55,11 @@ class AppTexts {
   static const String marketMexicoLabel = 'México';
   static const String marketSelectorSemanticLabel = 'Mercado del catálogo';
   static String marketOptionSemanticLabel(String market) => 'Mercado $market';
-  static const String mexicoDetailSoonMessage =
-      'El detalle de México llega pronto';
+
+  /// Atribución obligatoria (CC BY 4.0); Detalle de México y créditos la reutilizan.
+  static const String conueeAttribution =
+      'Fuente: CONUEE, Catálogo de rendimiento de combustible en vehículos '
+      'ligeros de venta en México, vía datos.gob.mx (CC BY 4.0)';
 
   /// Combustible de CONUEE (normalizado) → etiqueta; lo no listado se muestra tal cual.
   static const Map<String, String> mexicoFuelLabels = {
@@ -113,6 +116,22 @@ class AppTexts {
   static const String detailClassRowLabel = 'Clase';
   static const String detailFuelRowLabel = 'Combustible';
   static const String detailDriveRowLabel = 'Tracción';
+  static const String detailCylindersRowLabel = 'Cilindros';
+  static const String detailDisplacementRowLabel = 'Cilindrada';
+  static const String detailTransmissionRowLabel = 'Transmisión';
+  static const String detailPowerRowLabel = 'Potencia';
+  static const String detailTorqueRowLabel = 'Torque';
+  static const String detailCompressionRowLabel = 'Relación de compresión';
+  static const String detailCityCaption = 'ciudad (km/l)';
+  static const String detailHighwayCaption = 'carretera (km/l)';
+  static const String detailCombinedCaption = 'combinado (km/l)';
+  static const String detailPowerCaption = 'potencia';
+  static const String detailTorqueCaption = 'torque';
+  static const String emissionsTitle = 'Emisiones de CO₂';
+  static const String combinedCycleLabel = 'Combinado';
+  static const String horsepowerUnit = 'hp';
+  static const String newtonMetersUnit = 'N·m';
+  static const String rpmUnit = 'rpm';
   static const String detailRecallsLabel = 'Avisos de seguridad (recalls)';
   static const String noRecallsLabel = 'Sin avisos';
   static const String recallsSheetTitle = 'Avisos de seguridad';
@@ -193,6 +212,31 @@ class AppTexts {
   static String transmissionSpeedsLabel(int count) => '$count vel.';
 
   static String cylindersLabel(int count) => '$count cil';
+
+  /// Cilindrada de México: cm³ tal como viene y litros, por ejemplo '1,998 cm³ (2.0 L)'.
+  static String displacementCubicCentimetersLabel(int cc, double liters) {
+    final grouped = cc.toString().replaceAllMapped(
+      RegExp(TextConfig.thousandsBoundaryPattern),
+      (_) => TextConfig.thousandsSeparator,
+    );
+    return '$grouped cm³ (${displacementLabel(liters)})';
+  }
+
+  /// Cifra de potencia o torque sin las rpm, por ejemplo '190 hp'.
+  static String peakFigure(String text, String unit) =>
+      '${text.split(ConueeConfig.powerSeparator).first} $unit';
+
+  /// Fila de potencia o torque con las rpm si las hay, por ejemplo '190 hp @ 6000 rpm'.
+  static String peakWithRpm(String text, String unit) {
+    final parts = text.split(ConueeConfig.powerSeparator);
+    return parts.length < 2
+        ? '${parts.first} $unit'
+        : '${parts.first} $unit${ConueeConfig.powerSeparator}${parts[1]} $rpmUnit';
+  }
+
+  /// Etiqueta de una versión repetida: nombre más lo que la distingue.
+  static String versionLabelWith(String label, List<String> extras) =>
+      [label, ...extras].join(descriptorSeparator);
 
   /// Litros con un decimal, por ejemplo '2.0 L'.
   static String displacementLabel(double liters) =>

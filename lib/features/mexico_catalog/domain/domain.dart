@@ -13,12 +13,15 @@ export 'datasources/mexico_catalog_datasource.dart';
 // Repositorios
 export 'repositories/mexico_catalog_repository.dart';
 // Servicios
+export 'services/mx_compression_ratio_cleaner.dart';
 export 'services/mx_fuel_classifier.dart';
 export 'services/mx_group_summary_builder.dart';
 export 'services/mx_model_grouper.dart';
 export 'services/mx_model_name_cleaner.dart';
 export 'services/mx_power_text_cleaner.dart';
 export 'services/mx_table_labeler.dart';
+export 'services/mx_vehicle_detail_builder.dart';
+export 'services/mx_version_label_disambiguator.dart';
 // Casos de uso
 export 'usecases/get_mx_brands_usecase.dart';
 export 'usecases/get_mx_model_groups_usecase.dart';

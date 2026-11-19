@@ -1,5 +1,6 @@
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/mexico_catalog/domain/entities/mx_vehicle_entity.dart';
+import 'package:cars_wheels_app/features/mexico_catalog/domain/services/mx_compression_ratio_cleaner.dart';
 import 'package:cars_wheels_app/features/mexico_catalog/domain/services/mx_fuel_classifier.dart';
 import 'package:cars_wheels_app/features/mexico_catalog/domain/services/mx_model_name_cleaner.dart';
 import 'package:cars_wheels_app/features/mexico_catalog/domain/services/mx_power_text_cleaner.dart';
@@ -20,6 +21,7 @@ class MxVehicleMapper {
       labels: ConueeConfig.transmissionLabels,
     ),
     this.powerCleaner = const MxPowerTextCleaner(),
+    this.compressionCleaner = const MxCompressionRatioCleaner(),
     this.nameCleaner = const MxModelNameCleaner(),
   });
 
@@ -27,6 +29,7 @@ class MxVehicleMapper {
   final MxTableLabeler cylindersLabeler;
   final MxTableLabeler transmissionLabeler;
   final MxPowerTextCleaner powerCleaner;
+  final MxCompressionRatioCleaner compressionCleaner;
   final MxModelNameCleaner nameCleaner;
 
   /// Nulo si la fila no trae marca o modelo.
@@ -73,6 +76,9 @@ class MxVehicleMapper {
         ),
         power: powerCleaner.clean(_text(row[ConueeConfig.powerKey])),
         torque: powerCleaner.clean(_text(row[ConueeConfig.torqueKey])),
+        compressionRatio: compressionCleaner.clean(
+          _text(row[ConueeConfig.compressionKey]),
+        ),
       ),
       droppedKmPerLiter: km.any((entry) => entry.dropped),
     );

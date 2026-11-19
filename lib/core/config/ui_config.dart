@@ -98,6 +98,10 @@ class UiConfig {
   static const double detailStatsVerticalPadding = 14.0;
   static const double detailInfoRowVerticalPadding = 10.0;
   static const double detailRecallsTopMargin = 10.0;
+  static const double detailAttributionTopMargin = 16.0;
+
+  // Con menos cifras que esto la tarjeta de cifras de México no se muestra.
+  static const int detailMinFigureCells = 2;
   static const int detailSkeletonRowCount = 3;
   // Seguridad NHTSA en Detalle: estrellas, esqueletos y hoja de recalls.
   static const int safetyStarCount = 5;

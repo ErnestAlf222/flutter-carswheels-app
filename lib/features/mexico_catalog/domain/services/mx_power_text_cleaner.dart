@@ -13,6 +13,16 @@ class MxPowerTextCleaner {
 
   /// "190@6000" → "190 @ 6000"; "46.9@ MAX" → "46.9"; "135±5 @ PEAK" → nulo.
   String? clean(String? raw) {
+    final cleaned = _clean(raw);
+    if (cleaned == null) return null;
+    // Un 0 inicial ("0@0") es relleno de CONUEE, no una potencia real.
+    final value = double.tryParse(
+      cleaned.split(ConueeConfig.powerSeparator).first,
+    );
+    return value == null || value <= 0 ? null : cleaned;
+  }
+
+  String? _clean(String? raw) {
     final text = raw?.trim() ?? '';
     final valueOnly = _valueOnly.firstMatch(text);
     if (valueOnly != null) return valueOnly.group(1);

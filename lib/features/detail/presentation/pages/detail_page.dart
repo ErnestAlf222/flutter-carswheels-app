@@ -6,6 +6,7 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/detail/domain/domain.dart';
 import 'package:cars_wheels_app/features/detail/presentation/cubits/cubits.dart';
 import 'package:cars_wheels_app/features/detail/presentation/widgets/widgets.dart';
+import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/safety/safety.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
@@ -29,11 +30,13 @@ class DetailPage extends StatelessWidget {
               DetailGalleryCubit(context.read<ResolveModelGalleryUseCase>())
                 ..load(args),
         ),
-        BlocProvider<DetailSafetyCubit>(
-          create: (context) =>
-              DetailSafetyCubit(context.read<ResolveGroupSafetyUseCase>())
-                ..load(args),
-        ),
+        // NHTSA solo cubre EE. UU.: en México no se crea ni se consulta.
+        if (args.market != Market.mexico)
+          BlocProvider<DetailSafetyCubit>(
+            create: (context) =>
+                DetailSafetyCubit(context.read<ResolveGroupSafetyUseCase>())
+                  ..load(args),
+          ),
       ],
       child: Scaffold(
         backgroundColor: AppColors.background,
@@ -78,7 +81,9 @@ class _DetailBody extends StatelessWidget {
     return BlocBuilder<DetailCubit, DetailState>(
       builder: (context, state) {
         final loaded = state is DetailLoaded ? state : null;
-        final classLabel = loaded == null
+        final isMexico = args.market == Market.mexico;
+        // En México no hay clase de vehículo.
+        final classLabel = loaded == null || isMexico
             ? null
             : context.read<VehicleClassTranslator>().labelFor(
                 loaded
@@ -99,6 +104,8 @@ class _DetailBody extends StatelessWidget {
               ),
             ),
             _FadeSwitcher(child: _content(context, state)),
+            if (isMexico && loaded != null)
+              _entry(5, const DetailAttributionWidget()),
             const SizedBox(height: UiConfig.detailBottomClearance),
           ],
         );
@@ -110,6 +117,10 @@ class _DetailBody extends StatelessWidget {
   Widget _content(BuildContext context, DetailState state) => switch (state) {
     DetailInitial() ||
     DetailLoading() => const DetailSkeletonWidget(key: ValueKey('loading')),
+    DetailLoaded() when args.market == Market.mexico => _MexicoLoadedContent(
+      key: const ValueKey('loaded'),
+      state: state,
+    ),
     DetailLoaded() => _LoadedContent(
       key: const ValueKey('loaded'),
       state: state,
@@ -207,6 +218,54 @@ class _LoadedContent extends StatelessWidget {
                     ),
                   ),
                 ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Contenido de México: versión, cifras, emisiones y filas, sin seguridad ni puntajes.
+class _MexicoLoadedContent extends StatelessWidget {
+  const _MexicoLoadedContent({super.key, required this.state});
+
+  final DetailLoaded state;
+
+  @override
+  Widget build(BuildContext context) {
+    final versions = state.details.versions;
+    final version = versions[state.selectedIndex];
+    final detail = version.detail;
+    return Column(
+      children: [
+        _entry(
+          1,
+          VersionSelectorButtonWidget(
+            versionCount: versions.length,
+            descriptor: version.label ?? version.variantName,
+            enabled: versions.length > 1,
+            onTap: () => showVersionSheet(
+              context,
+              versions: versions,
+              selectedIndex: state.selectedIndex,
+              onSelected: context.read<DetailCubit>().select,
+            ),
+          ),
+        ),
+        // El cambio de versión solo desvanece; la entrada no se repite.
+        _entry(
+          2,
+          _FadeSwitcher(
+            child: KeyedSubtree(
+              key: ValueKey(state.selectedIndex),
+              child: Column(
+                children: [
+                  DetailMxFiguresCardWidget(detail: detail),
+                  DetailMxInfoRowsWidget(detail: detail),
+                  DetailEmissionsCardWidget(detail: detail),
+                ],
               ),
             ),
           ),

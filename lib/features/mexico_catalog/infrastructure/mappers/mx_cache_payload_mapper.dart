@@ -75,6 +75,7 @@ class MxCachePayloadMapper {
     ConueeConfig.payloadTransmissionKey: vehicle.transmission,
     ConueeConfig.payloadPowerKey: vehicle.power,
     ConueeConfig.payloadTorqueKey: vehicle.torque,
+    ConueeConfig.payloadCompressionKey: vehicle.compressionRatio,
   };
 
   static MxVehicleEntity _vehicleFromJson(Map<String, dynamic> json) {
@@ -102,6 +103,7 @@ class MxCachePayloadMapper {
       transmission: json[ConueeConfig.payloadTransmissionKey] as String?,
       power: json[ConueeConfig.payloadPowerKey] as String?,
       torque: json[ConueeConfig.payloadTorqueKey] as String?,
+      compressionRatio: json[ConueeConfig.payloadCompressionKey] as String?,
     );
   }
 

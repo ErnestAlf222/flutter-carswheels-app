@@ -58,9 +58,10 @@ class ConueeConfig {
   static const String transmissionKey = 'tipo_transmision';
   static const String powerKey = 'potencia_maxima_hp_rpm';
   static const String torqueKey = 'torque_maximo_n_m_rpm';
+  static const String compressionKey = 'relacion_compresion';
 
   // Claves versionadas: subir la versión invalida lo guardado.
-  static const String cacheKeyVersion = 'v2';
+  static const String cacheKeyVersion = 'v3';
   static const String cacheKeySeparator = '|';
   static const String yearsKeyKind = 'years';
   static const String yearKeyKind = 'year';
@@ -90,6 +91,7 @@ class ConueeConfig {
   static const String payloadTransmissionKey = 'transmission';
   static const String payloadPowerKey = 'power';
   static const String payloadTorqueKey = 'torque';
+  static const String payloadCompressionKey = 'compression';
 
   // Potencia y torque: solo se aceptan estas formas inequívocas.
   static const String powerValueOnlyPattern = r'^(\d+(?:\.\d+)?)$';
@@ -100,6 +102,11 @@ class ConueeConfig {
   static const String powerSeparator = ' @ ';
   static const String rpmRangeSeparator = '-';
   static const String rpmThousandsSeparator = ',';
+
+  // Relación de compresión: solo "número:1" (con espacios opcionales); el resto es basura.
+  static const String compressionRatioPattern =
+      r'^(\d{1,2}(?:\.\d{1,2})?)\s*:\s*1$';
+  static const String compressionRatioSuffix = ':1';
 
   // En eléctricos, 0 y 1.0 de km/l y de CO2 son relleno, no datos.
   static const List<double> electricFillerValues = [0.0, 1.0];

@@ -5,6 +5,7 @@ import 'package:isar_community/isar.dart';
 import 'package:cars_wheels_app/app/market_catalog/market_get_available_years_usecase.dart';
 import 'package:cars_wheels_app/app/market_catalog/market_get_brands_usecase.dart';
 import 'package:cars_wheels_app/app/market_catalog/market_get_model_groups_usecase.dart';
+import 'package:cars_wheels_app/app/market_catalog/market_load_group_details_usecase.dart';
 import 'package:cars_wheels_app/app/market_catalog/market_resolve_group_summary_usecase.dart';
 import 'package:cars_wheels_app/app/market_catalog/market_summary_key_builder.dart';
 import 'package:cars_wheels_app/core/core.dart';
@@ -318,10 +319,15 @@ class AppDependencies {
         transmissionLabeler: transmissionLabeler,
       ),
       defaultVersionSelector: defaultVersionSelector,
-      loadGroupDetailsUseCase: LoadGroupDetailsUseCase(
-        getGroupOptions: getGroupOptions,
-        resolveVehicleDetail: resolveVehicleDetail,
-        defaultVersionSelector: defaultVersionSelector,
+      loadGroupDetailsUseCase: MarketLoadGroupDetailsUseCase(
+        unitedStates: LoadGroupDetailsUseCase(
+          getGroupOptions: getGroupOptions,
+          resolveVehicleDetail: resolveVehicleDetail,
+          defaultVersionSelector: defaultVersionSelector,
+        ),
+        getMxVersions: getMxVersions,
+        detailBuilder: const MxVehicleDetailBuilder(),
+        labelDisambiguator: const MxVersionLabelDisambiguator(),
       ),
       resolveGroupSafetyUseCase: resolveGroupSafety,
       getMxYearsUseCase: GetMxYearsUseCase(mexicoCatalogRepository),

@@ -108,14 +108,17 @@ class _VersionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final descriptor = context.read<VersionDescriptorBuilder>().describe(
-      version.detail,
-    );
-    final title = descriptor.isEmpty ? version.variantName : descriptor;
+    // Con etiqueta propia (México) el título es esa etiqueta y no hay subtítulo.
+    final ownLabel = version.label;
+    final descriptor = ownLabel == null
+        ? context.read<VersionDescriptorBuilder>().describe(version.detail)
+        : '';
+    final title =
+        ownLabel ?? (descriptor.isEmpty ? version.variantName : descriptor);
     return Semantics(
       button: true,
       selected: isSelected,
-      label: '$title, ${version.variantName}',
+      label: ownLabel ?? '$title, ${version.variantName}',
       excludeSemantics: true,
       child: Material(
         color: isSelected ? AppColors.tint : Colors.transparent,
@@ -137,12 +140,13 @@ class _VersionRow extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(title, style: AppTextStyles.bodyStrong),
-                        Text(
-                          version.variantName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.caption,
-                        ),
+                        if (ownLabel == null)
+                          Text(
+                            version.variantName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.caption,
+                          ),
                       ],
                     ),
                   ),

@@ -22,6 +22,7 @@ class MxVehicleEntity extends Equatable {
     this.transmission,
     this.power,
     this.torque,
+    this.compressionRatio,
   });
 
   /// Posición de la fila dentro del año ya sin duplicados.
@@ -57,6 +58,9 @@ class MxVehicleEntity extends Equatable {
   final String? power;
   final String? torque;
 
+  /// Texto limpio como "10.5:1"; nulo si no tiene la forma número:1.
+  final String? compressionRatio;
+
   @override
   List<Object?> get props => [
     id,
@@ -76,5 +80,6 @@ class MxVehicleEntity extends Equatable {
     transmission,
     power,
     torque,
+    compressionRatio,
   ];
 }

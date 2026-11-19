@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 
 /// Lo que necesita Detalle para abrir un grupo de modelos.
@@ -11,6 +12,7 @@ class DetailArgsEntity extends Equatable {
     required this.variantNames,
     required this.photo,
     required this.heroTag,
+    this.market = Market.unitedStates,
   });
 
   final String brand;
@@ -22,6 +24,9 @@ class DetailArgsEntity extends Equatable {
   final PhotoEntity? photo;
   final String heroTag;
 
+  /// Mercado del catálogo de donde sale el grupo.
+  final Market market;
+
   @override
   List<Object?> get props => [
     brand,
@@ -30,5 +35,6 @@ class DetailArgsEntity extends Equatable {
     variantNames,
     photo,
     heroTag,
+    market,
   ];
 }

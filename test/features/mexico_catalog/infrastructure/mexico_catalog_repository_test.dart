@@ -77,7 +77,7 @@ void main() {
       expect(datasource.sourceCalls, 1);
       expect(datasource.yearCalls, 1);
       expect(cache.years.keys.single, startsWith(ConueeConfig.cacheKeyVersion));
-      expect(cache.catalogs.keys.single, 'v2|year|2025');
+      expect(cache.catalogs.keys.single, 'v3|year|2025');
     },
   );
 
@@ -113,7 +113,7 @@ void main() {
     await build().fetchYear(2025);
     expect(datasource.yearCalls, 2);
     expect(datasource.sourceCalls, 2);
-    expect(cache.catalogs['v2|year|2025']!.savedAt, now);
+    expect(cache.catalogs['v3|year|2025']!.savedAt, now);
   });
 
   test('red caída con entrada vencida: devuelve la vencida', () async {

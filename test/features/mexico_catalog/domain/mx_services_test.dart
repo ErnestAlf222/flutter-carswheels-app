@@ -179,6 +179,12 @@ void main() {
       expect(cleaner.clean('135 @ PEAK'), '135');
     });
 
+    test('el relleno en cero es nulo', () {
+      expect(cleaner.clean('0@0'), isNull);
+      expect(cleaner.clean('0'), isNull);
+      expect(cleaner.clean('0 @ MAX'), isNull);
+    });
+
     test('patrón ambiguo o basura es nulo', () {
       expect(cleaner.clean('135±5 @ PEAK'), isNull);
       expect(cleaner.clean('95 y 5500'), isNull);

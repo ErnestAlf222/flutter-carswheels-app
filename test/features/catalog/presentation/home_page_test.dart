@@ -271,6 +271,31 @@ void main() {
     verify(() => catalogCubit.retry()).called(1);
   });
 
+  testWidgets('en error el selector de mercado sigue visible y cambia', (
+    tester,
+  ) async {
+    await pumpHome(
+      tester,
+      catalog: const CatalogError(NetworkFailure('sin red')),
+    );
+    expect(find.byType(ErrorStateWidget), findsOneWidget);
+    expect(find.byType(MarketSelectorWidget), findsOneWidget);
+    await tester.tap(find.text(AppTexts.marketMexicoLabel));
+    await tester.pump();
+    expect(marketCubit.market, Market.mexico);
+    // Poder volver a EE. UU. sin red es el motivo del selector.
+    await tester.tap(find.text(AppTexts.marketUnitedStatesLabel));
+    await tester.pump();
+    expect(marketCubit.market, Market.unitedStates);
+  });
+
+  testWidgets('cargando también muestra el selector de mercado', (
+    tester,
+  ) async {
+    await pumpHome(tester, catalog: const CatalogLoading());
+    expect(find.byType(MarketSelectorWidget), findsOneWidget);
+  });
+
   testWidgets('sin marcas muestra el estado vacío y no carga modelos', (
     tester,
   ) async {

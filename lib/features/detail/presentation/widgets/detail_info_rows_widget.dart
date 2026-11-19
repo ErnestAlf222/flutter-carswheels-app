@@ -3,6 +3,7 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/detail/presentation/cubits/cubits.dart';
+import 'package:cars_wheels_app/features/detail/presentation/widgets/detail_info_row_widget.dart';
 import 'package:cars_wheels_app/features/safety/safety.dart';
 
 /// Filas de clase, combustible y tracción, y la fila de recalls.
@@ -41,50 +42,22 @@ class DetailInfoRowsWidget extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _InfoRow(label: AppTexts.detailClassRowLabel, value: classLabel),
-          _InfoRow(label: AppTexts.detailFuelRowLabel, value: fuelLabel),
-          _InfoRow(label: AppTexts.detailDriveRowLabel, value: driveLabel),
+          DetailInfoRowWidget(
+            label: AppTexts.detailClassRowLabel,
+            value: classLabel,
+          ),
+          DetailInfoRowWidget(
+            label: AppTexts.detailFuelRowLabel,
+            value: fuelLabel,
+          ),
+          DetailInfoRowWidget(
+            label: AppTexts.detailDriveRowLabel,
+            value: driveLabel,
+          ),
           ?beforeRecalls,
           _RecallsRow(recalls: recalls, onTap: onRecallsTap),
         ],
       ),
-    );
-  }
-}
-
-/// Una fila de dato con su línea punteada debajo.
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.value});
-
-  final String label;
-  final String? value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: UiConfig.detailInfoRowVerticalPadding,
-          ),
-          child: Row(
-            children: [
-              Text(label, style: AppTextStyles.infoLabel),
-              const SizedBox(width: AppSpacing.m),
-              Expanded(
-                child: Text(
-                  value ?? AppTexts.noDataLabel,
-                  textAlign: TextAlign.end,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.infoValue,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const DashedDividerWidget(),
-      ],
     );
   }
 }

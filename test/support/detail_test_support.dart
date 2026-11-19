@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
+import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 import 'package:flutter/material.dart';
@@ -102,18 +103,24 @@ VehicleDetailEntity testDetail({
 GroupVersionEntity testVersion(
   VehicleDetailEntity detail, {
   String variantName = 'Corolla',
-}) => GroupVersionEntity(variantName: variantName, detail: detail);
+  String? label,
+}) =>
+    GroupVersionEntity(variantName: variantName, detail: detail, label: label);
 
 /// Argumentos de Detalle de prueba.
-DetailArgsEntity testArgs({PhotoEntity? photo, String groupName = 'Corolla'}) =>
-    DetailArgsEntity(
-      brand: 'Toyota',
-      groupName: groupName,
-      year: 2020,
-      variantNames: [groupName],
-      photo: photo,
-      heroTag: 'hero-tag',
-    );
+DetailArgsEntity testArgs({
+  PhotoEntity? photo,
+  String groupName = 'Corolla',
+  Market market = Market.unitedStates,
+}) => DetailArgsEntity(
+  brand: 'Toyota',
+  groupName: groupName,
+  year: 2020,
+  variantNames: [groupName],
+  photo: photo,
+  heroTag: 'hero-tag',
+  market: market,
+);
 
 /// Envuelve un widget de Detalle con lo que la app inyecta, dentro de un Scaffold.
 Widget detailHost(

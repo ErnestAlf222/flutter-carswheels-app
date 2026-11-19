@@ -6,6 +6,7 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
+import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/navigation/navigation.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
@@ -18,6 +19,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../support/detail_test_support.dart';
+import '../support/market_test_support.dart';
 
 class _MockLoad extends Mock implements LoadGroupDetailsUseCase {}
 
@@ -87,6 +89,7 @@ Widget _blocs(
       BlocProvider<ModelsCubit>.value(value: models),
       BlocProvider<BrandLogosCubit>.value(value: logos),
       BlocProvider<LogoPrecacheCubit>.value(value: precache),
+      BlocProvider<MarketCubit>.value(value: buildMarketCubit()),
       BlocProvider<SectionLoaderCubit>(create: (_) => SectionLoaderCubit()),
     ],
     child: MaterialApp.router(routerConfig: router),

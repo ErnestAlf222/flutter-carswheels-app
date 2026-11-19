@@ -168,16 +168,27 @@ void main() {
     ]);
   });
 
-  testWidgets('en México tocar una tarjeta avisa con un SnackBar y no navega', (
+  testWidgets('en México tocar una tarjeta navega a Detalle con ese mercado', (
     tester,
   ) async {
     await pumpHome(tester, slot: null, market: Market.mexico);
     await tester.tap(find.byType(ModelGridCardWidget).first);
-    await tester.pump();
-    expect(find.text(AppTexts.mexicoDetailSoonMessage), findsOneWidget);
-    expect(find.text('pantalla detalle'), findsNothing);
-    expect(pushedExtras, isEmpty);
-    expect(events, isEmpty);
+    await tester.pumpAndSettle();
+    expect(find.text('pantalla detalle'), findsOneWidget);
+    final args = pushedExtras.single! as DetailArgsEntity;
+    expect(args.market, Market.mexico);
+    expect(args.groupName, 'Corolla');
+    expect(args.year, 2020);
+  });
+
+  testWidgets('en EE. UU. los argumentos llevan el mercado de EE. UU.', (
+    tester,
+  ) async {
+    await pumpHome(tester, slot: null);
+    await tester.tap(find.byType(ModelGridCardWidget).first);
+    await tester.pumpAndSettle();
+    final args = pushedExtras.single! as DetailArgsEntity;
+    expect(args.market, Market.unitedStates);
   });
 
   testWidgets('sin foto en el slot la foto de los argumentos es nula', (

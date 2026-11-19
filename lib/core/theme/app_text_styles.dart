@@ -52,6 +52,12 @@ class AppTextStyles {
     fontSize: 12,
     color: AppColors.subtle,
   );
+  static final TextStyle attributionNote = GoogleFonts.inter(
+    fontWeight: FontWeight.w400,
+    fontSize: 11,
+    height: 1.4,
+    color: AppColors.subtle,
+  );
   static final TextStyle modelName = GoogleFonts.outfit(
     fontWeight: FontWeight.w700,
     fontSize: 16,
