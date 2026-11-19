@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 
-/// Botón circular con un icono: blanco con sombra suave, o tinta translúcido sobre foto.
+/// Botón circular con un icono: blanco con sombra suave, tinta translúcido sobre foto o tinta suave sobre la ola.
 class DetailCircleButtonWidget extends StatelessWidget {
   const DetailCircleButtonWidget({
     super.key,
@@ -12,6 +12,7 @@ class DetailCircleButtonWidget extends StatelessWidget {
     required this.semanticLabel,
     this.onTap,
     this.onPhoto = false,
+    this.onDark = false,
   });
 
   final IconData icon;
@@ -25,6 +26,9 @@ class DetailCircleButtonWidget extends StatelessWidget {
   /// Sobre la foto: círculo tinta translúcido con ícono blanco.
   final bool onPhoto;
 
+  /// Sobre la ola tinta: círculo tinta suave con borde fino e ícono blanco.
+  final bool onDark;
+
   @override
   Widget build(BuildContext context) {
     return Semantics(
@@ -33,9 +37,19 @@ class DetailCircleButtonWidget extends StatelessWidget {
       excludeSemantics: true,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: onPhoto ? AppColors.circleButtonOnPhoto : AppColors.surface,
+          color: onDark
+              ? AppColors.inkSoft
+              : onPhoto
+              ? AppColors.circleButtonOnPhoto
+              : AppColors.surface,
           shape: BoxShape.circle,
-          boxShadow: onPhoto ? null : AppShadows.soft,
+          border: onDark
+              ? Border.all(
+                  color: AppColors.mutedOnDark,
+                  width: NavConfig.pillBorderWidth,
+                )
+              : null,
+          boxShadow: onPhoto || onDark ? null : AppShadows.soft,
         ),
         child: Material(
           type: MaterialType.transparency,
@@ -49,7 +63,7 @@ class DetailCircleButtonWidget extends StatelessWidget {
               child: Icon(
                 icon,
                 size: iconSize,
-                color: onPhoto ? AppColors.onDark : AppColors.ink,
+                color: onPhoto || onDark ? AppColors.onDark : AppColors.ink,
               ),
             ),
           ),

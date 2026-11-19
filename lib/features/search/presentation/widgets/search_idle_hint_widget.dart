@@ -14,23 +14,25 @@ class SearchIdleHintWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(
           horizontal: UiConfig.pageHorizontalPadding,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Symbols.search,
-              size: SearchConfig.idleIconSize,
-              color: AppColors.mutedText.withValues(
-                alpha: SearchConfig.idleIconOpacity,
+        child: SolidBackgroundWidget(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Symbols.search,
+                size: SearchConfig.idleIconSize,
+                color: AppColors.mutedText.withValues(
+                  alpha: SearchConfig.idleIconOpacity,
+                ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.s),
-            Text(
-              AppTexts.searchIdleHint,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.caption,
-            ),
-          ],
+              const SizedBox(height: AppSpacing.s),
+              Text(
+                AppTexts.searchIdleHint,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.caption,
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -36,23 +36,32 @@ void main() {
     expect(taps, [1]);
   });
 
-  testWidgets('es una sola píldora tinta y el ítem activo es amarillo', (
-    tester,
-  ) async {
-    await tester.pumpWidget(build(visible: true, onSelected: (_) {}));
-    final decorations = tester
-        .widgetList<DecoratedBox>(find.byType(DecoratedBox))
-        .map((box) => box.decoration as BoxDecoration);
-    expect(decorations.where((d) => d.color == AppColors.accent), hasLength(1));
-    final pills = tester
-        .widgetList<Container>(find.byType(Container))
-        .where((c) => (c.decoration as BoxDecoration?)?.color == AppColors.ink);
-    expect(pills, hasLength(1));
-    final active = tester.widget<Icon>(find.byIcon(Symbols.home));
-    expect(active.color, AppColors.ink);
-    final inactive = tester.widget<Icon>(find.byIcon(Symbols.search));
-    expect(inactive.color, AppColors.navInactive);
-  });
+  testWidgets(
+    'es una sola píldora tinta suave con borde y ítem activo amarillo',
+    (tester) async {
+      await tester.pumpWidget(build(visible: true, onSelected: (_) {}));
+      final decorations = tester
+          .widgetList<DecoratedBox>(find.byType(DecoratedBox))
+          .map((box) => box.decoration as BoxDecoration);
+      expect(
+        decorations.where((d) => d.color == AppColors.accent),
+        hasLength(1),
+      );
+      final pills = tester
+          .widgetList<Container>(find.byType(Container))
+          .where(
+            (c) => (c.decoration as BoxDecoration?)?.color == AppColors.inkSoft,
+          );
+      expect(pills, hasLength(1));
+      final pill = pills.single.decoration! as BoxDecoration;
+      expect(pill.boxShadow, isNull);
+      expect(pill.border, isNotNull);
+      final active = tester.widget<Icon>(find.byIcon(Symbols.home));
+      expect(active.color, AppColors.ink);
+      final inactive = tester.widget<Icon>(find.byIcon(Symbols.search));
+      expect(inactive.color, AppColors.navInactive);
+    },
+  );
 
   testWidgets('la altura de la píldora sale de NavConfig', (tester) async {
     await tester.pumpWidget(build(visible: true, onSelected: (_) {}));

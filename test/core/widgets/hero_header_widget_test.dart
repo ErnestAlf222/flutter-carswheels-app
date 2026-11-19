@@ -3,32 +3,49 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('el encabezado es tinta, con las esquinas del tema', (
-    tester,
-  ) async {
+  testWidgets('el encabezado dibuja la ola tinta de su perfil', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(body: HeroHeaderWidget(child: Text('hola'))),
       ),
     );
-    final box = tester.widget<DecoratedBox>(
-      find
-          .descendant(
+    final painter = tester
+        .widgetList<CustomPaint>(
+          find.descendant(
             of: find.byType(HeroHeaderWidget),
-            matching: find.byType(DecoratedBox),
-          )
-          .first,
-    );
-    final decoration = box.decoration as BoxDecoration;
-    expect(decoration.color, AppColors.ink);
-    expect(decoration.gradient, isNull);
-    expect(
-      decoration.borderRadius,
-      const BorderRadius.vertical(
-        bottom: Radius.circular(HeaderConfig.bottomRadius),
+            matching: find.byType(CustomPaint),
+          ),
+        )
+        .map((paint) => paint.painter)
+        .whereType<WavePainter>()
+        .single;
+    expect(painter.color, AppColors.ink);
+    expect(painter.shape, WaveConfig.headerWave);
+    expect(find.byType(ClipPath), findsOneWidget);
+    expect(find.text('hola'), findsOneWidget);
+  });
+
+  testWidgets('el contenido queda por encima de la banda curva', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.topCenter,
+            child: HeroHeaderWidget(child: SizedBox(key: Key('c'), height: 10)),
+          ),
+        ),
       ),
     );
-    expect(find.text('hola'), findsOneWidget);
+    final header = tester.getRect(find.byType(HeroHeaderWidget));
+    final content = tester.getRect(find.byKey(const Key('c')));
+    expect(
+      content.bottom,
+      header.bottom -
+          HeaderConfig.contentBottomPadding -
+          WaveConfig.headerWave.amplitude,
+    );
   });
 
   testWidgets('trae un único resplandor amarillo radial', (tester) async {

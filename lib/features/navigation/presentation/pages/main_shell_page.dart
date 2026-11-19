@@ -64,6 +64,25 @@ class _MainShellPageState extends State<MainShellPage> {
           backgroundColor: AppColors.background,
           body: Stack(
             children: [
+              // Capa más al fondo: la ola, que solo se ve donde la página no pinta.
+              // Se oculta con el teclado; el hueco mantiene estable el resto.
+              keyboardOpen
+                  ? const SizedBox.shrink()
+                  : Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: IgnorePointer(
+                        child: ExcludeSemantics(
+                          child: WaveFooterWidget(
+                            shape: WaveConfig.footerWave,
+                            height: NavConfig.waveFootprint(
+                              MediaQuery.paddingOf(context).bottom,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
               NotificationListener<ScrollUpdateNotification>(
                 onNotification: (notification) {
                   final double? delta = notification.scrollDelta;

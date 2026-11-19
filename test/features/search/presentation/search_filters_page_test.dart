@@ -33,12 +33,31 @@ Widget _grid(
   ),
 );
 
+// Filas altas: obligan a desplazar para llegar al último resultado.
+Widget _tallGrid(
+  BuildContext context,
+  List<SearchResultEntity> results,
+  String resetKey,
+  ValueChanged<SearchResultEntity> onOpen,
+) => SliverList(
+  delegate: SliverChildBuilderDelegate(
+    (context, index) => SizedBox(
+      height: 300,
+      child: Text(
+        results[index].groupName!,
+        key: ValueKey('row-${results[index].groupName}'),
+      ),
+    ),
+    childCount: results.length,
+  ),
+);
+
 Widget _noAnimations(BuildContext context, Widget? child) => MediaQuery(
   data: MediaQuery.of(context).copyWith(disableAnimations: true),
   child: child!,
 );
 
-Widget _page(SearchHarness harness) =>
+Widget _page(SearchHarness harness, {SearchResultsGridBuilder grid = _grid}) =>
     RepositoryProvider<ScrollOffsetStore>.value(
       value: ScrollOffsetStore(),
       child: MultiBlocProvider(
@@ -53,7 +72,7 @@ Widget _page(SearchHarness harness) =>
           builder: _noAnimations,
           home: SearchPage(
             onOpenResult: (_, _) {},
-            resultsGridBuilder: _grid,
+            resultsGridBuilder: grid,
             selectorBuilder: (_) => const SizedBox.shrink(),
           ),
         ),
@@ -212,8 +231,57 @@ void main() {
       expect(filter.bottom, lessThanOrEqualTo(top.top));
       expect(top.top - filter.bottom, ScrollConfig.filterButtonStackGap);
       expect(filter.right, top.right);
-      // Por encima de la barra flotante de navegación.
-      expect(top.bottom, lessThanOrEqualTo(2400 - NavConfig.footprint));
+      // Por encima de la ola y de la barra flotante de navegación.
+      final wave = Rect.fromLTWH(
+        0,
+        2400 - NavConfig.waveFootprint(0),
+        800,
+        NavConfig.waveFootprint(0),
+      );
+      expect(top.bottom, lessThanOrEqualTo(wave.top));
+      expect(filter.overlaps(wave), isFalse);
+      expect(top.overlaps(wave), isFalse);
+      expect(filter.overlaps(top), isFalse);
+    });
+
+    testWidgets('el último resultado se desplaza por completo sobre la ola', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 700);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final harness = _harness();
+      await tester.pumpWidget(_page(harness, grid: _tallGrid));
+      await _settle(tester);
+      await _search(tester, 'sport');
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -9000));
+      await _settle(tester);
+      // El último resultado: la fila construida más abajo.
+      final last = tester.getRect(
+        find.byKey(ValueKey('row-${_rows(tester).last}')),
+      );
+      expect(last.bottom, lessThanOrEqualTo(700 - NavConfig.waveFootprint(0)));
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('con la banda fija el campo no toca la curva', (tester) async {
+      tester.view.physicalSize = const Size(800, 700);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final harness = _harness();
+      await tester.pumpWidget(_page(harness, grid: _tallGrid));
+      await _settle(tester);
+      await _search(tester, 'sport');
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -9000));
+      await _settle(tester);
+      final band = tester.getRect(find.byType(HeroHeaderWidget));
+      final field = tester.getRect(find.byType(SearchFieldWidget));
+      expect(
+        field.bottom,
+        lessThanOrEqualTo(band.bottom - WaveConfig.searchHeaderAmplitude),
+      );
+      expect(field.top, greaterThanOrEqualTo(band.top));
+      await tester.pumpWidget(const SizedBox());
     });
 
     _test('la insignia muestra cuántos filtros hay activos', (tester) async {

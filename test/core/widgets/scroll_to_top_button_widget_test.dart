@@ -117,7 +117,7 @@ void main() {
     );
     expect(
       rect.bottom,
-      bottom - NavConfig.footprint - ScrollConfig.topButtonNavGap,
+      bottom - NavConfig.waveFootprint(0) - ScrollConfig.topButtonNavGap,
     );
   });
 }

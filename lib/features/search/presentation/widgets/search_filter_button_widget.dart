@@ -76,8 +76,7 @@ class _SearchFilterButtonState extends State<SearchFilterButton>
       right: ScrollConfig.topButtonRightMargin,
       // Encima del botón de subir: su base más su tamaño y la separación.
       bottom:
-          NavConfig.footprint +
-          MediaQuery.paddingOf(context).bottom +
+          NavConfig.waveFootprint(MediaQuery.paddingOf(context).bottom) +
           ScrollConfig.topButtonNavGap +
           ScrollConfig.topButtonSize +
           ScrollConfig.filterButtonStackGap,

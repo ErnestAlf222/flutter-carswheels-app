@@ -231,26 +231,29 @@ void main() {
     expect(back.bottom, lessThanOrEqualTo(UiConfig.detailCollapsedBarHeight));
   });
 
-  testWidgets('la barra inferior lleva una veladura de fondo y el final '
-      'del scroll deja espacio', (tester) async {
+  testWidgets('la ola va al fondo y la barra de acciones encima y es tocable', (
+    tester,
+  ) async {
     when(() => load(any())).thenAnswer((_) async => _details());
     await pumpPage(tester);
     await tester.pumpAndSettle();
-    final veils = tester
-        .widgetList<DecoratedBox>(find.byType(DecoratedBox))
-        .where(
-          (box) =>
-              (box.decoration as BoxDecoration).gradient ==
-              AppGradients.detailBottomVeil,
-        );
-    expect(veils, hasLength(1));
+    final wave = tester.widget<WaveFooterWidget>(find.byType(WaveFooterWidget));
+    expect(wave.shape, WaveConfig.detailFooterWave);
+    expect(wave.shape, isNot(WaveConfig.footerWave));
+    expect(wave.height, UiConfig.detailFooterHeight(0));
+    // La barra cubre solo la parte lisa: la banda curva queda detrás.
     expect(
       tester.getSize(find.byType(DetailBottomBarWidget)).height,
-      greaterThanOrEqualTo(
-        UiConfig.detailBottomVeilHeight + UiConfig.detailBottomBarHeight,
-      ),
+      UiConfig.detailFooterHeight(0) - WaveConfig.detailFooterAmplitude,
     );
-    expect(UiConfig.detailBottomClearance, greaterThan(100));
+    // El botón principal queda bajo la banda curva y recibe toques.
+    final waveTop = tester.getTopLeft(find.byType(WaveFooterWidget)).dy;
+    final button = tester.getRect(find.byType(AccentButton));
+    expect(
+      button.top,
+      greaterThanOrEqualTo(waveTop + WaveConfig.detailFooterAmplitude),
+    );
+    expect(find.byType(AccentButton).hitTestable(), findsOneWidget);
   });
 
   testWidgets('cargado muestra cápsula, versión, cifras y filas', (
@@ -550,21 +553,33 @@ void main() {
   });
 
   testWidgets(
-    'el fondo de Detalle es blanco puro y la barra inferior también',
+    'el fondo de Detalle es blanco puro, la ola tinta y la barra tinta',
     (tester) async {
       when(() => load(any())).thenAnswer((_) async => _details());
       await pumpPage(tester);
       await tester.pumpAndSettle();
       final scaffold = tester.widget<Scaffold>(find.byType(Scaffold).first);
-      expect(scaffold.backgroundColor, AppColors.surface);
-      final bar = find.descendant(
-        of: find.byType(DetailBottomBarWidget),
-        matching: find.byType(ColoredBox),
+      expect(scaffold.backgroundColor, AppColors.background);
+      final painter = tester
+          .widgetList<CustomPaint>(
+            find.descendant(
+              of: find.byType(WaveFooterWidget),
+              matching: find.byType(CustomPaint),
+            ),
+          )
+          .map((paint) => paint.painter)
+          .whereType<WavePainter>()
+          .single;
+      expect(painter.color, AppColors.ink);
+      final bar = tester.widget<ColoredBox>(
+        find
+            .descendant(
+              of: find.byType(DetailBottomBarWidget),
+              matching: find.byType(ColoredBox),
+            )
+            .first,
       );
-      expect(
-        tester.widgetList<ColoredBox>(bar).map((box) => box.color),
-        contains(AppColors.surface),
-      );
+      expect(bar.color, AppColors.ink);
     },
   );
 
@@ -610,5 +625,48 @@ void main() {
     expect(find.byType(CachedNetworkImage), findsWidgets);
     expect(find.textContaining('Foto:'), findsNothing);
     expect(find.byType(AppLoader), findsNothing);
+  });
+
+  testWidgets('orden de capas: ola al fondo, contenido y barra encima', (
+    tester,
+  ) async {
+    when(() => load(any())).thenAnswer((_) async => _details());
+    await pumpPage(tester);
+    await tester.pumpAndSettle();
+    final stack = tester.widget<Stack>(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Stack &&
+            widget.children.any((child) => child is CustomScrollView),
+      ),
+    );
+    expect(stack.children, hasLength(3));
+    final back = stack.children[0] as Positioned;
+    expect(back.child, isA<IgnorePointer>());
+    expect(stack.children[1], isA<CustomScrollView>());
+    final front = stack.children[2] as Positioned;
+    expect(front.child, isA<DetailBottomBarWidget>());
+    // Ninguna capa pinta un fondo opaco de pantalla completa sobre la ola.
+    final scaffold = tester.widget<Scaffold>(find.byType(Scaffold).first);
+    expect(scaffold.backgroundColor, AppColors.background);
+  });
+
+  testWidgets('los textos de Detalle sin superficie tienen fondo opaco', (
+    tester,
+  ) async {
+    when(() => load(any())).thenAnswer((_) async => _details());
+    await pumpPage(tester);
+    await tester.pumpAndSettle();
+    for (final text in ['TOYOTA · 2020', 'Gasolina regular']) {
+      final solid = find.ancestor(
+        of: find.text(text),
+        matching: find.byType(SolidBackgroundWidget),
+      );
+      expect(solid, findsOneWidget, reason: text);
+      final box = tester.widget<ColoredBox>(
+        find.descendant(of: solid, matching: find.byType(ColoredBox)).first,
+      );
+      expect(box.color, AppColors.background);
+    }
   });
 }

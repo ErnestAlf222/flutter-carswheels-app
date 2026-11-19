@@ -4,6 +4,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:cars_wheels_app/core/config/config.dart';
 import 'package:cars_wheels_app/core/l10n/l10n.dart';
 import 'package:cars_wheels_app/core/theme/theme.dart';
+import 'package:cars_wheels_app/core/widgets/solid_background_widget.dart';
 
 /// Loader único de la app: un carrito que recorre una carretera fina.
 class AppLoader extends StatefulWidget {
@@ -61,33 +62,35 @@ class _AppLoaderState extends State<AppLoader>
       label: AppTexts.loaderSemanticLabel,
       excludeSemantics: true,
       child: Center(
-        child: SizedBox(
-          width: trackWidth,
-          height: carSize,
-          child: AnimatedBuilder(
-            animation: curved,
-            builder: (context, _) {
-              final travel = trackWidth - carSize;
-              final left = travel * curved.value;
-              return Stack(
-                children: [
-                  Positioned.fill(
-                    child: CustomPaint(
-                      painter: _RoadPainter(progressX: left + carSize / 2),
+        child: SolidBackgroundWidget(
+          child: SizedBox(
+            width: trackWidth,
+            height: carSize,
+            child: AnimatedBuilder(
+              animation: curved,
+              builder: (context, _) {
+                final travel = trackWidth - carSize;
+                final left = travel * curved.value;
+                return Stack(
+                  children: [
+                    Positioned.fill(
+                      child: CustomPaint(
+                        painter: _RoadPainter(progressX: left + carSize / 2),
+                      ),
                     ),
-                  ),
-                  Positioned(
-                    left: left,
-                    top: 0,
-                    child: Icon(
-                      Symbols.directions_car,
-                      size: carSize,
-                      color: AppColors.ink,
+                    Positioned(
+                      left: left,
+                      top: 0,
+                      child: Icon(
+                        Symbols.directions_car,
+                        size: carSize,
+                        color: AppColors.ink,
+                      ),
                     ),
-                  ),
-                ],
-              );
-            },
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),

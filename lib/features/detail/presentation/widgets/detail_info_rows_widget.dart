@@ -115,7 +115,11 @@ class _RecallsRow extends StatelessWidget {
       button: tappable,
       label: loading ? null : AppTexts.recallsRowSemanticLabel(value),
       excludeSemantics: !loading,
-      child: tappable ? InkWell(onTap: onTap, child: row) : row,
+      // Material opaco: tapa la ola y la tinta del toque se sigue viendo.
+      child: Material(
+        color: AppColors.background,
+        child: tappable ? InkWell(onTap: onTap, child: row) : row,
+      ),
     );
   }
 }

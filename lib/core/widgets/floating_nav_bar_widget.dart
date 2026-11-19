@@ -4,7 +4,7 @@ import 'package:cars_wheels_app/core/config/config.dart';
 import 'package:cars_wheels_app/core/theme/theme.dart';
 import 'package:cars_wheels_app/core/widgets/floating_nav_item_model.dart';
 
-/// Píldora flotante tinta con los íconos; se oculta al desplazar.
+/// Píldora flotante tinta suave con borde fino y los íconos; se oculta al desplazar.
 class FloatingNavBar extends StatelessWidget {
   const FloatingNavBar({
     super.key,
@@ -48,9 +48,12 @@ class FloatingNavBar extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(NavConfig.pillPadding),
               decoration: BoxDecoration(
-                color: AppColors.ink,
+                color: AppColors.inkSoft,
                 borderRadius: BorderRadius.circular(AppRadii.pill),
-                boxShadow: AppShadows.navBar,
+                border: Border.all(
+                  color: AppColors.mutedOnDark,
+                  width: NavConfig.pillBorderWidth,
+                ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,

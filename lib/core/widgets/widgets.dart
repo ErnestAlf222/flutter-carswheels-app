@@ -19,3 +19,7 @@ export 'scroll_offset_store.dart';
 export 'scroll_to_top_button_widget.dart';
 export 'section_loader_overlay_widget.dart';
 export 'skeleton_bar_widget.dart';
+export 'solid_background_widget.dart';
+export 'wave_clipper.dart';
+export 'wave_footer_widget.dart';
+export 'wave_painter.dart';

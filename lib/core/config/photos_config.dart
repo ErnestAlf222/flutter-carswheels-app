@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:cars_wheels_app/core/config/user_agents_config.dart';
+import 'package:cars_wheels_app/core/config/api_config.dart';
 
 /// Parámetros de búsqueda de fotos.
 class PhotosConfig {

@@ -369,12 +369,11 @@ class _HomeContentState extends State<_HomeContent>
               : const SliverToBoxAdapter(child: EmptyStateWidget()),
         ),
       ),
-      // Deja la última fila por encima del menú flotante y el área segura.
+      // Deja la última fila por encima de la ola, el menú y el área segura.
       SliverToBoxAdapter(
         child: SizedBox(
           height:
-              NavConfig.footprint +
-              MediaQuery.paddingOf(context).bottom +
+              NavConfig.waveFootprint(MediaQuery.paddingOf(context).bottom) +
               ModelGridConfig.listBottomGap,
         ),
       ),
@@ -461,6 +460,11 @@ class _BrandsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(AppTexts.brandsSectionTitle, style: AppTextStyles.sectionTitle);
+    return SolidBackgroundWidget(
+      child: Text(
+        AppTexts.brandsSectionTitle,
+        style: AppTextStyles.sectionTitle,
+      ),
+    );
   }
 }

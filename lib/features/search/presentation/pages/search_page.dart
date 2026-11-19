@@ -105,8 +105,7 @@ class _SearchPageState extends State<SearchPage> {
         body: BlocBuilder<SearchCubit, SearchState>(
           builder: (context, state) {
             final bottomPadding =
-                NavConfig.footprint +
-                MediaQuery.paddingOf(context).bottom +
+                NavConfig.waveFootprint(MediaQuery.paddingOf(context).bottom) +
                 ModelGridConfig.listBottomGap;
             final scopeBrand = state.scopeBrand;
             final scope = state.scope;
@@ -153,8 +152,10 @@ class _SearchPageState extends State<SearchPage> {
                             padding: const EdgeInsets.symmetric(
                               horizontal: UiConfig.pageHorizontalPadding,
                             ),
-                            child: SearchPartialNoticeWidget(
-                              onRetry: cubit.retryIndex,
+                            child: SolidBackgroundWidget(
+                              child: SearchPartialNoticeWidget(
+                                onRetry: cubit.retryIndex,
+                              ),
                             ),
                           ),
                         ),
@@ -213,10 +214,12 @@ class _SearchPageState extends State<SearchPage> {
     if (state.brandMatches.isNotEmpty) {
       slivers.add(
         SliverToBoxAdapter(
-          child: SearchBrandRowWidget(
-            title: AppTexts.searchBrandMatchesTitle,
-            brands: state.brandMatches,
-            onSelect: cubit.selectBrand,
+          child: SolidBackgroundWidget(
+            child: SearchBrandRowWidget(
+              title: AppTexts.searchBrandMatchesTitle,
+              brands: state.brandMatches,
+              onSelect: cubit.selectBrand,
+            ),
           ),
         ),
       );
@@ -253,9 +256,11 @@ class _SearchPageState extends State<SearchPage> {
       if (state.filters.isActive && shown.isEmpty && shownOthers.isEmpty) {
         slivers.add(
           SliverToBoxAdapter(
-            child: SearchFilteredEmptyWidget(
-              onClear: cubit.clearFilters,
-              status: showStatus ? status : null,
+            child: SolidBackgroundWidget(
+              child: SearchFilteredEmptyWidget(
+                onClear: cubit.clearFilters,
+                status: showStatus ? status : null,
+              ),
             ),
           ),
         );
@@ -320,16 +325,18 @@ class _SearchPageState extends State<SearchPage> {
     } else if (state.hasNoResults && scope != null) {
       slivers.add(
         SliverToBoxAdapter(
-          child: SearchNoResultsWidget(
-            query: state.query,
-            marketCode: scope.marketCode,
-            year: scope.year,
-            brand: brand,
-            suggestions: state.suggestions,
-            onSuggestion: cubit.applySuggestion,
-            onSearchOtherYears: state.canSearchOtherYears
-                ? cubit.searchInOtherYears
-                : null,
+          child: SolidBackgroundWidget(
+            child: SearchNoResultsWidget(
+              query: state.query,
+              marketCode: scope.marketCode,
+              year: scope.year,
+              brand: brand,
+              suggestions: state.suggestions,
+              onSuggestion: cubit.applySuggestion,
+              onSearchOtherYears: state.canSearchOtherYears
+                  ? cubit.searchInOtherYears
+                  : null,
+            ),
           ),
         ),
       );
@@ -405,7 +412,7 @@ class _SearchPageState extends State<SearchPage> {
       UiConfig.pageHorizontalPadding,
       bottom,
     ),
-    sliver: SliverToBoxAdapter(child: child),
+    sliver: SliverToBoxAdapter(child: SolidBackgroundWidget(child: child)),
   );
 
   // Sin consulta ni alcance: explorar por marca y recientes, o un texto amable.
@@ -429,19 +436,23 @@ class _SearchPageState extends State<SearchPage> {
     return [
       if (state.brands.isNotEmpty)
         SliverToBoxAdapter(
-          child: SearchBrandRowWidget(
-            title: AppTexts.searchExploreByBrandTitle,
-            brands: state.brands,
-            onSelect: cubit.selectBrand,
+          child: SolidBackgroundWidget(
+            child: SearchBrandRowWidget(
+              title: AppTexts.searchExploreByBrandTitle,
+              brands: state.brands,
+              onSelect: cubit.selectBrand,
+            ),
           ),
         ),
       if (state.recents.isNotEmpty)
         SliverToBoxAdapter(
-          child: SearchRecentsWidget(
-            recents: state.recents,
-            onSelect: cubit.useRecent,
-            onRemove: (recent) => cubit.removeRecentSearch(recent.key),
-            onClearAll: cubit.clearRecentSearches,
+          child: SolidBackgroundWidget(
+            child: SearchRecentsWidget(
+              recents: state.recents,
+              onSelect: cubit.useRecent,
+              onRemove: (recent) => cubit.removeRecentSearch(recent.key),
+              onClearAll: cubit.clearRecentSearches,
+            ),
           ),
         ),
     ];

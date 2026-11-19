@@ -27,28 +27,30 @@ class DetailTitleRowWidget extends StatelessWidget {
         UiConfig.detailInfoSideMargin,
         0,
       ),
-      child: SizedBox(
-        width: double.infinity,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              AppTexts.brandYearLabel(brand, year).toUpperCase(),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.detailBrandYearLabel,
-            ),
-            Text(
-              groupName,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.detailTitle,
-            ),
-            if (label != null) ...[
-              const SizedBox(height: AppSpacing.xs),
-              _ClassChip(label: label),
+      child: SolidBackgroundWidget(
+        child: SizedBox(
+          width: double.infinity,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                AppTexts.brandYearLabel(brand, year).toUpperCase(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.detailBrandYearLabel,
+              ),
+              Text(
+                groupName,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.detailTitle,
+              ),
+              if (label != null) ...[
+                const SizedBox(height: AppSpacing.xs),
+                _ClassChip(label: label),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

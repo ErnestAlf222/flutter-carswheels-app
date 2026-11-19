@@ -31,29 +31,31 @@ class ModelsSectionWidget extends StatelessWidget {
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.m),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        brandName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.sectionTitle,
-                      ),
-                      const SizedBox(height: UiConfig.titleUnderlineGap),
-                      const _TitleUnderline(),
-                    ],
+            child: SolidBackgroundWidget(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          brandName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.sectionTitle,
+                        ),
+                        const SizedBox(height: UiConfig.titleUnderlineGap),
+                        const _TitleUnderline(),
+                      ],
+                    ),
                   ),
-                ),
-                if (current is ModelsLoaded)
-                  Text(
-                    AppTexts.modelsCountLabel(current.groups.length),
-                    style: AppTextStyles.caption,
-                  ),
-              ],
+                  if (current is ModelsLoaded)
+                    Text(
+                      AppTexts.modelsCountLabel(current.groups.length),
+                      style: AppTextStyles.caption,
+                    ),
+                ],
+              ),
             ),
           ),
         ),

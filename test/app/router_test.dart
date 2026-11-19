@@ -200,10 +200,12 @@ void main() {
       router.go(RoutesConfig.search);
       await tester.pump();
       await tester.pump();
-      final layer = find.descendant(
-        of: find.byType(SectionLoaderOverlay),
-        matching: find.byType(ColoredBox),
-      );
+      final layer = find
+          .descendant(
+            of: find.byType(SectionLoaderOverlay),
+            matching: find.byType(ColoredBox),
+          )
+          .first;
       expect(tester.widget<ColoredBox>(layer).color, AppColors.background);
       expect(
         tester.getSize(layer),
@@ -374,6 +376,41 @@ void main() {
         isTrue,
       );
     });
+
+    testWidgets(
+      'la ola va con la barra y se oculta y reaparece con el teclado',
+      (tester) async {
+        final router = buildAppRouter();
+        addTearDown(router.dispose);
+        final keyboard = ValueNotifier<double>(300);
+        final app = _app(router);
+        await tester.pumpWidget(
+          ValueListenableBuilder<double>(
+            valueListenable: keyboard,
+            builder: (_, inset, _) => MediaQuery(
+              data: MediaQueryData(
+                disableAnimations: true,
+                viewInsets: EdgeInsets.only(bottom: inset),
+              ),
+              child: app,
+            ),
+          ),
+        );
+        await tester.pump();
+        expect(find.byType(WaveFooterWidget), findsNothing);
+        keyboard.value = 0;
+        await tester.pump();
+        expect(find.byType(WaveFooterWidget), findsOneWidget);
+        final wave = tester.widget<WaveFooterWidget>(
+          find.byType(WaveFooterWidget),
+        );
+        expect(wave.shape, WaveConfig.footerWave);
+        expect(wave.height, NavConfig.waveFootprint(0));
+        keyboard.value = 300;
+        await tester.pump();
+        expect(find.byType(WaveFooterWidget), findsNothing);
+      },
+    );
 
     testWidgets('oculta con el teclado abierto, en cualquier sección', (
       tester,
