@@ -1,3 +1,5 @@
+import 'package:cars_wheels_app/core/config/market_config.dart';
+
 /// Parámetros de la búsqueda en memoria y de las búsquedas recientes.
 class SearchConfig {
   const SearchConfig._();
@@ -57,7 +59,7 @@ class SearchConfig {
   static const int animatedResultCount = 8;
 
   // Encabezado compacto: alto de la fila del título; el campo sobresale la mitad de su alto.
-  static const double headerTitleRowHeight = 40.0;
+  static const double headerTitleRowHeight = MarketConfig.stackedHeight;
   static const double fieldHeight = 56.0;
   static const double fieldOverlap = fieldHeight / 2;
   static const double fieldIconSize = 22.0;
@@ -95,7 +97,15 @@ class SearchConfig {
   static const double otherYearLogoCircleSize = 44.0;
   static const double otherYearLogoSize = 28.0;
   static const double otherYearRowGap = 8.0;
-  static const double otherYearChipVerticalPadding = 4.0;
+  static const double otherYearGroupGap = 20.0;
+  static const double otherYearGroupHeaderGap = 4.0;
+  static const double otherYearGroupLineThickness = 1.0;
+  static const double otherYearGroupLineGap = 12.0;
+  // Botón secundario "Buscar en otros años".
+  static const double otherYearsButtonHeight = 44.0;
+  static const double otherYearsButtonBorderWidth = 1.0;
+  static const double otherYearsButtonIconSize = 18.0;
+  static const double otherYearsButtonIconGap = 8.0;
   static const double emptyTopGap = 40.0;
 
   // Recientes: filas planas con línea inferior.

@@ -102,28 +102,31 @@ void main() {
       routes: [
         GoRoute(
           path: '/',
-          builder: (_, _) => withClassTranslator(
-            MultiBlocProvider(
-              providers: [
-                BlocProvider<CatalogCubit>.value(value: catalog),
-                BlocProvider<ModelsCubit>.value(value: models),
-                BlocProvider<PhotosCubit>.value(
-                  value: buildMockPhotosCubit(
-                    slots: {photoKeyFor('Toyota', 'Corolla', 2020): ?slot},
+          builder: (_, _) => RepositoryProvider<ScrollOffsetStore>.value(
+            value: ScrollOffsetStore(),
+            child: withClassTranslator(
+              MultiBlocProvider(
+                providers: [
+                  BlocProvider<CatalogCubit>.value(value: catalog),
+                  BlocProvider<ModelsCubit>.value(value: models),
+                  BlocProvider<PhotosCubit>.value(
+                    value: buildMockPhotosCubit(
+                      slots: {photoKeyFor('Toyota', 'Corolla', 2020): ?slot},
+                    ),
                   ),
-                ),
-                BlocProvider<SummariesCubit>.value(
-                  value: buildMockSummariesCubit(),
-                ),
-                BlocProvider<BrandLogosCubit>.value(
-                  value: buildMockBrandLogosCubit(),
-                ),
-                BlocProvider<LogoPrecacheCubit>.value(value: precache),
-                BlocProvider<MarketCubit>.value(
-                  value: buildMarketCubit(initial: market),
-                ),
-              ],
-              child: HomePage(onSearchTap: (_) {}),
+                  BlocProvider<SummariesCubit>.value(
+                    value: buildMockSummariesCubit(),
+                  ),
+                  BlocProvider<BrandLogosCubit>.value(
+                    value: buildMockBrandLogosCubit(),
+                  ),
+                  BlocProvider<LogoPrecacheCubit>.value(value: precache),
+                  BlocProvider<MarketCubit>.value(
+                    value: buildMarketCubit(initial: market),
+                  ),
+                ],
+                child: HomePage(onSearchTap: (_) {}),
+              ),
             ),
           ),
         ),

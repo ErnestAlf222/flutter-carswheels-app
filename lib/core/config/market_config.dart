@@ -30,7 +30,9 @@ class MarketConfig {
   static const double flagFontSize = 18.0;
   static const double inactiveFlagOpacity = 0.45;
   static const double selectorGap =
-      8.0; // Entre el interruptor y la píldora de año.
+      8.0; // En fila (barra compacta): entre interruptor y píldora de año.
+  static const double stackedGap = 8.0; // Apilado: entre interruptor y año.
+  static const double stackedHeight = selectorHeight * 2 + stackedGap;
 
   // Píldora de año: solo borde fino, con el año y el chevron.
   static const double yearZoneHorizontalPadding = 14.0;

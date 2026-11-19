@@ -4,7 +4,7 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/search/domain/domain.dart';
 
-/// Fila compacta de un hallazgo en otro año: logo, grupo, marca y chip del año.
+/// Fila compacta de un hallazgo en otro año: logo, grupo y marca (el año lo da el encabezado del grupo).
 class SearchOtherYearRowWidget extends StatelessWidget {
   const SearchOtherYearRowWidget({
     super.key,
@@ -75,21 +75,6 @@ class SearchOtherYearRowWidget extends StatelessWidget {
                           style: AppTextStyles.caption,
                         ),
                       ],
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: SearchConfig.chipHorizontalPadding,
-                      vertical: SearchConfig.otherYearChipVerticalPadding,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.chipBackground,
-                      borderRadius: BorderRadius.circular(AppRadii.classChip),
-                    ),
-                    child: Text(
-                      AppTexts.searchOtherYearChipLabel(result.year),
-                      style: AppTextStyles.bodyStrong,
                     ),
                   ),
                 ],

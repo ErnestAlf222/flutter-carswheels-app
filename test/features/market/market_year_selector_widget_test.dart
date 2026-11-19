@@ -365,4 +365,66 @@ void main() {
       expect(File(path).existsSync(), isFalse, reason: path);
     }
   });
+  group('disposición', () {
+    Future<void> pumpAt360(
+      WidgetTester tester,
+      MarketCubit cubit,
+      MarketSelectorLayout layout,
+    ) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: const TextScaler.linear(1.3)),
+            child: child!,
+          ),
+          home: BlocProvider<MarketCubit>.value(
+            value: cubit,
+            child: Scaffold(
+              body: Align(
+                alignment: Alignment.topRight,
+                child: MarketYearSelectorWidget(
+                  years: _years,
+                  year: 2026,
+                  layout: layout,
+                  onYearSelected: (_) {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+    }
+
+    testWidgets('apilado: banderas arriba, año debajo, sin encimarse', (
+      tester,
+    ) async {
+      final cubit = buildMarketCubit();
+      addTearDown(cubit.close);
+      await pumpAt360(tester, cubit, MarketSelectorLayout.stacked);
+      final flags = tester.getRect(find.byType(MarketSwitchWidget));
+      final pill = tester.getRect(find.byType(MarketYearPillWidget));
+      expect(flags.overlaps(pill), isFalse);
+      expect(pill.top - flags.bottom, MarketConfig.stackedGap);
+      expect(flags.right, pill.right);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('en fila: separados en horizontal y sin encimarse', (
+      tester,
+    ) async {
+      final cubit = buildMarketCubit();
+      addTearDown(cubit.close);
+      await pumpAt360(tester, cubit, MarketSelectorLayout.row);
+      final flags = tester.getRect(find.byType(MarketSwitchWidget));
+      final pill = tester.getRect(find.byType(MarketYearPillWidget));
+      expect(flags.overlaps(pill), isFalse);
+      expect(pill.left - flags.right, MarketConfig.selectorGap);
+      expect(tester.takeException(), isNull);
+    });
+  });
 }

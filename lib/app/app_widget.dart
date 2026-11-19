@@ -37,6 +37,8 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   final GoRouter _router = buildAppRouter();
+  // Posición de scroll de las secciones; vive tanto como la app.
+  final ScrollOffsetStore _scrollOffsets = ScrollOffsetStore();
   AppDependencies get _dependencies => widget.dependencies;
 
   @override
@@ -65,6 +67,7 @@ class _AppState extends State<App> {
         RepositoryProvider<GetAvailableYearsUseCase>.value(
           value: _dependencies.getAvailableYearsUseCase,
         ),
+        RepositoryProvider<ScrollOffsetStore>.value(value: _scrollOffsets),
         RepositoryProvider<GetBrandsUseCase>.value(
           value: _dependencies.getBrandsUseCase,
         ),

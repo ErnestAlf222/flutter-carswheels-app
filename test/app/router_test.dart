@@ -60,6 +60,7 @@ Widget _app(GoRouter router) {
   when(() => precache.state).thenReturn(const LogoPrecacheState());
   return MultiRepositoryProvider(
     providers: [
+      RepositoryProvider<ScrollOffsetStore>.value(value: ScrollOffsetStore()),
       RepositoryProvider<LoadGroupDetailsUseCase>.value(value: load),
       RepositoryProvider<ResolveModelGalleryUseCase>.value(value: gallery),
       RepositoryProvider<PhotoPrefetcher>.value(value: const PhotoPrefetcher()),

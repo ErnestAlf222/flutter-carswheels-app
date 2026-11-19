@@ -278,6 +278,7 @@ class AppTexts {
   static const String searchBrandMatchesTitle = 'Marcas';
   static const String searchScopePrefix = 'Buscando en';
   static const String searchOtherBrandsTitle = 'En otras marcas';
+  static const String scrollToTopLabel = 'Subir al inicio';
   static const String searchOtherYearsTitle = 'También en otros años';
   static const String searchOtherYearsPrompt = '¿No es el que buscas?';
   static const String searchOtherYearsAction = 'Buscar en otros años';
@@ -305,7 +306,6 @@ class AppTexts {
       '¿Quisiste decir «$text»?';
   static String searchSuggestionSemanticLabel(String text) =>
       'Buscar $text en su lugar';
-  static String searchOtherYearChipLabel(int year) => '$year';
   static String searchOtherYearsProgressLabel(List<int> years) =>
       'Buscando en ${years.join(", ")}…';
   static String searchOtherYearRowSemanticLabel(

@@ -68,6 +68,7 @@ Widget _wrap(
   required _CardCubits cards,
 }) => MultiRepositoryProvider(
   providers: [
+    RepositoryProvider<ScrollOffsetStore>.value(value: ScrollOffsetStore()),
     RepositoryProvider<SearchCardCubitsFactory>.value(value: cards.factory),
     RepositoryProvider<VehicleClassTranslator>.value(
       value: const VehicleClassTranslator(),
@@ -537,15 +538,29 @@ void main() {
     expect(find.text(AppTexts.searchOtherYearsNone), findsOneWidget);
     // Con resultados, el enlace discreto al final de la lista.
     await _type(tester, 'camry');
-    final link = find.byKey(const ValueKey('search-other-years-link'));
+    final link = find.byKey(const ValueKey('search-other-years-button'));
     expect(link, findsOneWidget);
     expect(find.text(AppTexts.searchOtherYearsPrompt), findsOneWidget);
     await tester.tap(link);
     await _settle(tester);
     expect(find.byType(SearchOtherYearRowWidget), findsNWidgets(3));
+    // Un encabezado por año (sin pastilla en las filas), del más cercano al activo.
     expect(find.text('2026'), findsOneWidget);
     expect(find.text('2024'), findsOneWidget);
     expect(find.text('2023'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(SearchOtherYearRowWidget),
+        matching: find.text('2026'),
+      ),
+      findsNothing,
+    );
+    double headerTop(int year) => tester
+        .getTopLeft(find.byKey(ValueKey('search-other-year-header-$year')))
+        .dy;
+    expect(headerTop(2026), lessThan(headerTop(2024)));
+    expect(headerTop(2024), lessThan(headerTop(2023)));
+    expect(find.text(AppTexts.searchResultsCountLabel(1)), findsWidgets);
     await tester.tap(find.byType(SearchOtherYearRowWidget).first);
     await _settle(tester);
     expect(opened.single.year, 2026);
@@ -561,7 +576,7 @@ void main() {
     await _settle(tester);
     await _type(tester, 'camry');
     harness.source.gate = Completer<void>();
-    await tester.tap(find.byKey(const ValueKey('search-other-years-link')));
+    await tester.tap(find.byKey(const ValueKey('search-other-years-button')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
     const loaderKey = ValueKey('search-other-years-loader');
@@ -843,5 +858,111 @@ void main() {
     expect(field.focusNode!.hasFocus, isTrue);
     expect(harness.cubit.state.indexStatus?.phase, SearchIndexPhase.ready);
     await tester.pumpWidget(const SizedBox());
+  });
+  group('estado conservado', () {
+    GoRouter buildRouter() => GoRouter(
+      initialLocation: '/search',
+      routes: [
+        GoRoute(
+          path: '/search',
+          builder: (_, _) => SearchPage(
+            onOpenResult: (context, _) => context.push('/detail'),
+            resultsGridBuilder: buildSearchResultsGrid,
+            selectorBuilder: _selector,
+          ),
+        ),
+        GoRoute(path: '/other', builder: (_, _) => const Text('otra pantalla')),
+        GoRoute(path: '/detail', builder: (_, _) => const Text('detalle')),
+      ],
+    );
+
+    double offset(WidgetTester tester) => tester
+        .widget<CustomScrollView>(find.byType(CustomScrollView))
+        .controller!
+        .offset;
+
+    Future<GoRouter> open(WidgetTester tester, SearchHarness harness) async {
+      tester.view.physicalSize = const Size(360, 420);
+      final router = buildRouter();
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        _wrap(
+          harness,
+          MaterialApp.router(builder: _noAnimations, routerConfig: router),
+          cards: _CardCubits(),
+        ),
+      );
+      await _settle(tester);
+      await _type(tester, 'toyota');
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -150));
+      await tester.pump();
+      return router;
+    }
+
+    _test('el botón de subir aparece al bajar en Buscar', (tester) async {
+      final harness = SearchHarness();
+      await open(tester, harness);
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -900));
+      await tester.pump(const Duration(milliseconds: 400));
+      final opacity = tester
+          .widget<AnimatedOpacity>(
+            find.ancestor(
+              of: find.byKey(const ValueKey('scroll-to-top-button')),
+              matching: find.byType(AnimatedOpacity),
+            ),
+          )
+          .opacity;
+      expect(offset(tester), greaterThan(ScrollConfig.topButtonShowThreshold));
+      expect(opacity, 1);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    _test('abrir Detalle y volver conserva el desplazamiento', (tester) async {
+      final harness = SearchHarness();
+      final router = await open(tester, harness);
+      final before = offset(tester);
+      expect(before, greaterThan(0));
+      unawaited(router.push('/detail'));
+      await _settle(tester);
+      router.pop();
+      await _settle(tester);
+      expect(offset(tester), before);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    _test('cambiar de pestaña y volver conserva posición y texto', (
+      tester,
+    ) async {
+      final harness = SearchHarness();
+      final router = await open(tester, harness);
+      final before = offset(tester);
+      expect(before, greaterThan(0));
+      router.go('/other');
+      await _settle(tester);
+      router.go('/search');
+      await _settle(tester);
+      expect(offset(tester), before);
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        'toyota',
+      );
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    _test('cambiar de mercado o de año reinicia el desplazamiento', (
+      tester,
+    ) async {
+      final harness = SearchHarness();
+      final router = await open(tester, harness);
+      expect(offset(tester), greaterThan(0));
+      router.go('/other');
+      await _settle(tester);
+      harness.context.change(mxScope);
+      await _settle(tester);
+      router.go('/search');
+      await _settle(tester);
+      expect(offset(tester), 0);
+      await tester.pumpWidget(const SizedBox());
+    });
   });
 }

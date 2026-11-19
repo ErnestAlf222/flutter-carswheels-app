@@ -132,18 +132,21 @@ void main() {
           data: MediaQuery.of(context).copyWith(disableAnimations: true),
           child: child!,
         ),
-        home: withClassTranslator(
-          MultiBlocProvider(
-            providers: [
-              BlocProvider<CatalogCubit>.value(value: catalogCubit),
-              BlocProvider<ModelsCubit>.value(value: modelsCubit),
-              BlocProvider<PhotosCubit>.value(value: photosCubit),
-              BlocProvider<SummariesCubit>.value(value: summariesCubit),
-              BlocProvider<BrandLogosCubit>.value(value: logosCubit),
-              BlocProvider<LogoPrecacheCubit>.value(value: precacheCubit),
-              BlocProvider<MarketCubit>.value(value: marketCubit),
-            ],
-            child: HomePage(onSearchTap: onSearchTap ?? (_) {}),
+        home: RepositoryProvider<ScrollOffsetStore>.value(
+          value: ScrollOffsetStore(),
+          child: withClassTranslator(
+            MultiBlocProvider(
+              providers: [
+                BlocProvider<CatalogCubit>.value(value: catalogCubit),
+                BlocProvider<ModelsCubit>.value(value: modelsCubit),
+                BlocProvider<PhotosCubit>.value(value: photosCubit),
+                BlocProvider<SummariesCubit>.value(value: summariesCubit),
+                BlocProvider<BrandLogosCubit>.value(value: logosCubit),
+                BlocProvider<LogoPrecacheCubit>.value(value: precacheCubit),
+                BlocProvider<MarketCubit>.value(value: marketCubit),
+              ],
+              child: HomePage(onSearchTap: onSearchTap ?? (_) {}),
+            ),
           ),
         ),
       ),

@@ -109,46 +109,59 @@ class _SearchPageState extends State<SearchPage> {
                 MediaQuery.paddingOf(context).bottom +
                 ModelGridConfig.listBottomGap;
             final scopeBrand = state.scopeBrand;
-            return CustomScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              slivers: [
-                SliverToBoxAdapter(
-                  child: SearchHeaderWidget(
-                    selectorBuilder: widget.selectorBuilder,
-                    controller: _controller,
-                    focusNode: _focusNode,
-                    onChanged: cubit.onQueryChanged,
-                    onSubmitted: (_) => cubit.submit(),
-                    onClear: cubit.clearQuery,
-                  ),
-                ),
-                if (scopeBrand != null)
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: SearchScopeRowDelegate(
-                      brand: scopeBrand,
-                      onClear: cubit.clearScopeBrand,
-                    ),
-                  ),
-                if (state.isPreparing)
-                  SliverToBoxAdapter(
-                    child: SearchProgressWidget(
-                      progress: state.indexStatus?.progress,
-                    ),
-                  ),
-                if (state.isPartial)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: UiConfig.pageHorizontalPadding,
+            final scope = state.scope;
+            return RememberedScroll(
+              store: context.read<ScrollOffsetStore>(),
+              sectionKey: ScrollConfig.searchSectionKey,
+              contextKey: scope?.key ?? '',
+              builder: (context, scrollController) => Stack(
+                children: [
+                  CustomScrollView(
+                    controller: scrollController,
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: SearchHeaderWidget(
+                          selectorBuilder: widget.selectorBuilder,
+                          controller: _controller,
+                          focusNode: _focusNode,
+                          onChanged: cubit.onQueryChanged,
+                          onSubmitted: (_) => cubit.submit(),
+                          onClear: cubit.clearQuery,
+                        ),
                       ),
-                      child: SearchPartialNoticeWidget(
-                        onRetry: cubit.retryIndex,
-                      ),
-                    ),
+                      if (scopeBrand != null)
+                        SliverPersistentHeader(
+                          pinned: true,
+                          delegate: SearchScopeRowDelegate(
+                            brand: scopeBrand,
+                            onClear: cubit.clearScopeBrand,
+                          ),
+                        ),
+                      if (state.isPreparing)
+                        SliverToBoxAdapter(
+                          child: SearchProgressWidget(
+                            progress: state.indexStatus?.progress,
+                          ),
+                        ),
+                      if (state.isPartial)
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: UiConfig.pageHorizontalPadding,
+                            ),
+                            child: SearchPartialNoticeWidget(
+                              onRetry: cubit.retryIndex,
+                            ),
+                          ),
+                        ),
+                      ..._bodySlivers(context, state, bottomPadding),
+                    ],
                   ),
-                ..._bodySlivers(context, state, bottomPadding),
-              ],
+                  ScrollToTopButton(controller: scrollController),
+                ],
+              ),
             );
           },
         ),
@@ -310,7 +323,7 @@ class _SearchPageState extends State<SearchPage> {
     if (!offerLink) return const [];
     return [
       _padded(
-        child: SearchOtherYearsLinkWidget(
+        child: SearchOtherYearsButtonWidget(
           onTap: cubit.searchInOtherYears,
           failed: state.otherYearsFailed,
         ),
