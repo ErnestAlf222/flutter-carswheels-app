@@ -86,6 +86,24 @@ void main() {
     expect(_opacity(tester), 0);
   });
 
+  testWidgets('reaparece al cerrar el teclado con la pantalla ya construida', (
+    tester,
+  ) async {
+    final controller = ScrollController();
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(_host(controller, disableAnimations: true));
+    controller.jumpTo(2000);
+    await tester.pump();
+    expect(_opacity(tester), 1);
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pump();
+    expect(_opacity(tester), 0);
+    tester.view.resetViewInsets();
+    await tester.pump();
+    expect(_opacity(tester), 1);
+  });
+
   testWidgets('queda por encima de la barra flotante de navegación', (
     tester,
   ) async {

@@ -178,6 +178,24 @@ void main() {
       expect(_buttonOpacity(tester), 0);
     });
 
+    _test('reaparece al cerrar el teclado con la pantalla ya construida', (
+      tester,
+    ) async {
+      final harness = _harness();
+      await _openPage(tester, harness);
+      await _search(tester, 'sport');
+      expect(_buttonOpacity(tester), 1);
+      tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+      addTearDown(tester.view.resetViewInsets);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(_buttonOpacity(tester), 0);
+      tester.view.resetViewInsets();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(_buttonOpacity(tester), 1);
+    });
+
     _test('va apilado encima del botón de subir sin tapar la barra', (
       tester,
     ) async {
