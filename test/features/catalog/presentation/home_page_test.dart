@@ -5,6 +5,7 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/widgets/widgets.dart';
+import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../support/class_translator_test_support.dart';
+import '../../../support/market_test_support.dart';
 import '../../../support/photos_test_support.dart';
 import '../../../support/tall_view_test_support.dart';
 import '../../../support/summaries_test_support.dart';
@@ -68,6 +70,7 @@ void main() {
   late _MockLogoPrecacheCubit precacheCubit;
   late _MockCatalogCubit catalogCubit;
   late _MockModelsCubit modelsCubit;
+  late MarketCubit marketCubit;
   late MockPhotosCubit photosCubit;
   late MockSummariesCubit summariesCubit;
   late StreamController<ModelsState> modelsEvents;
@@ -85,6 +88,7 @@ void main() {
     useTallPhoneView();
     catalogCubit = _MockCatalogCubit();
     modelsCubit = _MockModelsCubit();
+    marketCubit = buildMarketCubit();
     photosCubit = buildMockPhotosCubit();
     summariesCubit = buildMockSummariesCubit();
     modelsEvents = StreamController<ModelsState>.broadcast();
@@ -110,6 +114,7 @@ void main() {
   });
 
   tearDown(() {
+    marketCubit.close();
     catalogEvents.close();
     logosEvents.close();
     modelsEvents.close();
@@ -137,6 +142,7 @@ void main() {
               BlocProvider<SummariesCubit>.value(value: summariesCubit),
               BlocProvider<BrandLogosCubit>.value(value: logosCubit),
               BlocProvider<LogoPrecacheCubit>.value(value: precacheCubit),
+              BlocProvider<MarketCubit>.value(value: marketCubit),
             ],
             child: const HomePage(),
           ),

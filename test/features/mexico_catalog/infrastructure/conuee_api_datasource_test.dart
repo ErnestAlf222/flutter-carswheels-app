@@ -41,7 +41,7 @@ void main() {
 
   group('fetchYearSources', () {
     test(
-      'toma el año del nombre del recurso y ordena del más reciente',
+      'ofrece todo año con datastore activo, del más reciente al más antiguo',
       () async {
         when(
           () => dio.get<Object?>(
@@ -64,6 +64,7 @@ void main() {
         expect(await datasource.fetchYearSources(), const [
           MxYearSourceEntity(year: 2026, resourceId: 'r26'),
           MxYearSourceEntity(year: 2025, resourceId: 'r25'),
+          MxYearSourceEntity(year: 2024, resourceId: 'r24'),
         ]);
       },
     );

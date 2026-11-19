@@ -1,4 +1,5 @@
 import 'package:cars_wheels_app/app/app.dart';
+import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/mexico_catalog/mexico_catalog.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/safety/safety.dart';
@@ -75,6 +76,14 @@ class _FakeMexicoCatalogCache implements MexicoCatalogCacheDatasource {
   Future<void> writeYear(String key, CachedMxYearEntity entry) async {}
 }
 
+class _FakeMarketPreference implements MarketPreferenceDatasource {
+  @override
+  Future<String?> read() async => null;
+
+  @override
+  Future<void> write(String code) async {}
+}
+
 App _buildApp() => App(
   dependencies: AppDependencies.create(
     photoCache: _FakePhotoCache(),
@@ -83,6 +92,7 @@ App _buildApp() => App(
     detailCache: _FakeDetailCache(),
     safetyCache: _FakeSafetyCache(),
     mexicoCatalogCache: _FakeMexicoCatalogCache(),
+    marketPreference: _FakeMarketPreference(),
   ),
 );
 

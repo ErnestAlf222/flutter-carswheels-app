@@ -44,8 +44,10 @@ class _FakeCatalogRepository implements CatalogRepository {
 CatalogCubit _cubit(
   _FakeCatalogRepository repository, {
   Duration minimumLoadingTime = Duration.zero,
+  int? Function()? preferredYear,
 }) => CatalogCubit(
   minimumLoadingTime: minimumLoadingTime,
+  preferredYear: preferredYear,
   getAvailableYears: GetAvailableYearsUseCase(repository),
   getBrands: GetBrandsUseCase(
     repository: repository,
@@ -57,6 +59,52 @@ CatalogCubit _cubit(
 );
 
 void main() {
+  group('año preferido y recarga forzada (cambio de mercado)', () {
+    test('arranca en el año preferido si existe', () async {
+      final cubit = _cubit(
+        _FakeCatalogRepository(years: [2026, 2025]),
+        preferredYear: () => 2025,
+      );
+      await cubit.loadBrands();
+      expect((cubit.state as CatalogLoaded).year, 2025);
+      await cubit.close();
+    });
+
+    test('si el año preferido no existe usa el más reciente', () async {
+      final cubit = _cubit(
+        _FakeCatalogRepository(years: [2026, 2025]),
+        preferredYear: () => 2019,
+      );
+      await cubit.loadBrands();
+      expect((cubit.state as CatalogLoaded).year, 2026);
+      await cubit.close();
+    });
+
+    test('force reemplaza una carga en curso y gana la última', () async {
+      int? preferred;
+      final cubit = _cubit(
+        _FakeCatalogRepository(years: [2026, 2025]),
+        preferredYear: () => preferred,
+      );
+      final first = cubit.loadBrands();
+      preferred = 2025;
+      final second = cubit.loadBrands(force: true);
+      await Future.wait([first, second]);
+      expect((cubit.state as CatalogLoaded).year, 2025);
+      await cubit.close();
+    });
+
+    test('sin force, una carga en curso ignora la segunda', () async {
+      final repository = _FakeCatalogRepository(years: [2026]);
+      final cubit = _cubit(repository);
+      final first = cubit.loadBrands();
+      await cubit.loadBrands();
+      await first;
+      expect(repository.yearCalls, 1);
+      await cubit.close();
+    });
+  });
+
   blocTest<CatalogCubit, CatalogState>(
     'loading -> loaded con el año más alto y marcas ordenadas',
     build: () => _cubit(_FakeCatalogRepository(years: [2020, 2027, 2024])),

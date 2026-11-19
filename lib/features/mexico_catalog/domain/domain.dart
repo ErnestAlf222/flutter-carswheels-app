@@ -14,6 +14,7 @@ export 'datasources/mexico_catalog_datasource.dart';
 export 'repositories/mexico_catalog_repository.dart';
 // Servicios
 export 'services/mx_fuel_classifier.dart';
+export 'services/mx_group_summary_builder.dart';
 export 'services/mx_model_grouper.dart';
 export 'services/mx_model_name_cleaner.dart';
 export 'services/mx_power_text_cleaner.dart';

@@ -103,6 +103,21 @@ void main() {
       );
     });
 
+    test('E-Rev con E-POWER (Nissan) es híbrido, no enchufable', () {
+      expect(
+        classifier.classify('E-Rev', 'KICKS PLAY E-POWER E-REV'),
+        EngineKind.hybrid,
+      );
+      expect(
+        classifier.classify('Gasolina / E-Rev', 'X-TRAIL E-POWER E-REV'),
+        EngineKind.hybrid,
+      );
+      expect(
+        classifier.classify('Gasolina', 'OUTLANDER PHEV'),
+        EngineKind.pluginHybrid,
+      );
+    });
+
     test(
       'PHEV, REEV, PLUG-IN y DM-i en el nombre mandan sobre el combustible',
       () {

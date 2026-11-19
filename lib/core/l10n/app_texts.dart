@@ -49,6 +49,26 @@ class AppTexts {
   static const String flexFuelLabel = 'Flex-fuel o gas natural';
   static const String missingValueLabel = '—';
 
+  // Selector de mercado.
+  static const String fuelListSeparator = ' · ';
+  static const String marketUnitedStatesLabel = 'EE. UU.';
+  static const String marketMexicoLabel = 'México';
+  static const String marketSelectorSemanticLabel = 'Mercado del catálogo';
+  static String marketOptionSemanticLabel(String market) => 'Mercado $market';
+  static const String mexicoDetailSoonMessage =
+      'El detalle de México llega pronto';
+
+  /// Combustible de CONUEE (normalizado) → etiqueta; lo no listado se muestra tal cual.
+  static const Map<String, String> mexicoFuelLabels = {
+    'gasolina': gasolineLabel,
+    'diesel': dieselLabel,
+    'hibrido': hybridLabel,
+    'gasolina/electrico': 'Gasolina/Eléctrico',
+    'electrico': electricLabel,
+    'erev': 'Autonomía extendida',
+    'gasolina/erev': 'Gasolina/Autonomía extendida',
+  };
+
   /// Etiqueta de cada tipo de motorización; la clave es el nombre del enum.
   static const Map<String, String> engineKindLabels = {
     'electric': electricLabel,

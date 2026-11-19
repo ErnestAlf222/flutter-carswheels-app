@@ -12,11 +12,21 @@ class ModelsCubit extends Cubit<ModelsState> {
 
   final GetModelGroupsUseCase getModelGroups;
 
+  // Marca de la última carga o reinicio: descarta resultados de cargas viejas.
+  final Map<String, Object> _latestLoad = {};
+  static const String _loadKey = 'load';
+
   /// Indica si quedan grupos por mostrar.
   bool get hasMore {
     final current = state;
     return current is ModelsLoaded &&
         current.visibleCount < current.groups.length;
+  }
+
+  /// Vacía la lista (cambio de mercado): nada del mercado anterior se reutiliza.
+  void reset() {
+    _latestLoad[_loadKey] = Object();
+    emit(const ModelsInitial());
   }
 
   /// Carga los modelos; con la misma marca ya cargada refresca en el lugar.
@@ -25,9 +35,12 @@ class ModelsCubit extends Cubit<ModelsState> {
     final base = current is ModelsLoaded && current.brand == brand
         ? current
         : null;
+    final token = Object();
+    _latestLoad[_loadKey] = token;
     emit(base == null ? const ModelsLoading() : base.refreshing());
     try {
       final groups = await getModelGroups(year, brand);
+      if (_isStale(token)) return;
       emit(
         ModelsLoaded(
           groups: groups,
@@ -37,11 +50,16 @@ class ModelsCubit extends Cubit<ModelsState> {
         ),
       );
     } on AppFailure catch (failure) {
+      if (_isStale(token)) return;
       _emitFailure(base, year, brand, failure);
     } catch (error) {
+      if (_isStale(token)) return;
       _emitFailure(base, year, brand, UnknownFailure(error.toString()));
     }
   }
+
+  // Un reinicio o una carga más nueva dejan viejo el resultado pendiente.
+  bool _isStale(Object token) => isClosed || _latestLoad[_loadKey] != token;
 
   // Con datos previos conserva la lista; sin ellos muestra el error.
   void _emitFailure(

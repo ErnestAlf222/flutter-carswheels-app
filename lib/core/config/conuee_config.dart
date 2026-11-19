@@ -8,8 +8,7 @@ class ConueeConfig {
   static const String sourceLabel = 'conuee';
   static const int maxConcurrentRequests = 4;
 
-  // Años que se ofrecen y año por defecto.
-  static const List<int> offeredYears = [2025, 2026];
+  // Los años ofrecidos salen del catálogo (package_show); solo se fija el de inicio.
   static const int defaultYear = 2025;
 
   // Rutas relativas a la URL base y parámetros de CKAN.
@@ -23,6 +22,8 @@ class ConueeConfig {
   // Mensajes técnicos de las fallas.
   static const String unexpectedShapeMessage =
       'La respuesta de CONUEE no tiene la forma esperada';
+  static const String emptyYearsMessage =
+      'CONUEE no tiene años con catálogo disponible';
   static const String yearNotOfferedMessage =
       'El año no está disponible en el catálogo de CONUEE';
 
@@ -59,7 +60,7 @@ class ConueeConfig {
   static const String torqueKey = 'torque_maximo_n_m_rpm';
 
   // Claves versionadas: subir la versión invalida lo guardado.
-  static const String cacheKeyVersion = 'v1';
+  static const String cacheKeyVersion = 'v2';
   static const String cacheKeySeparator = '|';
   static const String yearsKeyKind = 'years';
   static const String yearKeyKind = 'year';
@@ -112,6 +113,11 @@ class ConueeConfig {
   // (DM-i y DM-O son los enchufables de BYD).
   static const String pluginModelPattern =
       r'(?:^|[^A-Z0-9])(?:PHEV|REEV|E-REV|PLUG-IN|DM-I|DM-O)(?:[^A-Z0-9]|$)';
+
+  // E-Rev con este texto en el nombre es el E-POWER de Nissan: el motor de
+  // gasolina solo genera y no se enchufa, así que cuenta como híbrido.
+  static const String eRevHybridModelMarker = 'E-POWER';
+  static const List<String> rangeExtenderFuelKeys = ['erev', 'gasolina/erev'];
 
   // Combustible normalizado → nombre del EngineKind; E-Rev no tiene km/l comparable.
   static const Map<String, String> fuelEngineKinds = {

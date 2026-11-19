@@ -4,6 +4,7 @@ import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/widgets/widgets.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
+import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,7 @@ import 'package:mocktail/mocktail.dart';
 import '../../../support/brand_logos_test_support.dart';
 import '../../../support/class_translator_test_support.dart';
 import '../../../support/detail_test_support.dart';
+import '../../../support/market_test_support.dart';
 import '../../../support/photos_test_support.dart';
 import '../../../support/tall_view_test_support.dart';
 import '../../../support/summaries_test_support.dart';
@@ -52,7 +54,11 @@ void main() {
   late List<Object?> pushedExtras;
   late List<String> events;
 
-  Future<void> pumpHome(WidgetTester tester, {required PhotoSlot? slot}) async {
+  Future<void> pumpHome(
+    WidgetTester tester, {
+    required PhotoSlot? slot,
+    Market market = Market.unitedStates,
+  }) async {
     useTallPhoneView();
     pushedExtras = [];
     events = [];
@@ -114,6 +120,9 @@ void main() {
                   value: buildMockBrandLogosCubit(),
                 ),
                 BlocProvider<LogoPrecacheCubit>.value(value: precache),
+                BlocProvider<MarketCubit>.value(
+                  value: buildMarketCubit(initial: market),
+                ),
               ],
               child: const HomePage(),
             ),
@@ -157,6 +166,18 @@ void main() {
         heroTag: photoKeyFor('Toyota', 'Corolla', 2020),
       ),
     ]);
+  });
+
+  testWidgets('en México tocar una tarjeta avisa con un SnackBar y no navega', (
+    tester,
+  ) async {
+    await pumpHome(tester, slot: null, market: Market.mexico);
+    await tester.tap(find.byType(ModelGridCardWidget).first);
+    await tester.pump();
+    expect(find.text(AppTexts.mexicoDetailSoonMessage), findsOneWidget);
+    expect(find.text('pantalla detalle'), findsNothing);
+    expect(pushedExtras, isEmpty);
+    expect(events, isEmpty);
   });
 
   testWidgets('sin foto en el slot la foto de los argumentos es nula', (

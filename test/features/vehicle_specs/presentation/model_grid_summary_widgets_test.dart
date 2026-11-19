@@ -307,4 +307,48 @@ void main() {
       expect(find.byType(Icon), findsNothing);
     });
   });
+
+  group('tarjeta de México', () {
+    const mexicoSummary = GroupSummaryEntity(
+      vehicleClass: null,
+      minKmPerLiter: 12.4,
+      maxKmPerLiter: 20.9,
+      hasElectric: false,
+      hasPluginHybrid: false,
+      variantCount: 3,
+      fuelLabel: 'Gasolina',
+    );
+    const classLine = ModelClassTextWidget(
+      brand: 'Honda',
+      groupName: 'Civic',
+      year: 2020,
+    );
+
+    testWidgets('la segunda línea muestra el combustible, no la clase', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(child: classLine, slot: const SummaryFound(mexicoSummary)),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Gasolina'), findsOneWidget);
+      expect(find.text(AppTexts.missingValueLabel), findsNothing);
+    });
+
+    testWidgets('sin combustible ni clase se muestra el guion', (tester) async {
+      final slot = SummaryFound(
+        GroupSummaryEntity(
+          vehicleClass: null,
+          minKmPerLiter: mexicoSummary.minKmPerLiter,
+          maxKmPerLiter: mexicoSummary.maxKmPerLiter,
+          hasElectric: false,
+          hasPluginHybrid: false,
+          variantCount: 1,
+        ),
+      );
+      await tester.pumpWidget(host(child: classLine, slot: slot));
+      await tester.pumpAndSettle();
+      expect(find.text(AppTexts.missingValueLabel), findsOneWidget);
+    });
+  });
 }

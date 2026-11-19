@@ -34,11 +34,7 @@ class ConueeApiDatasource implements MexicoCatalogDatasource {
       final year = int.tryParse(
         _yearPattern.firstMatch(resource.name)?.group(1) ?? '',
       );
-      if (year == null ||
-          !resource.datastoreActive ||
-          !ConueeConfig.offeredYears.contains(year)) {
-        continue;
-      }
+      if (year == null || !resource.datastoreActive) continue;
       sources.add(MxYearSourceEntity(year: year, resourceId: resource.id));
     }
     return sources..sort((a, b) => b.year.compareTo(a.year));

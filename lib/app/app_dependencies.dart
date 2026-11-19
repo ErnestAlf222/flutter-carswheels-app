@@ -2,10 +2,16 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar_community/isar.dart';
 
+import 'package:cars_wheels_app/app/market_catalog/market_get_available_years_usecase.dart';
+import 'package:cars_wheels_app/app/market_catalog/market_get_brands_usecase.dart';
+import 'package:cars_wheels_app/app/market_catalog/market_get_model_groups_usecase.dart';
+import 'package:cars_wheels_app/app/market_catalog/market_resolve_group_summary_usecase.dart';
+import 'package:cars_wheels_app/app/market_catalog/market_summary_key_builder.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
+import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/mexico_catalog/mexico_catalog.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/safety/safety.dart';
@@ -14,6 +20,8 @@ import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 /// Construye las dependencias de la app en un solo lugar.
 class AppDependencies {
   AppDependencies._({
+    required this.marketCubit,
+    required this.summaryKeyBuilder,
     required this.catalogRepository,
     required this.getAvailableYearsUseCase,
     required this.getBrandsUseCase,
@@ -58,6 +66,7 @@ class AppDependencies {
       detailCache: IsarVehicleDetailCacheDatasource(isar),
       safetyCache: IsarSafetyCacheDatasource(isar),
       mexicoCatalogCache: IsarMexicoCatalogCacheDatasource(isar),
+      marketPreference: IsarMarketPreferenceDatasource(isar),
       closeStorage: () => IsarDatabase.close(isar),
     );
   }
@@ -70,6 +79,7 @@ class AppDependencies {
     required VehicleDetailCacheDatasource detailCache,
     required SafetyCacheDatasource safetyCache,
     required MexicoCatalogCacheDatasource mexicoCatalogCache,
+    required MarketPreferenceDatasource marketPreference,
     Future<void> Function()? closeStorage,
   }) {
     final fuelEconomyDio = ApiClientFactory.create(
@@ -121,6 +131,7 @@ class AppDependencies {
       detailCache,
       safetyCache,
       mexicoCatalogCache,
+      marketPreference,
       closeStorage: closeStorage,
     );
   }
@@ -138,7 +149,8 @@ class AppDependencies {
     SummaryCacheDatasource summaryCache,
     VehicleDetailCacheDatasource detailCache,
     SafetyCacheDatasource safetyCache,
-    MexicoCatalogCacheDatasource mexicoCatalogCache, {
+    MexicoCatalogCacheDatasource mexicoCatalogCache,
+    MarketPreferenceDatasource marketPreference, {
     Future<void> Function()? closeStorage,
   }) {
     final repository = CatalogRepositoryImpl(
@@ -224,20 +236,44 @@ class AppDependencies {
       repository: mexicoCatalogRepository,
       grouper: const MxModelGrouper(),
     );
+    final marketCubit = MarketCubit(preference: marketPreference);
+    Market currentMarket() => marketCubit.market;
+    final getMxVersions = GetMxVersionsUseCase(getMxModelGroups);
+    final resolveGroupSummary = ResolveGroupSummaryUseCase(
+      cache: summaryCache,
+      getGroupSummary: getGroupSummary,
+      keyBuilder: const SummaryKeyBuilder(),
+      clock: DateTime.now,
+    );
     const transmissionLabeler = TransmissionLabeler(
       onUntranslated: _logUntranslatedText,
     );
     const defaultVersionSelector = DefaultVersionSelector();
     return AppDependencies._(
+      marketCubit: marketCubit,
+      summaryKeyBuilder: MarketSummaryKeyBuilder(currentMarket),
       catalogRepository: repository,
-      getAvailableYearsUseCase: getAvailableYears,
-      getBrandsUseCase: GetBrandsUseCase(
+      getAvailableYearsUseCase: MarketGetAvailableYearsUseCase(
         repository: repository,
-        sortStrategy: sortStrategy,
+        unitedStates: getAvailableYears,
+        getMxYears: GetMxYearsUseCase(mexicoCatalogRepository),
+        currentMarket: currentMarket,
       ),
-      getModelGroupsUseCase: GetModelGroupsUseCase(
-        repository: repository,
-        grouper: const ModelGrouper(sortStrategy: groupSortStrategy),
+      getBrandsUseCase: MarketGetBrandsUseCase(
+        unitedStates: GetBrandsUseCase(
+          repository: repository,
+          sortStrategy: sortStrategy,
+        ),
+        getMxBrands: GetMxBrandsUseCase(mexicoCatalogRepository),
+        currentMarket: currentMarket,
+      ),
+      getModelGroupsUseCase: MarketGetModelGroupsUseCase(
+        unitedStates: GetModelGroupsUseCase(
+          repository: repository,
+          grouper: const ModelGrouper(sortStrategy: groupSortStrategy),
+        ),
+        getMxModelGroups: getMxModelGroups,
+        currentMarket: currentMarket,
       ),
       brandLogosRepository: BrandLogosRepositoryImpl(
         BrandLogosCdnDatasource(logosDio),
@@ -259,11 +295,11 @@ class AppDependencies {
       cancelPendingPhotosUseCase: CancelPendingPhotosUseCase(photosRepository),
       photoKeyBuilder: photoKeyBuilder,
       getGroupSummaryUseCase: getGroupSummary,
-      resolveGroupSummaryUseCase: ResolveGroupSummaryUseCase(
-        cache: summaryCache,
-        getGroupSummary: getGroupSummary,
-        keyBuilder: const SummaryKeyBuilder(),
-        clock: DateTime.now,
+      resolveGroupSummaryUseCase: MarketResolveGroupSummaryUseCase(
+        unitedStates: resolveGroupSummary,
+        getMxVersions: getMxVersions,
+        summaryBuilder: const MxGroupSummaryBuilder(),
+        currentMarket: currentMarket,
       ),
       cancelPendingSummariesUseCase: CancelPendingSummariesUseCase(
         vehicleSpecsRepository,
@@ -291,7 +327,7 @@ class AppDependencies {
       getMxYearsUseCase: GetMxYearsUseCase(mexicoCatalogRepository),
       getMxBrandsUseCase: GetMxBrandsUseCase(mexicoCatalogRepository),
       getMxModelGroupsUseCase: getMxModelGroups,
-      getMxVersionsUseCase: GetMxVersionsUseCase(getMxModelGroups),
+      getMxVersionsUseCase: getMxVersions,
       commonsQueue: commonsQueue,
       fuelEconomyQueue: fuelEconomyQueue,
       nhtsaQueue: nhtsaQueue,
@@ -300,6 +336,8 @@ class AppDependencies {
     );
   }
 
+  final MarketCubit marketCubit;
+  final SummaryKeyBuilder summaryKeyBuilder;
   final CatalogRepository catalogRepository;
   final GetAvailableYearsUseCase getAvailableYearsUseCase;
   final GetBrandsUseCase getBrandsUseCase;
@@ -358,6 +396,7 @@ class AppDependencies {
     await fuelEconomyQueue.close();
     await nhtsaQueue.close();
     await conueeQueue.close();
+    await marketCubit.close();
     await closeStorage();
   }
 }

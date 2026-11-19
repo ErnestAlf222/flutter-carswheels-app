@@ -123,7 +123,6 @@ void main() {
         'F PACE PHEV',
         'AVATR 07 (REEV) AWD',
         'JETOUR T2 I-DM 1.5T PHEV',
-        'X-TRAIL E-POWER E-REV',
         'SONG PRO DM-I',
       ]) {
         final vehicle = conueeVehicle(model);
@@ -132,6 +131,13 @@ void main() {
         expect(vehicle.combinedKmPerLiter, isNull, reason: model);
         expect(vehicle.combinedCo2GramsPerKilometer, isNotNull, reason: model);
       }
+    });
+
+    test('E-POWER E-REV de Nissan: híbrido con km/l y CO2 conservados', () {
+      final vehicle = conueeVehicle('X-TRAIL E-POWER E-REV');
+      expect(vehicle.engineKind, EngineKind.hybrid);
+      expect(vehicle.combinedKmPerLiter, closeTo(20.90, 0.01));
+      expect(vehicle.combinedCo2GramsPerKilometer, 112.0);
     });
 
     test('grafías raras de cilindros y transmisión de los fixtures', () {

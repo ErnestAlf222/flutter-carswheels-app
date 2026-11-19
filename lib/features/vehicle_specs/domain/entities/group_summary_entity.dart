@@ -13,6 +13,7 @@ class GroupSummaryEntity extends Equatable {
     required this.variantCount,
     this.hasFuelCell = false,
     this.engineKinds = const [],
+    this.fuelLabel,
   });
 
   /// Clase original en inglés más frecuente; la traducción se hace al mostrarla.
@@ -31,6 +32,9 @@ class GroupSummaryEntity extends Equatable {
   /// Tipos de motorización presentes, sin repetir y en orden de prioridad.
   final List<EngineKind> engineKinds;
 
+  /// Combustible ya traducido; solo lo trae el catálogo de México.
+  final String? fuelLabel;
+
   @override
   List<Object?> get props => [
     vehicleClass,
@@ -41,5 +45,6 @@ class GroupSummaryEntity extends Equatable {
     hasFuelCell,
     variantCount,
     engineKinds,
+    fuelLabel,
   ];
 }

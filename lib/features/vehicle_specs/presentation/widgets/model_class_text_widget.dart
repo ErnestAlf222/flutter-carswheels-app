@@ -5,7 +5,7 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/domain/domain.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/presentation/cubits/cubits.dart';
 
-/// Línea con la clase del vehículo; "—" si no hay dato.
+/// Línea con la clase (o el combustible en México); "—" si no hay dato.
 class ModelClassTextWidget extends StatelessWidget {
   const ModelClassTextWidget({
     super.key,
@@ -56,8 +56,10 @@ class ModelClassTextWidget extends StatelessWidget {
         ),
       );
     }
+    // México no trae clase: en su lugar va el combustible.
     final label = slot is SummaryFound
-        ? translator.labelFor(slot.summary.vehicleClass)
+        ? slot.summary.fuelLabel ??
+              translator.labelFor(slot.summary.vehicleClass)
         : null;
     final text = label ?? AppTexts.missingValueLabel;
     return Align(

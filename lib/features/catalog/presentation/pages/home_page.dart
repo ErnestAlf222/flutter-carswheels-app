@@ -9,6 +9,7 @@ import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/domain/domain.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/cubits/cubits.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
+import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/widgets/widgets.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
@@ -177,6 +178,26 @@ class HomePage extends StatelessWidget {
     ModelsLoaded state,
     ModelGroupEntity group,
   ) {
+    // El Detalle de México aún no existe: se avisa y no se navega.
+    if (context.read<MarketCubit>().market == Market.mexico) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: const Text(AppTexts.mexicoDetailSoonMessage),
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.fromLTRB(
+              AppSpacing.xl,
+              0,
+              AppSpacing.xl,
+              NavConfig.footprint +
+                  MediaQuery.paddingOf(context).bottom +
+                  AppSpacing.m,
+            ),
+          ),
+        );
+      return;
+    }
     final photos = context.read<PhotosCubit>();
     final heroTag = photos.keyFor(
       PhotoRequest(brand: state.brand, model: group.name, year: state.year),
@@ -249,7 +270,17 @@ class _LoadedContentState extends State<_LoadedContent>
               AppSpacing.xl,
               AppSpacing.m,
             ),
-            child: Text(AppConfig.appName, style: AppTextStyles.cardTitle),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    AppConfig.appName,
+                    style: AppTextStyles.cardTitle,
+                  ),
+                ),
+                const MarketSelectorWidget(),
+              ],
+            ),
           ),
         ),
         if (hasBrands)

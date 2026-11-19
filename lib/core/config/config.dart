@@ -9,6 +9,7 @@ export 'catalog_config.dart';
 export 'conuee_config.dart';
 export 'fuel_economy_config.dart';
 export 'logos_config.dart';
+export 'market_config.dart';
 export 'model_grid_config.dart';
 export 'mexico_model_config.dart';
 export 'model_grouping_config.dart';

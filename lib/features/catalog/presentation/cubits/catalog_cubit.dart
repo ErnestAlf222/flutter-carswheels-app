@@ -9,6 +9,7 @@ class CatalogCubit extends Cubit<CatalogState> {
   CatalogCubit({
     required this.getAvailableYears,
     required this.getBrands,
+    this.preferredYear,
     this.minimumLoadingTime = const Duration(
       milliseconds: UiConfig.initialLoaderMinimumVisibleMilliseconds,
     ),
@@ -17,38 +18,59 @@ class CatalogCubit extends Cubit<CatalogState> {
   final GetAvailableYearsUseCase getAvailableYears;
   final GetBrandsUseCase getBrands;
 
+  /// Año con el que arranca la carga; sin él, o si no existe, el más reciente.
+  final int? Function()? preferredYear;
+
+  // Marca de la última carga inicial: descarta resultados de cargas viejas.
+  final Map<String, Object> _latestLoad = {};
+  static const String _loadKey = 'load';
+
   /// Tiempo mínimo del loader en la carga inicial (no en los refrescos).
   final Duration minimumLoadingTime;
 
-  /// Carga inicial: años disponibles y marcas del año más reciente.
-  Future<void> loadBrands() async {
-    if (state is CatalogLoading) return;
+  /// Carga inicial: años disponibles y marcas del año preferido o el más reciente.
+  /// Con [force] reemplaza una carga en curso (cambio de mercado).
+  Future<void> loadBrands({bool force = false}) async {
+    if (state is CatalogLoading && !force) return;
+    final token = Object();
+    _latestLoad[_loadKey] = token;
     final loadingTimer = Stopwatch()..start();
     emit(const CatalogLoading());
     try {
       final years = await getAvailableYears();
-      final brands = await getBrands(years.first);
+      final preferred = preferredYear?.call();
+      final year = preferred != null && years.contains(preferred)
+          ? preferred
+          : years.first;
+      final brands = await getBrands(year);
       await _waitMinimumLoading(loadingTimer);
-      emit(
-        CatalogLoaded(year: years.first, brands: brands, availableYears: years),
-      );
+      if (_isStale(token)) return;
+      emit(CatalogLoaded(year: year, brands: brands, availableYears: years));
     } on AppFailure catch (failure) {
       await _waitMinimumLoading(loadingTimer);
+      if (_isStale(token)) return;
       emit(CatalogError(failure));
     } catch (error) {
       await _waitMinimumLoading(loadingTimer);
+      if (_isStale(token)) return;
       emit(CatalogError(UnknownFailure(error.toString())));
     }
   }
+
+  // Una carga nueva, o el cierre del cubit, deja viejo el resultado pendiente.
+  bool _isStale(Object token) => isClosed || _latestLoad[_loadKey] != token;
 
   /// Cambia de año conservando el contenido; ignora años no disponibles.
   Future<void> selectYear(int year) async {
     final current = state;
     if (current is! CatalogLoaded || current.isRefreshing) return;
     if (year == current.year || !current.availableYears.contains(year)) return;
+    final token = _latestLoad[_loadKey];
     emit(current.refreshing());
     try {
       final brands = await getBrands(year);
+      // Si cambió el mercado mientras tanto, este resultado ya no aplica.
+      if (_latestLoad[_loadKey] != token) return;
       final keptIndex = _indexOfBrand(brands, current);
       emit(
         CatalogLoaded(
@@ -60,8 +82,10 @@ class CatalogCubit extends Cubit<CatalogState> {
         ),
       );
     } on AppFailure catch (failure) {
+      if (_latestLoad[_loadKey] != token) return;
       emit(current.failedRefresh(year, failure));
     } catch (error) {
+      if (_latestLoad[_loadKey] != token) return;
       emit(current.failedRefresh(year, UnknownFailure(error.toString())));
     }
   }

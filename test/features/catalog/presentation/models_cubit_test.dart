@@ -46,6 +46,20 @@ Matcher _loaded(int total, int visible) => isA<ModelsLoaded>()
     .having((s) => s.visibleCount, 'visibleCount', visible);
 
 void main() {
+  test('reset vacía la lista y descarta una carga en vuelo', () async {
+    final cubit = _cubit(
+      _FakeCatalogRepository(
+        modelCount: 3,
+        delay: const Duration(milliseconds: 20),
+      ),
+    );
+    final pending = cubit.load(2025, 'Chevrolet');
+    cubit.reset();
+    await pending;
+    expect(cubit.state, isA<ModelsInitial>());
+    await cubit.close();
+  });
+
   const page = CatalogConfig.defaultPageSize;
 
   blocTest<ModelsCubit, ModelsState>(

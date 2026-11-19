@@ -17,8 +17,12 @@ class MxFuelClassifier {
   /// Nulo si el combustible no se conoce.
   EngineKind? classify(String? fuelType, String rawModel) {
     final trimmed = fuelType?.trim() ?? '';
-    final name =
-        ConueeConfig.fuelEngineKinds[TextNormalizer.normalize(trimmed)];
+    final normalized = TextNormalizer.normalize(trimmed);
+    if (ConueeConfig.rangeExtenderFuelKeys.contains(normalized) &&
+        rawModel.toUpperCase().contains(ConueeConfig.eRevHybridModelMarker)) {
+      return EngineKind.hybrid;
+    }
+    final name = ConueeConfig.fuelEngineKinds[normalized];
     final kind = name == null ? null : EngineKind.fromName(name);
     if (kind == null && trimmed.isNotEmpty) onUnknown?.call(trimmed);
     if (kind != EngineKind.electric && isPluginModel(rawModel)) {
