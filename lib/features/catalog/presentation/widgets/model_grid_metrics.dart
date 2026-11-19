@@ -19,6 +19,10 @@ class ModelGridMetrics {
       ModelGridConfig.nameMaxLines *
       _lineHeight(AppTextStyles.modelName, scaler);
 
+  static double brandLabelHeight(TextScaler scaler) =>
+      _lineHeight(AppTextStyles.brandOverline, scaler) +
+      ModelGridConfig.brandLabelBottomGap;
+
   static double classHeight(TextScaler scaler) =>
       _lineHeight(AppTextStyles.modelClass, scaler);
 
@@ -32,8 +36,13 @@ class ModelGridMetrics {
       ModelGridConfig.efficiencyBarHeight;
 
   /// Alto total de la celda para un ancho de celda y una escala de texto.
-  static double cellHeight(double cellWidth, TextScaler scaler) =>
+  static double cellHeight(
+    double cellWidth,
+    TextScaler scaler, {
+    bool showBrandLabel = false,
+  }) =>
       (photoHeight(cellWidth) +
+              (showBrandLabel ? brandLabelHeight(scaler) : 0) +
               ModelGridConfig.textTopPadding +
               nameHeight(scaler) +
               ModelGridConfig.classTopGap +

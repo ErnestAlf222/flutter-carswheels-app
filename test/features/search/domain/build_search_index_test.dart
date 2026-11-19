@@ -39,6 +39,8 @@ void main() {
     expect(statuses.last.phase, SearchIndexPhase.ready);
     expect(statuses.last.progress, 1);
     expect(search(usScope, 'modelo3').single.groupName, 'Modelo3');
+    // Cada grupo conserva las variantes que entregó el origen.
+    expect(search(usScope, 'modelo3').single.variantNames, ['Modelo3']);
   });
 
   test('las marcas son buscables antes de tener los grupos', () async {
@@ -46,7 +48,10 @@ void main() {
     final statuses = StreamIterator(build(usScope));
     await statuses.moveNext();
     expect(statuses.current.phase, SearchIndexPhase.building);
-    expect(search(usScope, 'marca3').single.isBrandOnly, isTrue);
+    // La marca ya está en el índice (como fila sola); la búsqueda solo da grupos.
+    final record = store.recordOf(usScope.key)!;
+    expect(record.index.match(['marca3']).single.groupName, isNull);
+    expect(search(usScope, 'marca3'), isEmpty);
     expect(search(usScope, 'modelo3'), isEmpty);
     source.gate!.complete();
     while (await statuses.moveNext()) {}
@@ -120,7 +125,10 @@ void main() {
     expect(last.failedBrands, ['Marca2']);
     expect(search(usScope, 'modelo5'), hasLength(1));
     expect(search(usScope, 'modelo2'), isEmpty);
-    expect(search(usScope, 'marca2').single.isBrandOnly, isTrue);
+    // La marca fallida queda en el índice, sin grupos.
+    final entries = store.recordOf(usScope.key)!.index.match(['marca2']);
+    expect(entries.single.groupName, isNull);
+    expect(search(usScope, 'marca2'), isEmpty);
   });
 
   test('sin reintento, un índice parcial no vuelve a pedir nada', () async {
@@ -170,7 +178,7 @@ class _BrandlessSource implements SearchCatalogSource {
       throw StateError('sin red');
 
   @override
-  Future<List<String>> fetchGroupNames(
+  Future<List<SearchGroupEntity>> fetchGroups(
     SearchScopeEntity scope,
     String brand,
   ) async => const [];

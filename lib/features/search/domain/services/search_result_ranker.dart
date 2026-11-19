@@ -38,6 +38,7 @@ class SearchResultRanker {
         SearchResultEntity(
           brand: item.entry.brand,
           groupName: item.entry.groupName,
+          variantNames: item.entry.variantNames,
           year: scope.year,
           marketCode: scope.marketCode,
         ),

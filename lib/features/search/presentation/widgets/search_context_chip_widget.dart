@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 
-/// Chip no editable con el mercado y el año en uso.
+/// Píldora translúcida sobre el encabezado oscuro con el mercado y el año.
 class SearchContextChipWidget extends StatelessWidget {
   const SearchContextChipWidget({
     super.key,
@@ -25,12 +25,12 @@ class SearchContextChipWidget extends StatelessWidget {
           vertical: SearchConfig.chipVerticalPadding,
         ),
         decoration: BoxDecoration(
-          color: AppColors.accentTint,
+          color: AppColors.onDarkPill,
           borderRadius: BorderRadius.circular(AppRadii.classChip),
         ),
         child: Text(
           AppTexts.searchContextChipLabel(market, year),
-          style: AppTextStyles.caption.copyWith(color: AppColors.mutedText),
+          style: AppTextStyles.onDarkCaption,
         ),
       ),
     );

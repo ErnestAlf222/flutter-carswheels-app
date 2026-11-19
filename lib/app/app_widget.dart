@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cars_wheels_app/app/app_dependencies.dart';
 import 'package:cars_wheels_app/app/market_catalog/market_search_context_source.dart';
 import 'package:cars_wheels_app/app/router/app_router_setup.dart';
+import 'package:cars_wheels_app/app/search_results/search_card_cubits_factory.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
@@ -85,6 +86,21 @@ class _AppState extends State<App> {
         RepositoryProvider<VersionDescriptorBuilder>.value(
           value: _dependencies.versionDescriptorBuilder,
         ),
+        RepositoryProvider<SearchCardCubitsFactory>.value(
+          value: SearchCardCubitsFactory(
+            createPhotos: () => PhotosCubit(
+              resolveModelPhoto: _dependencies.resolveModelPhotoUseCase,
+              cancelPendingPhotos: _dependencies.cancelPendingPhotosUseCase,
+              keyBuilder: _dependencies.photoKeyBuilder,
+            ),
+            createSummaries: () => SummariesCubit(
+              resolveGroupSummary: _dependencies.resolveGroupSummaryUseCase,
+              cancelPendingSummaries:
+                  _dependencies.cancelPendingSummariesUseCase,
+              keyBuilder: _dependencies.summaryKeyBuilder,
+            ),
+          ),
+        ),
         RepositoryProvider<PhotoPrefetcher>.value(
           value: const PhotoPrefetcher(),
         ),
@@ -153,7 +169,7 @@ class _AppState extends State<App> {
               buildIndex: _dependencies.buildSearchIndexUseCase,
               searchCatalog: _dependencies.searchCatalogUseCase,
               getBrandGroups: _dependencies.getBrandGroupsUseCase,
-              getTopBrands: _dependencies.getTopBrandsUseCase,
+              getIndexBrands: _dependencies.getIndexBrandsUseCase,
               addRecent: _dependencies.addRecentSearchUseCase,
               getRecents: _dependencies.getRecentSearchesUseCase,
               removeRecent: _dependencies.removeRecentSearchUseCase,

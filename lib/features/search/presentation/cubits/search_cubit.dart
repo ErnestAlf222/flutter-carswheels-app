@@ -13,7 +13,7 @@ class SearchCubit extends Cubit<SearchState> {
     required this.buildIndex,
     required this.searchCatalog,
     required this.getBrandGroups,
-    required this.getTopBrands,
+    required this.getIndexBrands,
     required this.addRecent,
     required this.getRecents,
     required this.removeRecent,
@@ -29,7 +29,7 @@ class SearchCubit extends Cubit<SearchState> {
   final BuildSearchIndexUseCase buildIndex;
   final SearchCatalogUseCase searchCatalog;
   final GetBrandGroupsUseCase getBrandGroups;
-  final GetTopBrandsUseCase getTopBrands;
+  final GetIndexBrandsUseCase getIndexBrands;
   final AddRecentSearchUseCase addRecent;
   final GetRecentSearchesUseCase getRecents;
   final RemoveRecentSearchUseCase removeRecent;
@@ -89,7 +89,8 @@ class SearchCubit extends Cubit<SearchState> {
     }
   }
 
-  /// Cambia el texto; busca tras el debounce, o vacía los resultados si no llega al mínimo.
+  /// Cambia el texto; busca tras el debounce. Con marca elegida y sin texto
+  /// suficiente muestra de inmediato los modelos de la marca.
   void onQueryChanged(String text) {
     _debounceTimer?.cancel();
     final meetsMinimum =
@@ -97,17 +98,21 @@ class SearchCubit extends Cubit<SearchState> {
     emit(
       state.copyWith(
         query: text,
-        clearBrandFilter: true,
-        results: meetsMinimum ? null : const [],
+        results: meetsMinimum || state.brandFilter != null ? null : const [],
       ),
     );
-    if (meetsMinimum) _debounceTimer = Timer(debounce, _applySearch);
+    if (meetsMinimum) {
+      _debounceTimer = Timer(debounce, _applySearch);
+    } else if (state.brandFilter != null) {
+      _applySearch();
+    }
   }
 
-  /// Vacía el campo y los resultados.
+  /// Vacía el campo; la marca elegida se conserva.
   void clearQuery() {
     _debounceTimer?.cancel();
-    emit(state.copyWith(query: '', clearBrandFilter: true, results: const []));
+    emit(state.copyWith(query: '', results: const [], searchedText: ''));
+    if (state.brandFilter != null) _applySearch();
   }
 
   /// Acción de teclado: busca ya y guarda la consulta como reciente.
@@ -120,10 +125,21 @@ class SearchCubit extends Cubit<SearchState> {
   /// Toque en un resultado: guarda la consulta como reciente.
   Future<void> registerResultTap() => _saveRecent(state.query);
 
-  /// Muestra los grupos de una marca en la misma lista, sin navegar.
+  /// Elige una marca como filtro; elegir la ya elegida quita el filtro.
   void selectBrand(String brand) {
     _debounceTimer?.cancel();
-    emit(state.copyWith(query: brand, brandFilter: brand));
+    if (state.brandFilter == brand) {
+      clearBrand();
+      return;
+    }
+    emit(state.copyWith(brandFilter: brand));
+    _applySearch();
+  }
+
+  /// Quita el filtro de marca y repite la búsqueda con el texto.
+  void clearBrand() {
+    _debounceTimer?.cancel();
+    emit(state.copyWith(clearBrandFilter: true));
     _applySearch();
   }
 
@@ -163,25 +179,28 @@ class SearchCubit extends Cubit<SearchState> {
     }
   }
 
-  // Calcula resultados y accesos rápidos con el índice que haya.
+  // Calcula resultados y marcas con el índice que haya.
   void _applySearch() {
     if (isClosed) return;
     final scope = state.scope;
     final brand = state.brandFilter;
+    final hasText = state.hasText;
     final List<SearchResultEntity> results;
     if (scope == null) {
       results = const [];
-    } else if (brand != null) {
+    } else if (brand != null && !hasText) {
       results = getBrandGroups(scope, brand);
     } else {
-      results = searchCatalog(scope, state.query);
+      results = searchCatalog(scope, state.query, brand: brand);
     }
     emit(
       state.copyWith(
         results: results,
-        quickBrands: scope == null
-            ? const []
-            : getTopBrands(scope, SearchConfig.quickBrandCount),
+        searchedText: hasText ? TextNormalizer.normalize(state.query) : '',
+        // Las marcas salen con el primer avance del índice y no cambian después.
+        brands: scope == null || state.brands.isNotEmpty
+            ? null
+            : getIndexBrands(scope),
       ),
     );
   }
@@ -196,8 +215,10 @@ class SearchCubit extends Cubit<SearchState> {
         clearScope: scope == null,
         clearIndexStatus: true,
         indexFailed: false,
+        clearBrandFilter: true,
         results: const [],
-        quickBrands: const [],
+        brands: const [],
+        searchedText: '',
       ),
     );
     if (scope != null && _indexWanted) _startBuild(scope);

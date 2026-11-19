@@ -4,3 +4,5 @@ export 'presentation/pages/pages.dart';
 export 'domain/domain.dart';
 export 'infrastructure/infrastructure.dart';
 export 'presentation/cubits/cubits.dart';
+// Widgets que la capa app compone en otras pantallas
+export 'presentation/widgets/widgets.dart';

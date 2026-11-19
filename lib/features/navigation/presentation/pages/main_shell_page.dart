@@ -56,6 +56,7 @@ class _MainShellPageState extends State<MainShellPage> {
   @override
   Widget build(BuildContext context) {
     final int index = _routes.indexOf(widget.location);
+    final bool keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
     return BlocProvider(
       create: (_) => NavVisibilityCubit(),
       child: Builder(
@@ -90,7 +91,7 @@ class _MainShellPageState extends State<MainShellPage> {
                     builder: (context, state) => FloatingNavBar(
                       items: _items,
                       currentIndex: index < 0 ? 0 : index,
-                      visible: state.visible,
+                      visible: state.visible && !keyboardOpen,
                       onSelected: (selected) => context.go(_routes[selected]),
                     ),
                   ),

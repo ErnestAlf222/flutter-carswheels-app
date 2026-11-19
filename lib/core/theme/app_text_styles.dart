@@ -155,6 +155,14 @@ class AppTextStyles {
     letterSpacing: 1.6,
     color: AppColors.mutedText,
   );
+  // Marca sobre el nombre en la tarjeta de modelo (altura de línea fija).
+  static final TextStyle brandOverline = GoogleFonts.inter(
+    fontWeight: FontWeight.w700,
+    fontSize: 10,
+    height: 1.2,
+    letterSpacing: 1.2,
+    color: AppColors.mutedText,
+  );
   static final TextStyle detailBrandYearLabel = label.copyWith(
     letterSpacing: 1.2,
   );
@@ -168,6 +176,9 @@ class AppTextStyles {
   );
   static final TextStyle onDarkWordmarkAccent = onDarkWordmark.copyWith(
     color: AppColors.accent,
+  );
+  static final TextStyle onDarkScreenTitle = screenTitle.copyWith(
+    color: AppColors.onDark,
   );
   static final TextStyle onDarkCompactTitle = cardTitle.copyWith(
     color: AppColors.onDark,

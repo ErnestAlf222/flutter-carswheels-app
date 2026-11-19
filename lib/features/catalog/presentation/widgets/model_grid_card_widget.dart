@@ -17,6 +17,7 @@ class ModelGridCardWidget extends StatelessWidget {
     required this.index,
     this.onTap,
     this.animateEntry = true,
+    this.showBrandLabel = false,
   });
 
   final ModelGroupEntity group;
@@ -31,6 +32,9 @@ class ModelGridCardWidget extends StatelessWidget {
 
   /// Falso cuando la lista entra completa con su propio fundido.
   final bool animateEntry;
+
+  /// Muestra la marca en mayúsculas sobre el nombre (resultados de búsqueda).
+  final bool showBrandLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +72,17 @@ class ModelGridCardWidget extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Filas de alto fijo: todas las tarjetas miden lo mismo.
+                      if (showBrandLabel)
+                        SizedBox(
+                          height: ModelGridMetrics.brandLabelHeight(scaler),
+                          width: double.infinity,
+                          child: Text(
+                            brand.toUpperCase(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.brandOverline,
+                          ),
+                        ),
                       SizedBox(
                         height: ModelGridMetrics.nameHeight(scaler),
                         width: double.infinity,

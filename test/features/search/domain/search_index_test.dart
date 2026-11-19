@@ -75,6 +75,44 @@ void main() {
       expect(useCase(usScope, 'x5').single.brand, 'BMW');
     });
 
+    test('solo entrega grupos, nunca la fila de marca sola', () {
+      final results = useCase(usScope, 'toyota');
+      expect([for (final r in results) r.groupName], ['Camry', 'Corolla']);
+    });
+
+    test('con marca limita a esa marca', () {
+      expect(useCase(usScope, 'ma', brand: 'Mazda'), hasLength(2));
+      expect(useCase(usScope, 'ma', brand: 'Toyota'), isEmpty);
+      expect(
+        [for (final r in useCase(usScope, 'co', brand: 'Toyota')) r.groupName],
+        ['Corolla'],
+      );
+    });
+
+    test('el resultado lleva las variantes del grupo', () {
+      final store = SearchIndexStore()
+        ..save(
+          usScope.key,
+          SearchIndexRecord(
+            index: SearchIndex.build(const [
+              SearchEntryEntity(
+                brand: 'Honda',
+                groupName: 'Civic',
+                variantNames: ['Civic Sedan', 'Civic Hatchback'],
+              ),
+            ], postingSort),
+            status: const SearchIndexStatusEntity.ready(totalBrands: 1),
+          ),
+        );
+      final result = SearchCatalogUseCase(
+        store: store,
+        ranker: const SearchResultRanker(sortStrategy: rankedSort),
+      )(usScope, 'civ').single;
+      expect(result.variantNames, ['Civic Sedan', 'Civic Hatchback']);
+      expect(result.marketCode, 'us');
+      expect(result.year, 2025);
+    });
+
     test('sin índice para el alcance devuelve vacío', () {
       expect(useCase(mxScope, 'camry'), isEmpty);
     });

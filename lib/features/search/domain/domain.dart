@@ -1,6 +1,7 @@
 // Entidades
 export 'entities/recent_search_entity.dart';
 export 'entities/search_entry_entity.dart';
+export 'entities/search_group_entity.dart';
 export 'entities/search_index_status_entity.dart';
 export 'entities/search_result_entity.dart';
 export 'entities/search_scope_entity.dart';
@@ -18,7 +19,7 @@ export 'usecases/add_recent_search_usecase.dart';
 export 'usecases/build_search_index_usecase.dart';
 export 'usecases/clear_recent_searches_usecase.dart';
 export 'usecases/get_brand_groups_usecase.dart';
+export 'usecases/get_index_brands_usecase.dart';
 export 'usecases/get_recent_searches_usecase.dart';
-export 'usecases/get_top_brands_usecase.dart';
 export 'usecases/remove_recent_search_usecase.dart';
 export 'usecases/search_catalog_usecase.dart';

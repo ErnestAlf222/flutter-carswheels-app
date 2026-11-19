@@ -29,15 +29,29 @@ class MarketSearchCatalogSource implements SearchCatalogSource {
   }
 
   @override
-  Future<List<String>> fetchGroupNames(
+  Future<List<SearchGroupEntity>> fetchGroups(
     SearchScopeEntity scope,
     String brand,
   ) async {
     if (Market.fromCode(scope.marketCode) == Market.mexico) {
       final groups = await mexicoGroups(scope.year, brand);
-      return [for (final group in groups) group.name];
+      return [
+        for (final group in groups)
+          SearchGroupEntity(
+            name: group.name,
+            variantNames: [
+              for (final version in group.versions) version.vehicle.rawModel,
+            ],
+          ),
+      ];
     }
     final groups = await unitedStatesGroups(scope.year, brand);
-    return [for (final group in groups) group.name];
+    return [
+      for (final group in groups)
+        SearchGroupEntity(
+          name: group.name,
+          variantNames: [for (final variant in group.variants) variant.name],
+        ),
+    ];
   }
 }

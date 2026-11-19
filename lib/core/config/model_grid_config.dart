@@ -13,6 +13,8 @@ class ModelGridConfig {
   static const double textTopPadding = 10.0;
   static const double textBottomPadding = 12.0;
   static const int nameMaxLines = 2;
+  // Etiqueta de marca sobre el nombre (solo en los resultados de búsqueda).
+  static const double brandLabelBottomGap = 2.0;
   static const double classTopGap = 2.0;
   static const double consumptionTopGap = 8.0;
   // Bloque de consumo: ícono, barra de eficiencia y su tope de referencia.

@@ -38,24 +38,45 @@ class SearchConfig {
   // Espera tras la última tecla antes de buscar.
   static const int debounceMilliseconds = 300;
 
-  // Marcas de acceso rápido: las que más grupos tienen en el índice.
-  static const int quickBrandCount = 8;
-
   // Filas de resultados con animación de entrada escalonada.
   static const int animatedResultCount = 8;
 
-  // Medidas de la pantalla de búsqueda.
+  // Encabezado compacto: alto de la fila del título; el campo sobresale la mitad de su alto.
+  static const double headerTitleRowHeight = 40.0;
   static const double fieldHeight = 56.0;
+  static const double fieldOverlap = fieldHeight / 2;
   static const double fieldIconSize = 22.0;
   static const double progressHeight = 3.0;
-  static const double resultRowHeight = 68.0;
-  static const double resultLogoSize = 40.0;
-  static const double recentRowHeight = 48.0;
-  static const double quickBrandLogoSize = 24.0;
-  static const double chipVerticalPadding = 6.0;
   static const double chipHorizontalPadding = 12.0;
-  static const double sectionGap = 20.0;
+  static const double chipVerticalPadding = 6.0;
+
+  // Selector de marcas: círculo con logo y etiqueta debajo.
+  static const double brandCircleSize = 56.0;
+  static const double brandLogoSize = 34.0;
+  static const double brandItemWidth = 68.0;
+  static const double brandItemGap = 4.0;
+  static const double brandLabelHeight = 16.0;
+  static const double brandRowVerticalPadding = 10.0;
+  static const double brandRingWidth = 2.0;
+  static const double brandRowHeight =
+      brandRowVerticalPadding * 2 +
+      brandCircleSize +
+      brandItemGap +
+      brandLabelHeight;
+
+  // Recientes: una fila horizontal de chips.
+  static const double recentChipHeight = 40.0;
+  static const double recentChipGap = 8.0;
+  static const double recentChipMaxWidth = 220.0;
+  static const double recentRemoveSize = 28.0;
+  static const double recentIconSize = 18.0;
+  static const double recentRemoveIconSize = 16.0;
+
+  // Estados vacíos.
+  static const double idleIconSize = 72.0;
+  static const double idleIconOpacity = 0.35;
   static const double emptyIconSize = 40.0;
+  static const double sectionGap = 20.0;
 
   // Barra de búsqueda de la pantalla de inicio.
   static const double homeBarHeight = 52.0;

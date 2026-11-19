@@ -6,6 +6,7 @@ class UiConfig {
   static const double loaderSize = 96.0;
   static const double iconSize = 24.0;
   static const double primaryButtonHeight = 60.0;
+  static const double compactButtonHeight = 40.0;
   // Relleno horizontal de las páginas y separación entre secciones.
   static const double pageHorizontalPadding = 24.0;
   static const double sectionGap = 24.0;

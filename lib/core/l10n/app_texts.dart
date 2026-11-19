@@ -271,33 +271,32 @@ class AppTexts {
       'Faltaron algunas marcas en la búsqueda';
   static const String searchRecentsTitle = 'Recientes';
   static const String searchClearAllLabel = 'Borrar todo';
-  static const String searchQuickBrandsTitle = 'Marcas';
+  static const String searchAllBrandsLabel = 'Todas';
+  static const String searchAllBrandsSemanticLabel =
+      'Todas las marcas, quitar el filtro';
   static const String searchIdleHint =
-      'Escribe una marca o un modelo para empezar';
+      'Escribe una marca o un modelo, o elige una marca arriba';
   static const String searchNoResultsSuggestion =
       'Revisa la ortografía o prueba con menos letras';
+  static const String searchRemoveBrandFilterLabel = 'Quitar filtro de marca';
+  static String searchResultsCountLabel(int count) =>
+      count == 1 ? '1 resultado' : '$count resultados';
+  static String searchResultsTruncatedLabel(int count) =>
+      'Mostrando los primeros $count';
+  static String searchBrandChipSemanticLabel(String brand) =>
+      'Filtrar por la marca $brand';
   static String searchContextChipLabel(String market, int year) =>
       '$market · $year';
   static String searchContextSemanticLabel(String market, int year) =>
       'Buscando en $market, año $year';
   static String searchNoResultsTitle(String query) =>
       'Sin resultados para "$query"';
+  static String searchNoResultsForBrandTitle(String brand) =>
+      'Sin modelos de $brand';
   static String searchNoResultsScope(String market, int year) =>
       'Se buscó en $market, año $year';
   static String searchRecentSemanticLabel(String text) =>
       'Repetir la búsqueda $text';
   static String searchRecentRemoveSemanticLabel(String text) =>
       'Borrar la búsqueda reciente $text';
-  static String searchBrandRowSemanticLabel(String brand, int year) =>
-      'Marca $brand, año $year';
-  static String searchGroupRowSemanticLabel(
-    String group,
-    String brand,
-    int year,
-  ) => 'Modelo $group de $brand, año $year';
-  static String searchQuickBrandSemanticLabel(String brand) =>
-      'Ver los modelos de $brand';
-  static String searchResultSubtitle(String brand, int year) =>
-      '$brand · $year';
-  static const String searchBrandRowSubtitle = 'Ver sus modelos';
 }

@@ -5,10 +5,18 @@ import 'package:cars_wheels_app/core/theme/theme.dart';
 
 /// Botón principal: píldora amarilla con texto en tinta, más oscura al presionar.
 class AccentButton extends StatelessWidget {
-  const AccentButton({super.key, required this.label, required this.onPressed});
+  const AccentButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.compact = false,
+  });
 
   final String label;
   final VoidCallback onPressed;
+
+  /// Versión baja para avisos discretos.
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -31,8 +39,12 @@ class AccentButton extends StatelessWidget {
                 : Colors.transparent,
           ),
           child: Container(
-            height: UiConfig.primaryButtonHeight,
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            height: compact
+                ? UiConfig.compactButtonHeight
+                : UiConfig.primaryButtonHeight,
+            padding: EdgeInsets.symmetric(
+              horizontal: compact ? AppSpacing.m : AppSpacing.xl,
+            ),
             alignment: Alignment.center,
             child: Text(
               label,

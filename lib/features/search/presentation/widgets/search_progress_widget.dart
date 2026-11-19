@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 
-/// Barra lineal delgada y texto corto mientras se prepara el índice.
+/// Barra lineal fina amarilla del avance del índice; no ocupa lugar en la lista.
 class SearchProgressWidget extends StatelessWidget {
   const SearchProgressWidget({super.key, required this.progress});
 
@@ -11,21 +11,15 @@ class SearchProgressWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(SearchConfig.progressHeight),
-          child: LinearProgressIndicator(
-            value: progress,
-            minHeight: SearchConfig.progressHeight,
-            color: AppColors.ink,
-            backgroundColor: AppColors.outline,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(AppTexts.searchPreparingLabel, style: AppTextStyles.caption),
-      ],
+    return Semantics(
+      label: AppTexts.searchPreparingLabel,
+      excludeSemantics: true,
+      child: LinearProgressIndicator(
+        value: progress,
+        minHeight: SearchConfig.progressHeight,
+        color: AppColors.accent,
+        backgroundColor: AppColors.outline,
+      ),
     );
   }
 }

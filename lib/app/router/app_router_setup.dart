@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:cars_wheels_app/app/market_catalog/market_search_detail_args_builder.dart';
+import 'package:cars_wheels_app/app/search_results/search_results_grid.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/compare/compare.dart';
@@ -70,7 +71,10 @@ GoRouter buildAppRouter() => GoRouter(
           path: RoutesConfig.search,
           pageBuilder: (context, state) => _page(
             state,
-            const SearchPage(onOpenResult: openSearchResultInDetail),
+            const SearchPage(
+              onOpenResult: openSearchResultInDetail,
+              resultsGridBuilder: buildSearchResultsGrid,
+            ),
           ),
         ),
         GoRoute(

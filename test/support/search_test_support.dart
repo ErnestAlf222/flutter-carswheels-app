@@ -55,7 +55,7 @@ class FakeSearchCatalogSource implements SearchCatalogSource {
   }
 
   @override
-  Future<List<String>> fetchGroupNames(
+  Future<List<SearchGroupEntity>> fetchGroups(
     SearchScopeEntity scope,
     String brand,
   ) async {
@@ -66,7 +66,10 @@ class FakeSearchCatalogSource implements SearchCatalogSource {
       final pending = gate;
       if (pending != null) await pending.future;
       if (failingBrands.contains(brand)) throw StateError('falla $brand');
-      return groupsByBrand[brand]!;
+      return [
+        for (final name in groupsByBrand[brand]!)
+          SearchGroupEntity(name: name, variantNames: [name]),
+      ];
     } finally {
       inFlight--;
     }
@@ -153,11 +156,11 @@ class SearchHarness {
         store: store,
         ranker: const SearchResultRanker(sortStrategy: rankedSort),
       ),
-      getTopBrands: GetTopBrandsUseCase(
+      getIndexBrands: GetIndexBrandsUseCase(
         store: store,
-        sortStrategy: const AdaptiveSortStrategy<BrandGroupCount>(
-          smallListStrategy: BubbleSortStrategy<BrandGroupCount>(),
-          largeListStrategy: ShellSortStrategy<BrandGroupCount>(),
+        sortStrategy: const AdaptiveSortStrategy<String>(
+          smallListStrategy: BubbleSortStrategy<String>(),
+          largeListStrategy: ShellSortStrategy<String>(),
         ),
       ),
       addRecent: AddRecentSearchUseCase(

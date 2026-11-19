@@ -56,7 +56,7 @@ class AppDependencies {
     required this.buildSearchIndexUseCase,
     required this.searchCatalogUseCase,
     required this.getBrandGroupsUseCase,
-    required this.getTopBrandsUseCase,
+    required this.getIndexBrandsUseCase,
     required this.addRecentSearchUseCase,
     required this.getRecentSearchesUseCase,
     required this.removeRecentSearchUseCase,
@@ -272,9 +272,9 @@ class AppDependencies {
       smallListStrategy: BubbleSortStrategy<RankedSearchEntry>(),
       largeListStrategy: ShellSortStrategy<RankedSearchEntry>(),
     );
-    const brandCountSortStrategy = AdaptiveSortStrategy<BrandGroupCount>(
-      smallListStrategy: BubbleSortStrategy<BrandGroupCount>(),
-      largeListStrategy: ShellSortStrategy<BrandGroupCount>(),
+    const brandNameSortStrategy = AdaptiveSortStrategy<String>(
+      smallListStrategy: BubbleSortStrategy<String>(),
+      largeListStrategy: ShellSortStrategy<String>(),
     );
     final searchStore = SearchIndexStore();
     final searchSource = MarketSearchCatalogSource(
@@ -386,9 +386,9 @@ class AppDependencies {
         store: searchStore,
         ranker: const SearchResultRanker(sortStrategy: rankedSortStrategy),
       ),
-      getTopBrandsUseCase: GetTopBrandsUseCase(
+      getIndexBrandsUseCase: GetIndexBrandsUseCase(
         store: searchStore,
-        sortStrategy: brandCountSortStrategy,
+        sortStrategy: brandNameSortStrategy,
       ),
       addRecentSearchUseCase: AddRecentSearchUseCase(
         datasource: recentSearches,
@@ -438,7 +438,7 @@ class AppDependencies {
   final BuildSearchIndexUseCase buildSearchIndexUseCase;
   final SearchCatalogUseCase searchCatalogUseCase;
   final GetBrandGroupsUseCase getBrandGroupsUseCase;
-  final GetTopBrandsUseCase getTopBrandsUseCase;
+  final GetIndexBrandsUseCase getIndexBrandsUseCase;
   final AddRecentSearchUseCase addRecentSearchUseCase;
   final GetRecentSearchesUseCase getRecentSearchesUseCase;
   final RemoveRecentSearchUseCase removeRecentSearchUseCase;

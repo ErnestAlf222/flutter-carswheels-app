@@ -3,7 +3,7 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 
-/// Campo de búsqueda redondeado con lupa, botón para limpiar y acción "buscar".
+/// Campo de búsqueda blanco y grande con lupa, botón para limpiar y acción "buscar".
 class SearchFieldWidget extends StatelessWidget {
   const SearchFieldWidget({
     super.key,
@@ -30,16 +30,15 @@ class SearchFieldWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadii.pill),
-          border: Border.all(color: AppColors.outline),
           boxShadow: AppShadows.soft,
         ),
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.m),
+        padding: const EdgeInsets.only(left: AppSpacing.m),
         child: Row(
           children: [
             const Icon(
               Symbols.search,
               size: SearchConfig.fieldIconSize,
-              color: AppColors.mutedText,
+              color: AppColors.ink,
             ),
             const SizedBox(width: AppSpacing.xs),
             Expanded(
@@ -64,14 +63,14 @@ class SearchFieldWidget extends StatelessWidget {
             ValueListenableBuilder<TextEditingValue>(
               valueListenable: controller,
               builder: (context, value, _) => value.text.isEmpty
-                  ? const SizedBox.shrink()
+                  ? const SizedBox(width: AppSpacing.m)
                   : IconButton(
                       onPressed: onClear,
                       tooltip: AppTexts.searchClearSemanticLabel,
                       icon: const Icon(
                         Symbols.close,
                         size: SearchConfig.fieldIconSize,
-                        color: AppColors.mutedText,
+                        color: AppColors.ink,
                       ),
                     ),
             ),

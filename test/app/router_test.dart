@@ -327,4 +327,62 @@ void main() {
       expect(router.state.uri.path, RoutesConfig.home);
     });
   });
+
+  group('barra inferior y teclado', () {
+    Future<void> pumpShell(
+      WidgetTester tester, {
+      required double keyboard,
+    }) async {
+      final router = buildAppRouter();
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        MediaQuery(
+          data: MediaQueryData(
+            disableAnimations: true,
+            viewInsets: EdgeInsets.only(bottom: keyboard),
+          ),
+          child: _app(router),
+        ),
+      );
+      await tester.pump();
+      router.go(RoutesConfig.search);
+      await tester.pump();
+      await tester.pump(
+        const Duration(
+          milliseconds: AnimationConfig.sectionLoaderVisibleMilliseconds,
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('visible sin teclado', (tester) async {
+      await pumpShell(tester, keyboard: 0);
+      expect(
+        tester.widget<FloatingNavBar>(find.byType(FloatingNavBar)).visible,
+        isTrue,
+      );
+    });
+
+    testWidgets('oculta con el teclado abierto, en cualquier sección', (
+      tester,
+    ) async {
+      await pumpShell(tester, keyboard: 300);
+      final bar = tester.widget<FloatingNavBar>(find.byType(FloatingNavBar));
+      expect(bar.visible, isFalse);
+      // Oculta no recibe toques.
+      expect(
+        tester
+            .widget<IgnorePointer>(
+              find
+                  .descendant(
+                    of: find.byType(FloatingNavBar),
+                    matching: find.byType(IgnorePointer),
+                  )
+                  .first,
+            )
+            .ignoring,
+        isTrue,
+      );
+    });
+  });
 }

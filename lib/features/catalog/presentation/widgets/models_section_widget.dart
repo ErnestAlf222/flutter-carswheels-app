@@ -6,7 +6,7 @@ import 'package:cars_wheels_app/features/catalog/domain/domain.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/cubits/cubits.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/widgets/model_grid_card_skeleton_widget.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/widgets/model_grid_card_widget.dart';
-import 'package:cars_wheels_app/features/catalog/presentation/widgets/model_grid_metrics.dart';
+import 'package:cars_wheels_app/features/catalog/presentation/widgets/model_grid_sliver_widget.dart';
 
 /// Sliver con el nombre de la marca y la cuadrícula de sus modelos.
 class ModelsSectionWidget extends StatelessWidget {
@@ -110,39 +110,13 @@ class _FadeIn extends StatelessWidget {
   }
 }
 
-/// Sliver de cuadrícula cuyo alto de celda sale del ancho y de la escala de texto.
-class _ModelGridSliver extends StatelessWidget {
-  const _ModelGridSliver({required this.delegate});
-
-  final SliverChildDelegate delegate;
-
-  @override
-  Widget build(BuildContext context) {
-    final scaler = MediaQuery.textScalerOf(context);
-    return SliverLayoutBuilder(
-      builder: (context, constraints) {
-        final width = ModelGridMetrics.cellWidth(constraints.crossAxisExtent);
-        return SliverGrid(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: ModelGridConfig.columns,
-            crossAxisSpacing: ModelGridConfig.crossAxisSpacing,
-            mainAxisSpacing: ModelGridConfig.mainAxisSpacing,
-            mainAxisExtent: ModelGridMetrics.cellHeight(width, scaler),
-          ),
-          delegate: delegate,
-        );
-      },
-    );
-  }
-}
-
 /// Esqueletos que ocupan el lugar de las tarjetas mientras carga.
 class _SkeletonGrid extends StatelessWidget {
   const _SkeletonGrid();
 
   @override
   Widget build(BuildContext context) {
-    return _ModelGridSliver(
+    return ModelGridSliver(
       delegate: SliverChildBuilderDelegate(
         (context, index) => const ModelGridCardSkeletonWidget(),
         childCount: ModelGridConfig.skeletonCardCount,
@@ -171,7 +145,7 @@ class _LoadedGrid extends StatelessWidget {
               onAction: context.read<ModelsCubit>().retry,
             ),
           ),
-        _ModelGridSliver(
+        ModelGridSliver(
           delegate: SliverChildBuilderDelegate(
             (context, index) => ModelGridCardWidget(
               group: state.groups[index],

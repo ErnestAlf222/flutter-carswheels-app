@@ -4,7 +4,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/search/domain/domain.dart';
 
-/// Búsquedas recientes: toque para repetir, "x" para borrar una y "Borrar todo".
+/// Búsquedas recientes en una sola fila horizontal de chips y "Borrar todo".
 class SearchRecentsWidget extends StatelessWidget {
   const SearchRecentsWidget({
     super.key,
@@ -24,38 +24,58 @@ class SearchRecentsWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                AppTexts.searchRecentsTitle,
-                style: AppTextStyles.sectionTitle,
-              ),
-            ),
-            TextButton(
-              onPressed: onClearAll,
-              style: TextButton.styleFrom(foregroundColor: AppColors.ink),
-              child: Text(
-                AppTexts.searchClearAllLabel,
-                style: AppTextStyles.caption.copyWith(color: AppColors.ink),
-              ),
-            ),
-          ],
-        ),
-        for (final recent in recents)
-          _RecentRow(
-            key: ValueKey(recent.key),
-            recent: recent,
-            onSelect: () => onSelect(recent),
-            onRemove: () => onRemove(recent),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: UiConfig.pageHorizontalPadding,
           ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  AppTexts.searchRecentsTitle,
+                  style: AppTextStyles.cardTitle,
+                ),
+              ),
+              TextButton(
+                onPressed: onClearAll,
+                style: TextButton.styleFrom(foregroundColor: AppColors.ink),
+                child: Text(
+                  AppTexts.searchClearAllLabel,
+                  style: AppTextStyles.caption.copyWith(color: AppColors.ink),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: SearchConfig.recentChipHeight,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(
+              horizontal: UiConfig.pageHorizontalPadding,
+            ),
+            itemCount: recents.length,
+            separatorBuilder: (_, _) =>
+                const SizedBox(width: SearchConfig.recentChipGap),
+            itemBuilder: (context, index) {
+              final recent = recents[index];
+              return _RecentChip(
+                key: ValueKey(recent.key),
+                recent: recent,
+                onSelect: () => onSelect(recent),
+                onRemove: () => onRemove(recent),
+              );
+            },
+          ),
+        ),
       ],
     );
   }
 }
 
-class _RecentRow extends StatelessWidget {
-  const _RecentRow({
+/// Chip de una reciente: reloj, texto y una "x" pequeña para borrarla.
+class _RecentChip extends StatelessWidget {
+  const _RecentChip({
     super.key,
     required this.recent,
     required this.onSelect,
@@ -68,45 +88,72 @@ class _RecentRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: SearchConfig.recentRowHeight,
+    final radius = BorderRadius.circular(AppRadii.pill);
+    return Container(
+      constraints: const BoxConstraints(
+        maxWidth: SearchConfig.recentChipMaxWidth,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: radius,
+        border: Border.all(color: AppColors.outline),
+      ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
+          Flexible(
             child: Semantics(
               button: true,
               label: AppTexts.searchRecentSemanticLabel(recent.text),
               excludeSemantics: true,
               child: InkWell(
                 onTap: onSelect,
-                child: Row(
-                  children: [
-                    const Icon(
-                      Symbols.history,
-                      size: SearchConfig.fieldIconSize,
-                      color: AppColors.mutedText,
-                    ),
-                    const SizedBox(width: AppSpacing.s),
-                    Expanded(
-                      child: Text(
-                        recent.text,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.body,
+                borderRadius: radius,
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    left: SearchConfig.chipHorizontalPadding,
+                    right: AppSpacing.xs / 2,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Symbols.history,
+                        size: SearchConfig.recentIconSize,
+                        color: AppColors.mutedText,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: AppSpacing.xs / 2),
+                      Flexible(
+                        child: Text(
+                          recent.text,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.bodyStrong,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-          IconButton(
-            onPressed: onRemove,
-            tooltip: AppTexts.searchRecentRemoveSemanticLabel(recent.text),
-            icon: const Icon(
-              Symbols.close,
-              size: SearchConfig.fieldIconSize,
-              color: AppColors.mutedText,
+          Semantics(
+            button: true,
+            label: AppTexts.searchRecentRemoveSemanticLabel(recent.text),
+            excludeSemantics: true,
+            child: InkResponse(
+              key: ValueKey('search-recent-remove-${recent.key}'),
+              onTap: onRemove,
+              radius: SearchConfig.recentRemoveSize / 2,
+              child: const SizedBox(
+                width: SearchConfig.recentRemoveSize,
+                height: SearchConfig.recentChipHeight,
+                child: Icon(
+                  Symbols.close,
+                  size: SearchConfig.recentRemoveIconSize,
+                  color: AppColors.mutedText,
+                ),
+              ),
             ),
           ),
         ],

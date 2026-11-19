@@ -120,11 +120,15 @@ class BuildSearchIndexUseCase {
         while (queue.isNotEmpty && !run.cancelled) {
           final brand = queue.removeAt(0);
           try {
-            final names = await source.fetchGroupNames(scope, brand);
+            final groups = await source.fetchGroups(scope, brand);
             if (run.cancelled) return;
             entries.addAll([
-              for (final name in names)
-                SearchEntryEntity(brand: brand, groupName: name),
+              for (final group in groups)
+                SearchEntryEntity(
+                  brand: brand,
+                  groupName: group.name,
+                  variantNames: group.variantNames,
+                ),
             ]);
           } on Object {
             if (run.cancelled) return;

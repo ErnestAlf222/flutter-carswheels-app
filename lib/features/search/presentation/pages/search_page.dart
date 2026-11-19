@@ -12,11 +12,27 @@ typedef SearchResultOpener = void Function(
   SearchResultEntity result,
 );
 
-/// Pantalla de búsqueda de marcas y modelos.
+/// Arma el sliver con la cuadrícula de tarjetas de modelo; lo implementa la capa app.
+///
+/// [resetKey] cambia cuando los resultados son de otra búsqueda (mercado, año,
+/// marca o texto): la capa app reinicia entonces sus resúmenes y fotos.
+typedef SearchResultsGridBuilder = Widget Function(
+  BuildContext context,
+  List<SearchResultEntity> results,
+  String resetKey,
+  ValueChanged<SearchResultEntity> onOpen,
+);
+
+/// Pantalla de búsqueda: encabezado con campo, marcas fijas y resultados.
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key, required this.onOpenResult});
+  const SearchPage({
+    super.key,
+    required this.onOpenResult,
+    required this.resultsGridBuilder,
+  });
 
   final SearchResultOpener onOpenResult;
+  final SearchResultsGridBuilder resultsGridBuilder;
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -51,7 +67,7 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
-  // Mantiene el campo igual a la consulta cuando cambia sin teclear (recientes, marcas).
+  // Mantiene el campo igual a la consulta cuando cambia sin teclear (recientes).
   void _syncField(BuildContext context, SearchState state) {
     if (_controller.text == state.query) return;
     _controller.value = TextEditingValue(
@@ -61,12 +77,7 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void _openResult(BuildContext context, SearchResultEntity result) {
-    final cubit = context.read<SearchCubit>();
-    if (result.isBrandOnly) {
-      cubit.selectBrand(result.brand);
-      return;
-    }
-    cubit.registerResultTap();
+    context.read<SearchCubit>().registerResultTap();
     widget.onOpenResult(context, result);
   }
 
@@ -87,201 +98,154 @@ class _SearchPageState extends State<SearchPage> {
       ],
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: SafeArea(
-          bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.xl,
-              AppSpacing.xl,
-              AppSpacing.xl,
-              0,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                BlocBuilder<SearchCubit, SearchState>(
-                  buildWhen: (previous, current) =>
-                      previous.scope != current.scope,
-                  builder: (context, state) => _Header(scope: state.scope),
-                ),
-                const SizedBox(height: AppSpacing.m),
-                SearchFieldWidget(
-                  controller: _controller,
-                  focusNode: _focusNode,
-                  onChanged: cubit.onQueryChanged,
-                  onSubmitted: (_) => cubit.submit(),
-                  onClear: cubit.clearQuery,
-                ),
-                const SizedBox(height: AppSpacing.s),
-                BlocBuilder<SearchCubit, SearchState>(
-                  buildWhen: (previous, current) =>
-                      previous.indexStatus != current.indexStatus ||
-                      previous.indexFailed != current.indexFailed,
-                  builder: (context, state) => _IndexNotice(state: state),
-                ),
-                Expanded(
-                  child: BlocBuilder<SearchCubit, SearchState>(
-                    builder: (context, state) =>
-                        _Body(state: state, onOpenResult: _openResult),
+        body: BlocBuilder<SearchCubit, SearchState>(
+          builder: (context, state) {
+            final bottomPadding =
+                NavConfig.footprint +
+                MediaQuery.paddingOf(context).bottom +
+                ModelGridConfig.listBottomGap;
+            return CustomScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              slivers: [
+                SliverToBoxAdapter(
+                  child: SearchHeaderWidget(
+                    scope: state.scope,
+                    controller: _controller,
+                    focusNode: _focusNode,
+                    onChanged: cubit.onQueryChanged,
+                    onSubmitted: (_) => cubit.submit(),
+                    onClear: cubit.clearQuery,
                   ),
                 ),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: SearchBrandSelectorDelegate(
+                    brands: state.brands,
+                    selectedBrand: state.brandFilter,
+                    onSelectBrand: cubit.selectBrand,
+                    onClear: cubit.clearBrand,
+                    showProgress: state.isPreparing,
+                    progress: state.indexStatus?.progress,
+                  ),
+                ),
+                if (state.isPartial)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: UiConfig.pageHorizontalPadding,
+                      ),
+                      child: SearchPartialNoticeWidget(
+                        onRetry: cubit.retryIndex,
+                      ),
+                    ),
+                  ),
+                ..._bodySlivers(context, state, bottomPadding),
               ],
-            ),
-          ),
+            );
+          },
         ),
       ),
     );
   }
-}
 
-/// Encabezado con el título y el chip de contexto.
-class _Header extends StatelessWidget {
-  const _Header({required this.scope});
-
-  final SearchScopeEntity? scope;
-
-  @override
-  Widget build(BuildContext context) {
-    final current = scope;
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            AppTexts.searchPageTitle,
-            style: AppTextStyles.screenTitle,
+  // Cuerpo según el estado: error, inicio, resultados o sin resultados.
+  List<Widget> _bodySlivers(
+    BuildContext context,
+    SearchState state,
+    double bottomPadding,
+  ) {
+    final cubit = context.read<SearchCubit>();
+    if (state.hasBlockingError) {
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: ErrorStateWidget(onRetry: cubit.retryIndex),
+        ),
+      ];
+    }
+    if (!state.hasQuery) return _idleSlivers(context, state, bottomPadding);
+    if (state.results.isNotEmpty) {
+      return [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(
+            UiConfig.pageHorizontalPadding,
+            AppSpacing.xs,
+            UiConfig.pageHorizontalPadding,
+            AppSpacing.s,
+          ),
+          sliver: SliverToBoxAdapter(
+            child: SearchResultsHeaderWidget(
+              count: state.results.length,
+              brand: state.brandFilter,
+              truncated: state.isTruncated,
+            ),
           ),
         ),
-        if (current != null)
-          SearchContextChipWidget(
-            marketCode: current.marketCode,
-            year: current.year,
+        SliverPadding(
+          padding: EdgeInsets.fromLTRB(
+            UiConfig.pageHorizontalPadding,
+            0,
+            UiConfig.pageHorizontalPadding,
+            bottomPadding,
           ),
-      ],
-    );
-  }
-}
-
-/// Progreso del índice o aviso de índice parcial; nunca tapa los resultados.
-class _IndexNotice extends StatelessWidget {
-  const _IndexNotice({required this.state});
-
-  final SearchState state;
-
-  @override
-  Widget build(BuildContext context) {
-    if (state.isPreparing) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-        child: SearchProgressWidget(progress: state.indexStatus?.progress),
-      );
-    }
-    if (state.isPartial) {
-      return InlineMessageWidget(
-        message: AppTexts.searchPartialMessage,
-        actionLabel: AppTexts.retryButtonLabel,
-        onAction: context.read<SearchCubit>().retryIndex,
-      );
-    }
-    return const SizedBox.shrink();
-  }
-}
-
-/// Cuerpo: error, recientes y marcas, resultados o sin resultados.
-class _Body extends StatelessWidget {
-  const _Body({required this.state, required this.onOpenResult});
-
-  final SearchState state;
-  final void Function(BuildContext, SearchResultEntity) onOpenResult;
-
-  @override
-  Widget build(BuildContext context) {
-    final cubit = context.read<SearchCubit>();
-    final bottomPadding =
-        NavConfig.footprint +
-        MediaQuery.paddingOf(context).bottom +
-        AppSpacing.m;
-    if (state.hasBlockingError) {
-      return ErrorStateWidget(onRetry: cubit.retryIndex);
-    }
-    if (!state.hasQuery) {
-      return _Idle(state: state, bottomPadding: bottomPadding);
-    }
-    if (state.results.isNotEmpty) {
-      return ListView.separated(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        padding: EdgeInsets.only(top: AppSpacing.xs, bottom: bottomPadding),
-        itemCount: state.results.length,
-        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.xs),
-        itemBuilder: (context, index) {
-          final result = state.results[index];
-          final row = SearchResultRowWidget(
-            key: ValueKey(result),
-            result: result,
-            onTap: () => onOpenResult(context, result),
-          );
-          if (index >= SearchConfig.animatedResultCount) return row;
-          return AnimatedEntryWidget(index: index, child: row);
-        },
-      );
+          sliver: widget.resultsGridBuilder(
+            context,
+            state.results,
+            state.resultsKey,
+            (result) => _openResult(context, result),
+          ),
+        ),
+      ];
     }
     final scope = state.scope;
     if (state.hasNoResults && scope != null) {
-      return Padding(
-        padding: EdgeInsets.only(bottom: bottomPadding),
-        child: SearchNoResultsWidget(
-          query: state.query,
-          marketCode: scope.marketCode,
-          year: scope.year,
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Padding(
+            padding: EdgeInsets.only(bottom: bottomPadding),
+            child: SearchNoResultsWidget(
+              query: state.query,
+              marketCode: scope.marketCode,
+              year: scope.year,
+              brand: state.brandFilter,
+              onClearBrand: cubit.clearBrand,
+            ),
+          ),
         ),
-      );
+      ];
     }
-    return const SizedBox.shrink();
+    // Índice aún en marcha: la barra amarilla indica el avance.
+    return const [SliverToBoxAdapter(child: SizedBox.shrink())];
   }
-}
 
-/// Sin consulta: recientes y marcas del índice, o un texto breve.
-class _Idle extends StatelessWidget {
-  const _Idle({required this.state, required this.bottomPadding});
-
-  final SearchState state;
-  final double bottomPadding;
-
-  @override
-  Widget build(BuildContext context) {
+  // Sin consulta ni marca: recientes en una fila, o un texto amable.
+  List<Widget> _idleSlivers(
+    BuildContext context,
+    SearchState state,
+    double bottomPadding,
+  ) {
     final cubit = context.read<SearchCubit>();
-    final hasRecents = state.recents.isNotEmpty;
-    final hasBrands = state.quickBrands.isNotEmpty;
-    if (!hasRecents && !hasBrands) {
-      return Center(
-        child: Padding(
-          padding: EdgeInsets.only(bottom: bottomPadding),
-          child: Text(
-            AppTexts.searchIdleHint,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.caption,
+    if (state.recents.isEmpty) {
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Padding(
+            padding: EdgeInsets.only(bottom: bottomPadding),
+            child: const SearchIdleHintWidget(),
           ),
         ),
-      );
+      ];
     }
-    return ListView(
-      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      padding: EdgeInsets.only(top: AppSpacing.xs, bottom: bottomPadding),
-      children: [
-        if (hasRecents)
-          SearchRecentsWidget(
-            recents: state.recents,
-            onSelect: cubit.useRecent,
-            onRemove: (recent) => cubit.removeRecentSearch(recent.key),
-            onClearAll: cubit.clearRecentSearches,
-          ),
-        if (hasRecents && hasBrands)
-          const SizedBox(height: SearchConfig.sectionGap),
-        if (hasBrands)
-          SearchQuickBrandsWidget(
-            brands: state.quickBrands,
-            onSelect: cubit.selectBrand,
-          ),
-      ],
-    );
+    return [
+      SliverToBoxAdapter(
+        child: SearchRecentsWidget(
+          recents: state.recents,
+          onSelect: cubit.useRecent,
+          onRemove: (recent) => cubit.removeRecentSearch(recent.key),
+          onClearAll: cubit.clearRecentSearches,
+        ),
+      ),
+    ];
   }
 }
