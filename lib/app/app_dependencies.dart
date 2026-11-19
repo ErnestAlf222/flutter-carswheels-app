@@ -7,6 +7,7 @@ import 'package:cars_wheels_app/app/market_catalog/market_get_brands_usecase.dar
 import 'package:cars_wheels_app/app/market_catalog/market_get_model_groups_usecase.dart';
 import 'package:cars_wheels_app/app/market_catalog/market_load_group_details_usecase.dart';
 import 'package:cars_wheels_app/app/market_catalog/market_resolve_group_summary_usecase.dart';
+import 'package:cars_wheels_app/app/market_catalog/market_search_catalog_source.dart';
 import 'package:cars_wheels_app/app/market_catalog/market_summary_key_builder.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
@@ -16,6 +17,7 @@ import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/mexico_catalog/mexico_catalog.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/safety/safety.dart';
+import 'package:cars_wheels_app/features/search/search.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 
 /// Construye las dependencias de la app en un solo lugar.
@@ -51,6 +53,12 @@ class AppDependencies {
     required this.getMxBrandsUseCase,
     required this.getMxModelGroupsUseCase,
     required this.getMxVersionsUseCase,
+    required this.buildSearchIndexUseCase,
+    required this.searchCatalogUseCase,
+    required this.addRecentSearchUseCase,
+    required this.getRecentSearchesUseCase,
+    required this.removeRecentSearchUseCase,
+    required this.clearRecentSearchesUseCase,
     required this.commonsQueue,
     required this.fuelEconomyQueue,
     required this.nhtsaQueue,
@@ -68,6 +76,7 @@ class AppDependencies {
       safetyCache: IsarSafetyCacheDatasource(isar),
       mexicoCatalogCache: IsarMexicoCatalogCacheDatasource(isar),
       marketPreference: IsarMarketPreferenceDatasource(isar),
+      recentSearches: IsarRecentSearchesDatasource(isar),
       closeStorage: () => IsarDatabase.close(isar),
     );
   }
@@ -81,6 +90,7 @@ class AppDependencies {
     required SafetyCacheDatasource safetyCache,
     required MexicoCatalogCacheDatasource mexicoCatalogCache,
     required MarketPreferenceDatasource marketPreference,
+    required RecentSearchesDatasource recentSearches,
     Future<void> Function()? closeStorage,
   }) {
     final fuelEconomyDio = ApiClientFactory.create(
@@ -133,6 +143,7 @@ class AppDependencies {
       safetyCache,
       mexicoCatalogCache,
       marketPreference,
+      recentSearches,
       closeStorage: closeStorage,
     );
   }
@@ -151,7 +162,8 @@ class AppDependencies {
     VehicleDetailCacheDatasource detailCache,
     SafetyCacheDatasource safetyCache,
     MexicoCatalogCacheDatasource mexicoCatalogCache,
-    MarketPreferenceDatasource marketPreference, {
+    MarketPreferenceDatasource marketPreference,
+    RecentSearchesDatasource recentSearches, {
     Future<void> Function()? closeStorage,
   }) {
     final repository = CatalogRepositoryImpl(
@@ -250,6 +262,27 @@ class AppDependencies {
       onUntranslated: _logUntranslatedText,
     );
     const defaultVersionSelector = DefaultVersionSelector();
+    const postingSortStrategy = AdaptiveSortStrategy<SearchPosting>(
+      smallListStrategy: BubbleSortStrategy<SearchPosting>(),
+      largeListStrategy: ShellSortStrategy<SearchPosting>(),
+    );
+    const rankedSortStrategy = AdaptiveSortStrategy<RankedSearchEntry>(
+      smallListStrategy: BubbleSortStrategy<RankedSearchEntry>(),
+      largeListStrategy: ShellSortStrategy<RankedSearchEntry>(),
+    );
+    final searchStore = SearchIndexStore();
+    final searchSource = MarketSearchCatalogSource(
+      unitedStatesBrands: GetBrandsUseCase(
+        repository: repository,
+        sortStrategy: sortStrategy,
+      ),
+      unitedStatesGroups: GetModelGroupsUseCase(
+        repository: repository,
+        grouper: const ModelGrouper(sortStrategy: groupSortStrategy),
+      ),
+      mexicoBrands: GetMxBrandsUseCase(mexicoCatalogRepository),
+      mexicoGroups: getMxModelGroups,
+    );
     return AppDependencies._(
       marketCubit: marketCubit,
       summaryKeyBuilder: MarketSummaryKeyBuilder(currentMarket),
@@ -334,6 +367,22 @@ class AppDependencies {
       getMxBrandsUseCase: GetMxBrandsUseCase(mexicoCatalogRepository),
       getMxModelGroupsUseCase: getMxModelGroups,
       getMxVersionsUseCase: getMxVersions,
+      buildSearchIndexUseCase: BuildSearchIndexUseCase(
+        source: searchSource,
+        store: searchStore,
+        sortStrategy: postingSortStrategy,
+      ),
+      searchCatalogUseCase: SearchCatalogUseCase(
+        store: searchStore,
+        ranker: const SearchResultRanker(sortStrategy: rankedSortStrategy),
+      ),
+      addRecentSearchUseCase: AddRecentSearchUseCase(
+        datasource: recentSearches,
+        clock: DateTime.now,
+      ),
+      getRecentSearchesUseCase: GetRecentSearchesUseCase(recentSearches),
+      removeRecentSearchUseCase: RemoveRecentSearchUseCase(recentSearches),
+      clearRecentSearchesUseCase: ClearRecentSearchesUseCase(recentSearches),
       commonsQueue: commonsQueue,
       fuelEconomyQueue: fuelEconomyQueue,
       nhtsaQueue: nhtsaQueue,
@@ -372,6 +421,12 @@ class AppDependencies {
   final GetMxBrandsUseCase getMxBrandsUseCase;
   final GetMxModelGroupsUseCase getMxModelGroupsUseCase;
   final GetMxVersionsUseCase getMxVersionsUseCase;
+  final BuildSearchIndexUseCase buildSearchIndexUseCase;
+  final SearchCatalogUseCase searchCatalogUseCase;
+  final AddRecentSearchUseCase addRecentSearchUseCase;
+  final GetRecentSearchesUseCase getRecentSearchesUseCase;
+  final RemoveRecentSearchUseCase removeRecentSearchUseCase;
+  final ClearRecentSearchesUseCase clearRecentSearchesUseCase;
   final RateLimitedQueue commonsQueue;
   final ConcurrencyLimitedQueue fuelEconomyQueue;
   final ConcurrencyLimitedQueue nhtsaQueue;
@@ -398,6 +453,7 @@ class AppDependencies {
 
   /// Libera los recursos de la composición.
   Future<void> close() async {
+    buildSearchIndexUseCase.cancel();
     await commonsQueue.close();
     await fuelEconomyQueue.close();
     await nhtsaQueue.close();

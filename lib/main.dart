@@ -7,6 +7,7 @@ import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/mexico_catalog/mexico_catalog.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/safety/safety.dart';
+import 'package:cars_wheels_app/features/search/search.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 
 Future<void> main() async {
@@ -23,6 +24,7 @@ Future<void> main() async {
     SafetyNoMatchCacheModelSchema,
     MexicoCatalogCacheModelSchema,
     MarketPreferenceModelSchema,
+    RecentSearchModelSchema,
   ]);
   runApp(App(dependencies: AppDependencies.withIsar(isar)));
 }

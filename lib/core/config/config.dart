@@ -18,6 +18,7 @@ export 'network_config.dart';
 export 'photos_config.dart';
 export 'routes_config.dart';
 export 'safety_config.dart';
+export 'search_config.dart';
 export 'storage_config.dart';
 export 'svg_sanitizer_config.dart';
 export 'text_config.dart';

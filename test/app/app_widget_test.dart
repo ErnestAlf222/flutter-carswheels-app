@@ -3,6 +3,7 @@ import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/mexico_catalog/mexico_catalog.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/safety/safety.dart';
+import 'package:cars_wheels_app/features/search/search.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:flutter/material.dart';
@@ -84,6 +85,14 @@ class _FakeMarketPreference implements MarketPreferenceDatasource {
   Future<void> write(String code) async {}
 }
 
+class _FakeRecentSearches implements RecentSearchesDatasource {
+  @override
+  Future<List<RecentSearchEntity>> readAll() async => const [];
+
+  @override
+  Future<void> replaceAll(List<RecentSearchEntity> searches) async {}
+}
+
 App _buildApp() => App(
   dependencies: AppDependencies.create(
     photoCache: _FakePhotoCache(),
@@ -93,6 +102,7 @@ App _buildApp() => App(
     safetyCache: _FakeSafetyCache(),
     mexicoCatalogCache: _FakeMexicoCatalogCache(),
     marketPreference: _FakeMarketPreference(),
+    recentSearches: _FakeRecentSearches(),
   ),
 );
 
