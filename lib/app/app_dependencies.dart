@@ -15,12 +15,14 @@ import 'package:cars_wheels_app/app/compare/market_compare_version_labeler.dart'
 import 'package:cars_wheels_app/app/compare/market_compare_safety_source.dart';
 import 'package:cars_wheels_app/app/compare/market_compare_vehicle_source.dart';
 import 'package:cars_wheels_app/app/compare/market_compare_versions_source.dart';
+import 'package:cars_wheels_app/app/favorites/market_favorite_snapshot_source.dart';
 import 'package:cars_wheels_app/app/search_results/market_search_traits_source.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/compare/compare.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
+import 'package:cars_wheels_app/features/favorites/favorites.dart';
 import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/mexico_catalog/mexico_catalog.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
@@ -83,6 +85,13 @@ class AppDependencies {
     required this.compareSafetySource,
     required this.compareVersionsSource,
     required this.compareVersionLabeler,
+    required this.observeFavoritesUseCase,
+    required this.getFavoritesUseCase,
+    required this.toggleFavoriteUseCase,
+    required this.removeFavoriteUseCase,
+    required this.restoreFavoriteUseCase,
+    required this.completeFavoriteSnapshotUseCase,
+    required this.favoriteSnapshotSource,
     required this.commonsQueue,
     required this.fuelEconomyQueue,
     required this.nhtsaQueue,
@@ -105,6 +114,7 @@ class AppDependencies {
         isar,
         clock: DateTime.now,
       ),
+      favorites: IsarFavoritesDatasource(isar),
       commonsLogoCache: IsarCommonsLogoCacheDatasource(isar),
       closeStorage: () => IsarDatabase.close(isar),
     );
@@ -121,6 +131,7 @@ class AppDependencies {
     required MarketPreferenceDatasource marketPreference,
     required RecentSearchesDatasource recentSearches,
     required CompareSelectionDatasource compareSelection,
+    required FavoritesDatasource favorites,
     CommonsLogoCacheDatasource? commonsLogoCache,
     Future<void> Function()? closeStorage,
   }) {
@@ -176,6 +187,7 @@ class AppDependencies {
       marketPreference,
       recentSearches,
       compareSelection,
+      favorites,
       commonsLogoCache: commonsLogoCache,
       closeStorage: closeStorage,
     );
@@ -197,7 +209,8 @@ class AppDependencies {
     MexicoCatalogCacheDatasource mexicoCatalogCache,
     MarketPreferenceDatasource marketPreference,
     RecentSearchesDatasource recentSearches,
-    CompareSelectionDatasource compareSelection, {
+    CompareSelectionDatasource compareSelection,
+    FavoritesDatasource favorites, {
     CommonsLogoCacheDatasource? commonsLogoCache,
     Future<void> Function()? closeStorage,
   }) {
@@ -363,6 +376,16 @@ class AppDependencies {
       mexicoBrands: GetMxBrandsUseCase(mexicoCatalogRepository),
       mexicoGroups: getMxModelGroups,
     );
+    final resolveModelPhoto = ResolveModelPhotoUseCase(
+      cache: photoCache,
+      getModelPhoto: getModelPhoto,
+      keyBuilder: photoKeyBuilder,
+      clock: DateTime.now,
+    );
+    const classTranslator = VehicleClassTranslator(
+      onUntranslated: _logUntranslatedClass,
+    );
+    const favoriteClock = DateTime.now;
     return AppDependencies._(
       marketCubit: marketCubit,
       summaryKeyBuilder: MarketSummaryKeyBuilder(currentMarket),
@@ -398,12 +421,7 @@ class AppDependencies {
               clock: DateTime.now,
             ),
       getModelPhotoUseCase: getModelPhoto,
-      resolveModelPhotoUseCase: ResolveModelPhotoUseCase(
-        cache: photoCache,
-        getModelPhoto: getModelPhoto,
-        keyBuilder: photoKeyBuilder,
-        clock: DateTime.now,
-      ),
+      resolveModelPhotoUseCase: resolveModelPhoto,
       getModelGalleryUseCase: getModelGallery,
       resolveModelGalleryUseCase: ResolveModelGalleryUseCase(
         cache: galleryCache,
@@ -420,9 +438,7 @@ class AppDependencies {
       ),
       getGroupOptionsUseCase: getGroupOptions,
       resolveVehicleDetailUseCase: resolveVehicleDetail,
-      vehicleClassTranslator: const VehicleClassTranslator(
-        onUntranslated: _logUntranslatedClass,
-      ),
+      vehicleClassTranslator: classTranslator,
       driveLabeler: const DriveLabeler(onUntranslated: _logUntranslatedText),
       fuelTypeLabeler: const FuelTypeLabeler(
         onUntranslated: _logUntranslatedText,
@@ -557,6 +573,24 @@ class AppDependencies {
         transmissionLabeler: transmissionLabeler,
       ),
       compareSafetySource: MarketCompareSafetySource(resolveGroupSafety),
+      observeFavoritesUseCase: ObserveFavoritesUseCase(favorites),
+      getFavoritesUseCase: GetFavoritesUseCase(favorites),
+      toggleFavoriteUseCase: ToggleFavoriteUseCase(
+        favorites,
+        clock: favoriteClock,
+      ),
+      removeFavoriteUseCase: RemoveFavoriteUseCase(favorites),
+      restoreFavoriteUseCase: RestoreFavoriteUseCase(favorites),
+      completeFavoriteSnapshotUseCase: CompleteFavoriteSnapshotUseCase(
+        favorites,
+      ),
+      favoriteSnapshotSource: MarketFavoriteSnapshotSource(
+        getModelGroups: marketGetModelGroups,
+        resolveGroupSummary: marketResolveGroupSummary,
+        resolveModelPhoto: resolveModelPhoto,
+        classTranslator: classTranslator,
+        currentMarket: currentMarket,
+      ),
       compareVersionLabeler: MarketCompareVersionLabeler(
         loader: compareLoader,
         namer: compareVersionNamer,
@@ -626,6 +660,13 @@ class AppDependencies {
   final CompareSafetySource compareSafetySource;
   final CompareVersionsSource compareVersionsSource;
   final CompareVersionLabeler compareVersionLabeler;
+  final ObserveFavoritesUseCase observeFavoritesUseCase;
+  final GetFavoritesUseCase getFavoritesUseCase;
+  final ToggleFavoriteUseCase toggleFavoriteUseCase;
+  final RemoveFavoriteUseCase removeFavoriteUseCase;
+  final RestoreFavoriteUseCase restoreFavoriteUseCase;
+  final CompleteFavoriteSnapshotUseCase completeFavoriteSnapshotUseCase;
+  final FavoriteSnapshotSource favoriteSnapshotSource;
   final RateLimitedQueue commonsQueue;
   final ConcurrencyLimitedQueue fuelEconomyQueue;
   final ConcurrencyLimitedQueue nhtsaQueue;

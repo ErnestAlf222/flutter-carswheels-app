@@ -4,8 +4,11 @@ import 'package:cars_wheels_app/features/settings/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../../support/favorites_test_support.dart';
 
 const double _topInset = 44.0;
 const Color _contentColor = Color(0xFFFF0000);
@@ -125,7 +128,19 @@ void main() {
   );
 
   for (final (name, page) in [
-    ('Favoritos', const FavoritesPage()),
+    (
+      'Favoritos',
+      BlocProvider<FavoritesCubit>(
+        create: (_) => buildFavoritesCubit(),
+        child: FavoritesPage(
+          selectorBuilder: (_) => const SizedBox.shrink(),
+          gridBuilder: (_, _, _, _) =>
+              const SliverToBoxAdapter(child: SizedBox.shrink()),
+          onOpen: (_, _) {},
+          onExplore: (_) {},
+        ),
+      ),
+    ),
     ('Ajustes', const SettingsPage()),
   ]) {
     testWidgets(

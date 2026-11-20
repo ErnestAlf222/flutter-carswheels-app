@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cars_wheels_app/app/market_catalog/market_search_context_source.dart';
 import 'package:cars_wheels_app/app/market_catalog/search_market_year_selector.dart';
 import 'package:cars_wheels_app/app/compare/compare_slot_builder.dart';
+import 'package:cars_wheels_app/app/compare/compare_tap_flow.dart';
 import 'package:cars_wheels_app/app/search_results/search_cubit_factory.dart';
 import 'package:cars_wheels_app/app/search_results/search_result_detail_opener.dart';
 import 'package:cars_wheels_app/app/search_results/search_results_grid.dart';
@@ -72,6 +73,7 @@ Widget? _pickerAction(BuildContext context, SearchResultEntity result) {
     builder: (context, isAdded) => ComparePickerButtonWidget(
       vehicleName: name,
       isAdded: isAdded,
+      // Ya agregado o comparador lleno: el toque abre el menú de acciones.
       onTap: () => pickVehicleForCompare(context, result),
     ),
   );
@@ -194,9 +196,11 @@ class _SheetNotice extends StatelessWidget {
   }
 }
 
-/// El botón "Comparar" de una tarjeta del selector: se agrega y se cierra la hoja.
+/// El botón "Comparar" de una tarjeta del selector.
 ///
-/// Si el vehículo ya estaba, la hoja sigue abierta con su mensaje breve.
+/// Con espacio y el auto fuera, se agrega y se cierra la hoja. Si ya estaba o el
+/// comparador está lleno, el menú deja sustituir (y se cierra la hoja) o seguir
+/// eligiendo otro modelo en la misma hoja.
 Future<void> pickVehicleForCompare(
   BuildContext context,
   SearchResultEntity result,
@@ -204,6 +208,9 @@ Future<void> pickVehicleForCompare(
   final slot = CompareSlotBuilder.fromResult(result);
   if (slot == null) return;
   final navigator = Navigator.of(context, rootNavigator: true);
-  final added = await context.read<CompareCubit>().add(slot);
-  if (added is CompareAdded && context.mounted) navigator.pop();
+  final tap = await tapCompareFor(context, slot);
+  final done =
+      tap.outcome == CompareTapOutcome.added ||
+      tap.outcome == CompareTapOutcome.replaced;
+  if (done && context.mounted) navigator.pop();
 }

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -23,6 +25,17 @@ typedef SearchResultsGridBuilder = Widget Function(
   ValueChanged<SearchResultEntity> onOpen,
 );
 
+/// Arma la fila de sugerencias "para ti"; lo implementa la capa app.
+///
+/// [resetKey] cambia con el mercado, el año o la visita: la capa app reinicia
+/// entonces sus fotos y resúmenes.
+typedef SearchPicksBuilder = Widget Function(
+  BuildContext context,
+  List<SearchResultEntity> picks,
+  String resetKey,
+  ValueChanged<SearchResultEntity> onOpen,
+);
+
 /// Pantalla de búsqueda: encabezado con campo, alcance de marca y resultados.
 class SearchPage extends StatefulWidget {
   const SearchPage({
@@ -35,7 +48,15 @@ class SearchPage extends StatefulWidget {
     this.reserveNavSpace = true,
     this.compact = false,
     this.belowHeader,
+    this.picksBuilder,
+    this.picksSeed,
   });
+
+  /// Sugerencias con el campo vacío; sin él (selector) no se muestran.
+  final SearchPicksBuilder? picksBuilder;
+
+  /// Semilla de las sugerencias de esta visita; por defecto, una al azar.
+  final int? picksSeed;
 
   /// Título del encabezado; el modo selección usa el suyo.
   final String title;
@@ -68,6 +89,9 @@ class _SearchPageState extends State<SearchPage> {
   // Los únicos estados son el controlador del campo y su foco (recursos del framework).
   late final TextEditingController _controller;
   final FocusNode _focusNode = FocusNode();
+
+  // Cada visita (estado nuevo de la pantalla) trae sus propias sugerencias.
+  late final int _picksSeed = widget.picksSeed ?? Random().nextInt(1 << 30);
 
   @override
   void initState() {
@@ -528,6 +552,34 @@ class _SearchPageState extends State<SearchPage> {
             onClearAll: cubit.clearRecentSearches,
           ),
         ),
+      ..._picksSlivers(context, state),
+      SliverToBoxAdapter(child: SizedBox(height: bottomPadding)),
+    ];
+  }
+
+  // "Sugerencias para ti": solo con el campo vacío y sin filtros activos.
+  List<Widget> _picksSlivers(BuildContext context, SearchState state) {
+    final builder = widget.picksBuilder;
+    if (builder == null || state.query.isNotEmpty || state.filters.isActive) {
+      return const [];
+    }
+    final scope = state.scope;
+    final picks = context.read<SearchCubit>().picksFor(_picksSeed);
+    if (scope == null || picks.isEmpty) return const [];
+    return [
+      _padded(
+        child: Text(AppTexts.searchPicksTitle, style: AppTextStyles.cardTitle),
+        top: AppSpacing.m,
+        bottom: AppSpacing.xs,
+      ),
+      SliverToBoxAdapter(
+        child: builder(
+          context,
+          picks,
+          '${scope.key} $_picksSeed',
+          (result) => _openResult(context, result),
+        ),
+      ),
     ];
   }
 }

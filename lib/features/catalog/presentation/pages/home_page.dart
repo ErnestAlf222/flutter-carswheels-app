@@ -16,10 +16,17 @@ import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 
 /// Pantalla de inicio con el carrusel de marcas y sus modelos.
 class HomePage extends StatelessWidget {
-  const HomePage({super.key, required this.onSearchTap});
+  const HomePage({
+    super.key,
+    required this.onSearchTap,
+    this.cardLeadingActionBuilder,
+  });
 
   /// Lleva a la sección de búsqueda con el teclado enfocado; lo define la capa app.
   final void Function(BuildContext context) onSearchTap;
+
+  /// Corazón de las tarjetas de modelo; lo define la capa app.
+  final ModelCardActionBuilder? cardLeadingActionBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -55,8 +62,11 @@ class HomePage extends StatelessWidget {
             backgroundColor: Colors.transparent,
             // Un solo árbol para todos los estados: el encabezado no se reconstruye.
             body: BlocBuilder<CatalogCubit, CatalogState>(
-              builder: (context, state) =>
-                  _HomeContent(state: state, onSearchTap: onSearchTap),
+              builder: (context, state) => _HomeContent(
+                state: state,
+                onSearchTap: onSearchTap,
+                cardLeadingActionBuilder: cardLeadingActionBuilder,
+              ),
             ),
           ),
         ),
@@ -223,10 +233,15 @@ class HomePage extends StatelessWidget {
 
 /// Contenido de la pantalla; el encabezado persiste en todos los estados.
 class _HomeContent extends StatefulWidget {
-  const _HomeContent({required this.state, required this.onSearchTap});
+  const _HomeContent({
+    required this.state,
+    required this.onSearchTap,
+    this.cardLeadingActionBuilder,
+  });
 
   final CatalogState state;
   final void Function(BuildContext context) onSearchTap;
+  final ModelCardActionBuilder? cardLeadingActionBuilder;
 
   @override
   State<_HomeContent> createState() => _HomeContentState();
@@ -362,6 +377,7 @@ class _HomeContentState extends State<_HomeContent>
                   builder: (context, modelsState) => ModelsSectionWidget(
                     brandName: state.brands[state.selectedIndex].name,
                     state: modelsState,
+                    leadingActionBuilder: widget.cardLeadingActionBuilder,
                     onGroupTap: modelsState is ModelsLoaded
                         ? (group) =>
                               HomePage._openDetail(context, modelsState, group)

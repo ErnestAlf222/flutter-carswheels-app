@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 
 import 'package:cars_wheels_app/app/app_dependencies.dart';
 import 'package:cars_wheels_app/app/compare/market_compare_market_source.dart';
+import 'package:cars_wheels_app/app/favorites/favorite_card_cubits.dart';
+import 'package:cars_wheels_app/app/market_catalog/market_change_notice.dart';
 import 'package:cars_wheels_app/app/market_catalog/market_search_context_source.dart';
 import 'package:cars_wheels_app/app/router/app_router_setup.dart';
 import 'package:cars_wheels_app/app/search_results/market_search_traits_source.dart';
@@ -16,6 +18,7 @@ import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/compare/compare.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
+import 'package:cars_wheels_app/features/favorites/favorites.dart';
 import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/navigation/navigation.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
@@ -41,6 +44,9 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   final GoRouter _router = buildAppRouter();
+  // Para mostrar el aviso de mercado sobre cualquier pantalla.
+  final GlobalKey<ScaffoldMessengerState> _messengerKey =
+      GlobalKey<ScaffoldMessengerState>();
   // Posición de scroll de las secciones; vive tanto como la app.
   final ScrollOffsetStore _scrollOffsets = ScrollOffsetStore();
   AppDependencies get _dependencies => widget.dependencies;
@@ -57,7 +63,38 @@ class _AppState extends State<App> {
     context.read<PhotosCubit>().cancelPending();
     context.read<SummariesCubit>().cancelPending();
     context.read<ModelsCubit>().reset();
-    unawaited(context.read<CatalogCubit>().reloadForMarket());
+    unawaited(
+      _reloadAndAnnounce(
+        context.read<CatalogCubit>(),
+        context.read<MarketCubit>(),
+        state.market,
+      ),
+    );
+  }
+
+  // Recarga el catálogo y avisa con el año que quedó vigente.
+  Future<void> _reloadAndAnnounce(
+    CatalogCubit catalog,
+    MarketCubit marketCubit,
+    Market market,
+  ) async {
+    await catalog.reloadForMarket();
+    final messenger = _messengerKey.currentState;
+    // Si la persona ya volvió a cambiar, el aviso es del último cambio.
+    if (!mounted || catalog.isClosed || messenger == null) return;
+    if (marketCubit.market != market) return;
+    final loaded = catalog.state;
+    final year = loaded is CatalogLoaded
+        ? loaded.year
+        : preferredYearFor(market);
+    final onCompare =
+        _router.routeInformationProvider.value.uri.path == RoutesConfig.compare;
+    showMarketChangedNotice(
+      messenger,
+      market: market,
+      year: year,
+      onCompare: onCompare,
+    );
   }
 
   @override
@@ -122,6 +159,22 @@ class _AppState extends State<App> {
         // El selector de Comparar crea su propia búsqueda con esta fábrica.
         RepositoryProvider<SearchCubitFactory>.value(
           value: SearchCubitFactory(_dependencies.createIsolatedSearchCubit),
+        ),
+        // Las tarjetas de Favoritos se llenan con lo guardado, sin pedir a la red.
+        RepositoryProvider<FavoriteCardCubitsFactory>.value(
+          value: FavoriteCardCubitsFactory(
+            createPhotos: () => SnapshotPhotosCubit(
+              resolveModelPhoto: _dependencies.resolveModelPhotoUseCase,
+              cancelPendingPhotos: _dependencies.cancelPendingPhotosUseCase,
+              keyBuilder: _dependencies.photoKeyBuilder,
+            ),
+            createSummaries: () => SnapshotSummariesCubit(
+              resolveGroupSummary: _dependencies.resolveGroupSummaryUseCase,
+              cancelPendingSummaries:
+                  _dependencies.cancelPendingSummariesUseCase,
+              keyBuilder: const SummaryKeyBuilder(),
+            ),
+          ),
         ),
         RepositoryProvider<CompareVersionLabeler>.value(
           value: _dependencies.compareVersionLabeler,
@@ -228,19 +281,36 @@ class _AppState extends State<App> {
               safetySource: _dependencies.compareSafetySource,
             ),
           ),
+          // A nivel de app: cualquier corazón consulta y alterna favoritos.
+          BlocProvider<FavoritesCubit>(
+            create: (_) => FavoritesCubit(
+              observeFavorites: _dependencies.observeFavoritesUseCase,
+              getFavorites: _dependencies.getFavoritesUseCase,
+              toggleFavorite: _dependencies.toggleFavoriteUseCase,
+              removeFavorite: _dependencies.removeFavoriteUseCase,
+              restoreFavorite: _dependencies.restoreFavoriteUseCase,
+              completeSnapshot: _dependencies.completeFavoriteSnapshotUseCase,
+              snapshotSource: _dependencies.favoriteSnapshotSource,
+            ),
+          ),
           BlocProvider<LogoPrecacheCubit>(create: (_) => LogoPrecacheCubit()),
           BlocProvider<SectionLoaderCubit>(create: (_) => SectionLoaderCubit()),
         ],
         child: BlocListener<MarketCubit, MarketState>(
           // Solo el cambio hecho por la persona; la restauración inicial no cuenta.
-          listenWhen: (previous, current) =>
-              previous.isRestored && previous.market != current.market,
+          listenWhen: isUserMarketChange,
           listener: _onMarketChanged,
           child: MaterialApp.router(
             debugShowCheckedModeBanner: AppConfig.showDebugBanner,
             title: AppConfig.appName,
             theme: AppTheme.light,
             routerConfig: _router,
+            scaffoldMessengerKey: _messengerKey,
+            // El mensaje de favoritos va sobre cualquier pantalla, sobre el menú flotante.
+            builder: (context, child) => FavoritesMessageHost(
+              bottomInset: NavConfig.footprint,
+              child: child ?? const SizedBox.shrink(),
+            ),
           ),
         ),
       ),

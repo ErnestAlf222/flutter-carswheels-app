@@ -6,7 +6,7 @@ export 'compare_clear_dialog_widget.dart';
 export 'compare_column_status_widget.dart';
 export 'compare_empty_slot_widget.dart';
 export 'compare_filled_slot_widget.dart';
-export 'compare_full_sheet_widget.dart';
+export 'compare_actions_sheet_widget.dart';
 export 'compare_grid_row_widget.dart';
 export 'compare_help_sheet_widget.dart';
 export 'compare_help_widget.dart';

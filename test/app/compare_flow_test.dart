@@ -9,6 +9,7 @@ import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/compare/compare.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
+import 'package:cars_wheels_app/features/favorites/favorites.dart';
 import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/navigation/navigation.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
@@ -24,6 +25,7 @@ import 'package:mocktail/mocktail.dart';
 
 import '../support/brand_logos_test_support.dart';
 import '../support/compare_test_support.dart';
+import '../support/favorites_test_support.dart';
 import '../support/detail_test_support.dart';
 import '../support/market_test_support.dart';
 import '../support/photos_test_support.dart';
@@ -190,6 +192,7 @@ class _Flow {
             ),
             BlocProvider<SearchCubit>.value(value: tabSearch.cubit),
             BlocProvider<CompareCubit>.value(value: compare),
+            BlocProvider<FavoritesCubit>(create: (_) => buildFavoritesCubit()),
             BlocProvider<CompareTableCubit>.value(value: table),
           ],
           child: MaterialApp.router(
@@ -247,7 +250,13 @@ Finder get _addedLabel => find.descendant(
   matching: find.text(AppTexts.comparePickerAddedLabel),
 );
 
-Finder get _fullSheetTitle => find.text(AppTexts.compareFullSheetTitle);
+Finder get _fullSheetTitle => find.text(AppTexts.compareActionsFullTitle);
+
+Finder get _substituteAction =>
+    find.text(AppTexts.compareActionsSubstituteLabel);
+
+Finder get _otherModelAction =>
+    find.text(AppTexts.compareActionsOtherModelLabel);
 
 void main() {
   setUpAll(() {
@@ -351,7 +360,7 @@ void main() {
     });
 
     testWidgets(
-      'con el vehículo ya agregado muestra la pastilla y no hace nada',
+      'con el vehículo ya agregado la pastilla abre el menú; otro modelo lo cierra',
       (tester) async {
         final flow = await openPicker(tester);
         // Camry ya está: pastilla neutra; Corolla y RAV4 siguen con botón.
@@ -359,9 +368,53 @@ void main() {
         expect(_addLabel, findsWidgets);
         await tester.tap(_addedLabel);
         await flow.settle(tester);
+        expect(
+          find.text(AppTexts.compareActionsAlreadyTitle('Toyota Camry')),
+          findsOneWidget,
+        );
+        // Solo él en la comparación: no hay a quién sustituir.
+        expect(_substituteAction, findsNothing);
+        await tester.tap(_otherModelAction);
+        await flow.settle(tester);
         expect(_pickerTitle, findsOneWidget);
         expect(flow.router.state.uri.path, RoutesConfig.compare);
         expect(await flow.store.read('us'), hasLength(1));
+      },
+    );
+
+    testWidgets(
+      'con el comparador lleno el botón abre el menú y sustituye desde el selector',
+      (tester) async {
+        final flow = await openPicker(tester, initialVehicles: 2);
+        // Con la hoja abierta la comparación se llena (3 de 3).
+        await flow.store.write('us', [
+          compareSlot(model: 'Camry', year: 2025),
+          compareSlot(model: 'RAV4', year: 2025),
+          compareSlot(model: 'Prius', year: 2025),
+        ]);
+        await flow.settle(tester);
+        await tester.tap(_addLabel.first);
+        await flow.settle(tester);
+        expect(_fullSheetTitle, findsOneWidget);
+        // Nada se agregó todavía.
+        expect(await flow.store.read('us'), hasLength(3));
+        await tester.tap(_substituteAction);
+        await flow.settle(tester);
+        expect(find.text(AppTexts.compareSubstituteTitle), findsOneWidget);
+        await tester.tap(
+          find.descendant(
+            of: find.byType(BottomSheet).last,
+            matching: find.text('Prius'),
+          ),
+        );
+        await flow.settle(tester);
+        final saved = await flow.store.read('us');
+        expect(saved, hasLength(3));
+        expect(saved.map((slot) => slot.modelName), isNot(contains('Prius')));
+        // Se cerró el selector y quedó el aviso de reemplazo.
+        expect(_pickerTitle, findsNothing);
+        expect(flow.router.state.uri.path, RoutesConfig.compare);
+        flow.compare.dismissNotice();
       },
     );
 
@@ -471,7 +524,9 @@ void main() {
       expect(find.text(AppTexts.compareTableTitle), findsOneWidget);
     });
 
-    testWidgets('si ya estaba no se duplica y navega igual', (tester) async {
+    testWidgets('si ya estaba abre el menú, sin duplicar ni navegar', (
+      tester,
+    ) async {
       final flow = await openDetail(tester);
       await flow.store.write('us', [
         compareSlot(model: 'Corolla', year: 2020),
@@ -479,10 +534,13 @@ void main() {
       ]);
       await tester.tap(find.text(AppTexts.compareWithOtherLabel));
       await flow.settle(tester);
+      expect(
+        find.text(AppTexts.compareActionsAlreadyTitle('Toyota Corolla')),
+        findsOneWidget,
+      );
       expect(await flow.store.read('us'), hasLength(2));
-      expect(flow.router.state.uri.path, RoutesConfig.compare);
-      expect(find.text(AppTexts.compareAlreadyAddedNotice), findsOneWidget);
-      flow.compare.dismissNotice();
+      expect(flow.router.state.uri.path, RoutesConfig.detail);
+      expect(find.text(AppTexts.compareAlreadyAddedNotice), findsNothing);
     });
 
     Finder sheetText(String text) => find.descendant(
@@ -490,29 +548,37 @@ void main() {
       matching: find.text(text),
     );
 
-    testWidgets('con 3 vehículos abre la hoja de lleno sin navegar', (
+    testWidgets('con 3 vehículos abre el menú sin navegar ni cambiar nada', (
       tester,
     ) async {
       final flow = await openDetail(tester, initialVehicles: 3);
       await tester.tap(find.text(AppTexts.compareWithOtherLabel));
       await flow.settle(tester);
       expect(_fullSheetTitle, findsOneWidget);
-      // Las 3 filas actuales, con marca y modelo; nada cambió ni se navegó.
-      expect(sheetText('Camry'), findsOneWidget);
-      expect(sheetText('RAV4'), findsOneWidget);
-      expect(sheetText('Prius'), findsOneWidget);
-      expect(find.text(AppTexts.compareFullSheetClearLabel), findsOneWidget);
+      expect(_substituteAction, findsOneWidget);
+      expect(_otherModelAction, findsOneWidget);
       expect(flow.router.state.uri.path, RoutesConfig.detail);
       expect(await flow.store.read('us'), hasLength(3));
       expect(find.text(AppTexts.compareFullNotice), findsNothing);
     });
 
-    testWidgets('tocar un vehículo lo reemplaza, mantiene el orden y navega', (
+    testWidgets('"Sustituir" lista los autos con año y bandera y reemplaza', (
       tester,
     ) async {
       final flow = await openDetail(tester, initialVehicles: 3);
       await tester.tap(find.text(AppTexts.compareWithOtherLabel));
       await flow.settle(tester);
+      await tester.tap(_substituteAction);
+      await flow.settle(tester);
+      // Solo hay una hoja: la lista reemplaza al menú.
+      expect(find.byType(BottomSheet), findsOneWidget);
+      expect(sheetText('Camry'), findsOneWidget);
+      expect(sheetText('RAV4'), findsOneWidget);
+      expect(sheetText('Prius'), findsOneWidget);
+      expect(
+        find.textContaining(MarketConfig.unitedStatesFlag),
+        findsNWidgets(3),
+      );
       await tester.tap(sheetText('RAV4'));
       await flow.settle(tester);
       final saved = await flow.store.read('us');
@@ -532,31 +598,27 @@ void main() {
       flow.compare.dismissNotice();
     });
 
-    testWidgets('"Limpiar todo y agregar" deja solo el nuevo y navega', (
+    testWidgets('"Comparar con otro modelo" abre el selector en Comparar', (
       tester,
     ) async {
       final flow = await openDetail(tester, initialVehicles: 3);
       await tester.tap(find.text(AppTexts.compareWithOtherLabel));
       await flow.settle(tester);
-      await tester.tap(find.text(AppTexts.compareFullSheetClearLabel));
+      await tester.tap(_otherModelAction);
       await flow.settle(tester);
-      final saved = await flow.store.read('us');
-      expect(saved.map((slot) => slot.modelName), ['Corolla']);
       expect(flow.router.state.uri.path, RoutesConfig.compare);
-      expect(
-        find.text(AppTexts.compareStartedNewNotice('Toyota Corolla')),
-        findsOneWidget,
-      );
-      flow.compare.dismissNotice();
+      expect(_pickerTitle, findsOneWidget);
+      // No se agregó ni quitó nada.
+      expect(await flow.store.read('us'), hasLength(3));
     });
 
-    testWidgets('Cancelar deja todo como estaba y sigue en Detalle', (
+    testWidgets('cerrar el menú deja todo como estaba y sigue en Detalle', (
       tester,
     ) async {
       final flow = await openDetail(tester, initialVehicles: 3);
       await tester.tap(find.text(AppTexts.compareWithOtherLabel));
       await flow.settle(tester);
-      await tester.tap(find.text(AppTexts.cancelLabel));
+      await tester.tapAt(const Offset(10, 10));
       await flow.settle(tester);
       expect(_fullSheetTitle, findsNothing);
       expect(flow.router.state.uri.path, RoutesConfig.detail);

@@ -12,6 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../support/compare_test_support.dart';
+import '../support/favorites_test_support.dart';
 
 class _FakePhotoCache implements PhotoCacheDatasource {
   @override
@@ -106,6 +107,7 @@ App _buildApp() => App(
     marketPreference: _FakeMarketPreference(),
     recentSearches: _FakeRecentSearches(),
     compareSelection: InMemoryCompareSelection(),
+    favorites: InMemoryFavoritesDatasource(),
   ),
 );
 

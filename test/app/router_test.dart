@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:cars_wheels_app/app/app.dart';
+import 'package:cars_wheels_app/app/search_results/search_card_cubits_factory.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/compare/compare.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
+import 'package:cars_wheels_app/features/favorites/favorites.dart';
 import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/navigation/navigation.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
@@ -21,8 +23,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../support/compare_test_support.dart';
+import '../support/favorites_test_support.dart';
 import '../support/detail_test_support.dart';
 import '../support/market_test_support.dart';
+import '../support/photos_test_support.dart';
+import '../support/summaries_test_support.dart';
 import '../support/search_test_support.dart';
 
 class _MockLoad extends Mock implements LoadGroupDetailsUseCase {}
@@ -63,6 +68,23 @@ Widget _app(GoRouter router) {
   return MultiRepositoryProvider(
     providers: [
       RepositoryProvider<ScrollOffsetStore>.value(value: ScrollOffsetStore()),
+      // Las sugerencias de Buscar piden sus fotos a cubits propios.
+      RepositoryProvider<SearchCardCubitsFactory>.value(
+        value: SearchCardCubitsFactory(
+          createPhotos: () {
+            final cubit = buildMockPhotosCubit();
+            when(() => cubit.isClosed).thenReturn(false);
+            when(() => cubit.close()).thenAnswer((_) async {});
+            return cubit;
+          },
+          createSummaries: () {
+            final cubit = buildMockSummariesCubit();
+            when(() => cubit.isClosed).thenReturn(false);
+            when(() => cubit.close()).thenAnswer((_) async {});
+            return cubit;
+          },
+        ),
+      ),
       RepositoryProvider<LoadGroupDetailsUseCase>.value(value: load),
       RepositoryProvider<ResolveModelGalleryUseCase>.value(value: gallery),
       RepositoryProvider<PhotoPrefetcher>.value(value: const PhotoPrefetcher()),
@@ -96,8 +118,12 @@ Widget _blocs(
       BlocProvider<LogoPrecacheCubit>.value(value: precache),
       BlocProvider<MarketCubit>.value(value: buildMarketCubit()),
       BlocProvider<SectionLoaderCubit>(create: (_) => SectionLoaderCubit()),
-      BlocProvider<SearchCubit>.value(value: SearchHarness().cubit),
+      // Sin modelos indexados: Buscar no arma sugerencias con fotos que cargan.
+      BlocProvider<SearchCubit>.value(
+        value: SearchHarness(groupsByBrand: const {}).cubit,
+      ),
       BlocProvider<CompareCubit>(create: (_) => buildCompareCubit()),
+      BlocProvider<FavoritesCubit>(create: (_) => buildFavoritesCubit()),
     ],
     child: MaterialApp.router(routerConfig: router),
   );
@@ -122,7 +148,7 @@ void main() {
     final expected = {
       RoutesConfig.search: find.byType(SearchPage),
       RoutesConfig.compare: find.byType(ComparePage),
-      RoutesConfig.favorites: find.text(AppTexts.favoritesPageTitle),
+      RoutesConfig.favorites: find.byType(FavoritesPage),
       RoutesConfig.settings: find.text(AppTexts.settingsPageTitle),
     };
     for (final entry in expected.entries) {

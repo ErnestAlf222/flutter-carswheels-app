@@ -19,12 +19,26 @@ typedef DetailCompareHandler = void Function(
   String? versionKey,
 );
 
+/// Arma el corazón de la barra inferior; lo implementa la capa app.
+typedef DetailFavoriteButtonBuilder = Widget Function(
+  BuildContext context,
+  DetailArgsEntity args,
+);
+
 /// Pantalla Detalle de un grupo de modelos.
 class DetailPage extends StatelessWidget {
-  const DetailPage({super.key, required this.args, required this.onCompare});
+  const DetailPage({
+    super.key,
+    required this.args,
+    required this.onCompare,
+    this.favoriteButtonBuilder,
+  });
 
   final DetailArgsEntity args;
   final DetailCompareHandler onCompare;
+
+  /// Corazón de favoritos; sin él la barra muestra el corazón sin acción.
+  final DetailFavoriteButtonBuilder? favoriteButtonBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +86,7 @@ class DetailPage extends StatelessWidget {
               // El contexto interno ve el DetailCubit para leer la versión elegida.
               child: Builder(
                 builder: (context) => DetailBottomBarWidget(
+                  favoriteButton: favoriteButtonBuilder?.call(context, args),
                   onCompare: () =>
                       onCompare(context, args, _selectedVersionKey(context)),
                 ),

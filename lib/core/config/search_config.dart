@@ -124,8 +124,6 @@ class SearchConfig {
 
   // Secciones, sugerencias y otros años.
   static const double sectionTitleGap = 8.0;
-  static const double suggestionChipGap = 8.0;
-  static const double suggestionChipHeight = 40.0;
   static const double otherYearRowHeight = 64.0;
   static const double otherYearLogoCircleSize = 44.0;
   static const double otherYearLogoSize = 28.0;
@@ -181,4 +179,16 @@ class SearchConfig {
 
   // Barra de búsqueda de la pantalla de inicio.
   static const double homeBarHeight = 52.0;
+
+  // Sugerencias para ti (campo vacío): cuántas y medidas de la fila.
+  static const int picksCount = 6;
+  static const double picksCardWidth = 148.0;
+  static const double picksPhotoAspectRatio = 1.5;
+  static const double picksCardGap = 12.0;
+  static const double picksRadius = 20.0;
+
+  // "¿Quisiste decir…?": área táctil, ícono y entrada suave.
+  static const double didYouMeanTouchHeight = 44.0;
+  static const double didYouMeanIconSize = 16.0;
+  static const int didYouMeanEnterMilliseconds = 200;
 }

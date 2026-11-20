@@ -5,7 +5,8 @@ import 'package:cars_wheels_app/core/core.dart';
 
 /// Botón de la tarjeta en el selector: agrega al comparador o indica que ya está.
 ///
-/// Con [isAdded] es una pastilla neutra deshabilitada; sin él, un botón amarillo.
+/// Con [isAdded] es una pastilla neutra; sin él, un botón amarillo. En ambos
+/// casos el toque llega a [onTap] (la capa app decide si agrega o abre el menú).
 class ComparePickerButtonWidget extends StatelessWidget {
   const ComparePickerButtonWidget({
     super.key,
@@ -25,7 +26,7 @@ class ComparePickerButtonWidget extends StatelessWidget {
     return MediaQuery.withClampedTextScaling(
       maxScaleFactor: CompareConfig.pickerButtonMaxTextScale,
       child: isAdded
-          ? const _AddedPill()
+          ? _AddedPill(name: vehicleName, onTap: onTap)
           : _AddButton(name: vehicleName, onTap: onTap),
     );
   }
@@ -41,6 +42,7 @@ class _AddButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(AppRadii.pill);
     return Semantics(
+      container: true,
       button: true,
       label: AppTexts.comparePickerAddSemanticLabel(name),
       excludeSemantics: true,
@@ -85,18 +87,22 @@ class _AddButton extends StatelessWidget {
   }
 }
 
-/// Pastilla neutra sin acción: el vehículo ya está en la comparación.
+/// Pastilla neutra: el vehículo ya está en la comparación; tocarla abre el menú.
 class _AddedPill extends StatelessWidget {
-  const _AddedPill();
+  const _AddedPill({required this.name, required this.onTap});
+
+  final String name;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    // Absorbe el toque: tocar la pastilla no abre Detalle ni hace nada.
+    // Absorbe el toque: tocar la pastilla no abre Detalle.
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () {},
+      onTap: onTap ?? () {},
       child: Semantics(
-        label: AppTexts.comparePickerAddedLabel,
+        button: true,
+        label: AppTexts.comparePickerAddedSemanticLabel(name),
         excludeSemantics: true,
         child: DecoratedBox(
           decoration: BoxDecoration(

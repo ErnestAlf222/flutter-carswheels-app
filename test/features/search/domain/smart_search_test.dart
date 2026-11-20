@@ -33,6 +33,46 @@ SuggestSearchTermsUseCase _suggest(SearchHarness harness) =>
     );
 
 void main() {
+  group('sugerencias al azar (picks)', () {
+    test(
+      'con la misma semilla dan lo mismo; con otra, otra elección',
+      () async {
+        final harness = await _indexed();
+        final search = _search(harness);
+        final first = search.picks(usScope, seed: 7);
+        expect(search.picks(usScope, seed: 7), first);
+        expect(search.picks(usScope, seed: 8), isNot(first));
+      },
+    );
+
+    test('hasta el tope, sin repetir, con marcas distintas primero', () async {
+      final harness = await _indexed();
+      final picks = _search(harness).picks(usScope, seed: 3, count: 4);
+      expect(picks, hasLength(4));
+      expect({for (final pick in picks) pick.traitsKey}, hasLength(4));
+      // 5 marcas en el índice: las cuatro elegidas son de marcas distintas.
+      expect({for (final pick in picks) pick.brand}, hasLength(4));
+      expect(picks.every((pick) => pick.groupName != null), isTrue);
+      expect(picks.every((pick) => pick.year == usScope.year), isTrue);
+    });
+
+    test('con menos modelos que el tope devuelve los que hay', () async {
+      final harness = await _indexed(
+        groups: {
+          'Honda': ['Accord', 'Civic'],
+        },
+      );
+      expect(_search(harness).picks(usScope, seed: 1), hasLength(2));
+    });
+
+    test('sin índice del alcance, o sin modelos, no devuelve nada', () async {
+      final harness = await _indexed(groups: const {});
+      final search = _search(harness);
+      expect(search.picks(usScope, seed: 1), isEmpty);
+      expect(search.picks(mxScope, seed: 1), isEmpty);
+    });
+  });
+
   group('búsqueda con alcance suave', () {
     test('sin alcance: todo va en primary, igual que antes', () async {
       final harness = await _indexed();

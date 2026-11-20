@@ -39,6 +39,9 @@ class ModelGridConfig {
   static const double skeletonConsumptionBarWidth = 96.0;
   static const double skeletonEfficiencyBarFraction = 0.6;
 
+  // Acción opcional sobre la foto, arriba a la izquierda (área táctil de 44).
+  static const double leadingActionLeftInset = 2.0;
+  static const double leadingActionTopInset = 0.0;
   // Insignia de motorización sobre la foto.
   static const int maxEngineBadges = 3;
   static const double badgeInset = 8.0;

@@ -19,6 +19,8 @@ class ModelGridCardWidget extends StatelessWidget {
     this.animateEntry = true,
     this.showBrandLabel = false,
     this.footerAction,
+    this.leadingAction,
+    this.photoBadge,
   });
 
   final ModelGroupEntity group;
@@ -40,6 +42,12 @@ class ModelGridCardWidget extends StatelessWidget {
   /// Acción opcional al pie, a la derecha; la capa app la provee (selector de Comparar).
   final Widget? footerAction;
 
+  /// Acción opcional en la esquina superior izquierda de la foto (el corazón).
+  final Widget? leadingAction;
+
+  /// Insignia opcional en la esquina inferior izquierda de la foto.
+  final Widget? photoBadge;
+
   @override
   Widget build(BuildContext context) {
     final name = group.name;
@@ -51,91 +59,108 @@ class ModelGridCardWidget extends StatelessWidget {
     final action = footerAction;
     final card = BlocSelector<SummariesCubit, SummariesState, String?>(
       selector: (state) => state.consumptionLabelFor(summaryKey),
-      builder: (context, consumption) => Semantics(
-        label: AppTexts.modelSummarySemanticLabel(name, consumption),
-        excludeSemantics: true,
-        child: _Tappable(
-          onTap: onTap,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _PhotoArea(
-                brand: brand,
-                name: name,
-                year: year,
-                heroTag: heroTag,
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    ModelGridConfig.textHorizontalPadding,
-                    ModelGridConfig.textTopPadding,
-                    ModelGridConfig.textHorizontalPadding,
-                    ModelGridConfig.textBottomPadding,
+      builder: (context, consumption) => Stack(
+        fit: StackFit.expand,
+        children: [
+          Semantics(
+            label: AppTexts.modelSummarySemanticLabel(name, consumption),
+            excludeSemantics: true,
+            child: _Tappable(
+              onTap: onTap,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _PhotoArea(
+                    brand: brand,
+                    name: name,
+                    year: year,
+                    heroTag: heroTag,
+                    photoBadge: photoBadge,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Filas de alto fijo: todas las tarjetas miden lo mismo.
-                      if (showBrandLabel)
-                        SizedBox(
-                          height: ModelGridMetrics.brandLabelHeight(scaler),
-                          width: double.infinity,
-                          child: Text(
-                            brand.toUpperCase(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTextStyles.brandOverline,
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        ModelGridConfig.textHorizontalPadding,
+                        ModelGridConfig.textTopPadding,
+                        ModelGridConfig.textHorizontalPadding,
+                        ModelGridConfig.textBottomPadding,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Filas de alto fijo: todas las tarjetas miden lo mismo.
+                          if (showBrandLabel)
+                            SizedBox(
+                              height: ModelGridMetrics.brandLabelHeight(scaler),
+                              width: double.infinity,
+                              child: Text(
+                                brand.toUpperCase(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTextStyles.brandOverline,
+                              ),
+                            ),
+                          SizedBox(
+                            height: ModelGridMetrics.nameHeight(scaler),
+                            width: double.infinity,
+                            child: Text(
+                              name,
+                              maxLines: ModelGridConfig.nameMaxLines,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyles.modelName,
+                            ),
                           ),
-                        ),
-                      SizedBox(
-                        height: ModelGridMetrics.nameHeight(scaler),
-                        width: double.infinity,
-                        child: Text(
-                          name,
-                          maxLines: ModelGridConfig.nameMaxLines,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.modelName,
-                        ),
-                      ),
-                      const SizedBox(height: ModelGridConfig.classTopGap),
-                      SizedBox(
-                        height: ModelGridMetrics.classHeight(scaler),
-                        width: double.infinity,
-                        child: ModelClassTextWidget(
-                          brand: brand,
-                          groupName: name,
-                          year: year,
-                        ),
-                      ),
-                      const SizedBox(height: ModelGridConfig.consumptionTopGap),
-                      SizedBox(
-                        height: ModelGridMetrics.consumptionHeight(scaler),
-                        width: double.infinity,
-                        child: ModelConsumptionBlockWidget(
-                          brand: brand,
-                          groupName: name,
-                          year: year,
-                        ),
-                      ),
-                      if (action != null) ...[
-                        const SizedBox(height: ModelGridConfig.actionTopGap),
-                        SizedBox(
-                          height: ModelGridConfig.actionRowHeight,
-                          width: double.infinity,
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: action,
+                          const SizedBox(height: ModelGridConfig.classTopGap),
+                          SizedBox(
+                            height: ModelGridMetrics.classHeight(scaler),
+                            width: double.infinity,
+                            child: ModelClassTextWidget(
+                              brand: brand,
+                              groupName: name,
+                              year: year,
+                            ),
                           ),
-                        ),
-                      ],
-                    ],
+                          const SizedBox(
+                            height: ModelGridConfig.consumptionTopGap,
+                          ),
+                          SizedBox(
+                            height: ModelGridMetrics.consumptionHeight(scaler),
+                            width: double.infinity,
+                            child: ModelConsumptionBlockWidget(
+                              brand: brand,
+                              groupName: name,
+                              year: year,
+                            ),
+                          ),
+                          // Espacio reservado: la acción se dibuja encima de la tarjeta.
+                          if (action != null)
+                            const SizedBox(
+                              height: ModelGridMetrics.actionRowTotalHeight,
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+          // Las acciones van sobre la tarjeta y no dentro de su semántica
+          // excluida: lectores de pantalla y toques las alcanzan por separado.
+          if (leadingAction case final lead?)
+            Positioned(
+              top: ModelGridConfig.leadingActionTopInset,
+              left: ModelGridConfig.leadingActionLeftInset,
+              child: lead,
+            ),
+          if (action != null)
+            Positioned(
+              right: ModelGridConfig.textHorizontalPadding,
+              bottom: ModelGridConfig.textBottomPadding,
+              height: ModelGridConfig.actionRowHeight,
+              child: Align(alignment: Alignment.centerRight, child: action),
+            ),
+        ],
       ),
     );
     if (!animateEntry) return card;
@@ -153,12 +178,14 @@ class _PhotoArea extends StatelessWidget {
     required this.name,
     required this.year,
     required this.heroTag,
+    this.photoBadge,
   });
 
   final String brand;
   final String name;
   final int year;
   final String heroTag;
+  final Widget? photoBadge;
 
   @override
   Widget build(BuildContext context) {
@@ -184,6 +211,12 @@ class _PhotoArea extends StatelessWidget {
             right: ModelGridConfig.badgeInset,
             child: EngineBadgeWidget(brand: brand, groupName: name, year: year),
           ),
+          if (photoBadge case final badge?)
+            Positioned(
+              left: ModelGridConfig.badgeInset,
+              bottom: ModelGridConfig.badgeInset,
+              child: badge,
+            ),
         ],
       ),
     );

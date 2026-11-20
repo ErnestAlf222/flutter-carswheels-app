@@ -42,29 +42,84 @@ void main() {
     when(() => modelsCubit.state).thenReturn(const ModelsInitial());
   });
 
-  Widget section(ModelsState state) => MaterialApp(
-    builder: (context, child) => MediaQuery(
-      data: MediaQuery.of(context).copyWith(disableAnimations: true),
-      child: child!,
-    ),
-    home: withClassTranslator(
-      MultiBlocProvider(
-        providers: [
-          BlocProvider<ModelsCubit>.value(value: modelsCubit),
-          BlocProvider<PhotosCubit>.value(value: photosCubit),
-          BlocProvider<SummariesCubit>.value(value: buildMockSummariesCubit()),
-          BlocProvider<BrandLogosCubit>.value(
-            value: buildMockBrandLogosCubit(),
-          ),
-        ],
-        child: Scaffold(
-          body: CustomScrollView(
-            slivers: [ModelsSectionWidget(brandName: 'Honda', state: state)],
+  Widget section(ModelsState state, {ModelCardActionBuilder? leading}) =>
+      MaterialApp(
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(disableAnimations: true),
+          child: child!,
+        ),
+        home: withClassTranslator(
+          MultiBlocProvider(
+            providers: [
+              BlocProvider<ModelsCubit>.value(value: modelsCubit),
+              BlocProvider<PhotosCubit>.value(value: photosCubit),
+              BlocProvider<SummariesCubit>.value(
+                value: buildMockSummariesCubit(),
+              ),
+              BlocProvider<BrandLogosCubit>.value(
+                value: buildMockBrandLogosCubit(),
+              ),
+            ],
+            child: Scaffold(
+              body: CustomScrollView(
+                slivers: [
+                  ModelsSectionWidget(
+                    brandName: 'Honda',
+                    state: state,
+                    leadingActionBuilder: leading,
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
+      );
+
+  testWidgets('la acción de cada tarjeta va arriba a la izquierda de la foto', (
+    tester,
+  ) async {
+    final seen = <String>[];
+    await tester.pumpWidget(
+      section(
+        ModelsLoaded(
+          groups: _models(2),
+          visibleCount: 2,
+          year: 2020,
+          brand: 'Honda',
+        ),
+        leading: (context, brand, year, group) {
+          seen.add('$brand $year ${group.name}');
+          return SizedBox(
+            key: ValueKey('accion-${group.name}'),
+            width: ModelGridConfig.badgeSize,
+            height: ModelGridConfig.badgeSize,
+          );
+        },
       ),
-    ),
-  );
+    );
+    await tester.pump();
+    expect(seen, containsAll(['Honda 2020 Modelo0', 'Honda 2020 Modelo1']));
+    final card = tester.getRect(find.byType(ModelGridCardWidget).first);
+    final action = tester.getRect(find.byKey(const ValueKey('accion-Modelo0')));
+    // Esquina superior izquierda de la tarjeta, lejos del ícono de motorización.
+    expect(action.left - card.left, ModelGridConfig.leadingActionLeftInset);
+    expect(action.top - card.top, ModelGridConfig.leadingActionTopInset);
+  });
+
+  testWidgets('sin acción las tarjetas no cambian', (tester) async {
+    await tester.pumpWidget(
+      section(
+        ModelsLoaded(
+          groups: _models(1),
+          visibleCount: 1,
+          year: 2020,
+          brand: 'Honda',
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byKey(const ValueKey('accion-Modelo0')), findsNothing);
+  });
 
   testWidgets('initial muestra solo el nombre de la marca', (tester) async {
     await tester.pumpWidget(section(const ModelsInitial()));

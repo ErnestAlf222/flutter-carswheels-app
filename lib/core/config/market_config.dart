@@ -19,6 +19,10 @@ class MarketConfig {
   static const String unitedStatesFlag = '\u{1F1FA}\u{1F1F8}';
   static const String mexicoFlag = '\u{1F1F2}\u{1F1FD}';
 
+  /// Bandera de un mercado por su código; EE. UU. si no se reconoce.
+  static String flagOf(String code) =>
+      code == mexicoCode ? mexicoFlag : unitedStatesFlag;
+
   // Orden fijo de las banderas del interruptor (códigos de mercado).
   static const List<String> switchOrderCodes = [mexicoCode, unitedStatesCode];
 
@@ -59,4 +63,14 @@ class MarketConfig {
   static const double yearPanelVerticalPadding = 6.0;
   static const double yearPanelItemRadius = 12.0;
   static const double yearPanelScaleBegin = 0.92;
+
+  // Aviso al cambiar de mercado: duración, entrada y medidas.
+  static const int noticeDurationMilliseconds = 3000;
+  static const double noticeFlagSize = 28.0;
+  static const double noticeGap = 12.0;
+  static const double noticeRadius = 20.0;
+  static const double noticeHorizontalPadding = 16.0;
+  static const double noticeVerticalPadding = 12.0;
+  static const double noticeSideMargin = 16.0;
+  static const double noticeBottomGap = 12.0;
 }

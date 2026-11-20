@@ -174,4 +174,16 @@ class CompareConfig {
   // Estado vacío.
   static const double emptyIconSize = 28.0;
   static const double emptyIconDisc = 56.0;
+
+  // Menú de "Comparar" de un auto que ya está o con el comparador lleno.
+  static const double actionRowMinHeight = 56.0;
+
+  // Burbuja que explica la métrica elegida en la gráfica.
+  static const int metricInfoDurationMilliseconds = 6000;
+  static const int metricInfoEnterMilliseconds = 200;
+  static const double metricInfoTouchSize = 44.0;
+  static const double metricInfoIconSize = 20.0;
+  static const double metricInfoPadding = 12.0;
+  static const double metricInfoRadius = 16.0;
+  static const double metricInfoGap = 8.0;
 }

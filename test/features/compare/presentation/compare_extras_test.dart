@@ -275,6 +275,94 @@ void main() {
       expect(find.text(AppTexts.compareChartHintLower), findsOneWidget);
     });
 
+    group('burbuja de la métrica', () {
+      Finder bubble() =>
+          find.byKey(const ValueKey('compare-chart-info-bubble'));
+      Finder infoButton() =>
+          find.byKey(const ValueKey('compare-chart-info-button'));
+
+      testWidgets('aparece al elegir cada métrica con su texto', (
+        tester,
+      ) async {
+        await _pump(tester, initial: _slots(3));
+        await _openChart(tester);
+        // Al abrir no hay burbuja: solo el ícono de información.
+        expect(bubble(), findsNothing);
+        expect(infoButton(), findsOneWidget);
+        await tester.tap(find.text(AppTexts.compareChartCo2));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(find.text(AppTexts.compareChartInfoCo2), findsOneWidget);
+        await tester.tap(find.text(AppTexts.compareChartAnnualCost));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(find.text(AppTexts.compareChartInfoAnnualCost), findsOneWidget);
+        expect(find.text(AppTexts.compareChartInfoCo2), findsNothing);
+      });
+
+      testWidgets(
+        'el sentido de cada texto coincide con la regla de la tabla',
+        (tester) async {
+          // Más es mejor: consumo y NHTSA; menos es mejor: CO₂ y costo.
+          expect(
+            AppTexts.compareChartInfoConsumption,
+            contains('Más es mejor'),
+          );
+          expect(AppTexts.compareChartInfoSafety, contains('Más es mejor'));
+          expect(AppTexts.compareChartInfoCo2, contains('Menos es mejor'));
+          expect(
+            AppTexts.compareChartInfoAnnualCost,
+            contains('Menos es mejor'),
+          );
+          expect(AppTexts.compareChartInfoConsumption, contains('litro'));
+          expect(AppTexts.compareChartInfoCo2, contains('kilómetro'));
+          expect(AppTexts.compareChartInfoAnnualCost, contains('dólares'));
+        },
+      );
+
+      testWidgets('se descarta sola tras la duración configurada', (
+        tester,
+      ) async {
+        await _pump(tester, initial: _slots(3));
+        await _openChart(tester);
+        await tester.tap(find.text(AppTexts.compareChartCo2));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(bubble(), findsOneWidget);
+        await tester.pump(
+          const Duration(
+            milliseconds: CompareConfig.metricInfoDurationMilliseconds,
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(bubble(), findsNothing);
+      });
+
+      testWidgets('un toque la cierra y el ícono la vuelve a abrir', (
+        tester,
+      ) async {
+        await _pump(tester, initial: _slots(3));
+        await _openChart(tester);
+        await tester.tap(find.text(AppTexts.compareChartCo2));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.tap(bubble());
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(bubble(), findsNothing);
+        await tester.tap(infoButton());
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(bubble(), findsOneWidget);
+        expect(find.text(AppTexts.compareChartInfoCo2), findsOneWidget);
+        // Con ella abierta, el mismo ícono la cierra.
+        await tester.tap(infoButton());
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(bubble(), findsNothing);
+      });
+    });
+
     testWidgets('una barra por vehículo con datos y ninguna sin ellos', (
       tester,
     ) async {
@@ -595,6 +683,9 @@ void main() {
       expect(tester.takeException(), isNull);
       await tester.tap(find.text(AppTexts.compareChartAnnualCost));
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      // La burbuja de la métrica también cabe con el texto grande.
+      expect(find.text(AppTexts.compareChartInfoAnnualCost), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });

@@ -159,6 +159,27 @@ void main() {
       );
     });
 
+    test(
+      'grupos de un mercado concreto sin tocar el vigente (favoritos)',
+      () async {
+        // El mercado global es EE. UU., pero se piden los grupos de México...
+        expect(market, Market.unitedStates);
+        final mx = await groups.inMarket('mx', 2025, 'Chevrolet');
+        expect([for (final g in mx) g.name], ['AVEO', 'ONIX']);
+        expect(
+          [for (final v in mx.first.variants) v.name],
+          ['AVEO', 'AVEO LT'],
+        );
+        // ...y el mercado vigente no cambió.
+        expect(market, Market.unitedStates);
+        // Con México como vigente, un favorito de EE. UU. resuelve el catálogo de EE. UU.
+        market = Market.mexico;
+        final us = await groups.inMarket('us', 2025, 'Toyota');
+        expect([for (final g in us) g.name], containsAll(['Camry', 'Corolla']));
+        expect(market, Market.mexico);
+      },
+    );
+
     test('resumen: EE. UU. delega; México lo arma con sus versiones', () async {
       expect(
         await summary(

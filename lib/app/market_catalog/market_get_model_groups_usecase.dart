@@ -19,8 +19,23 @@ class MarketGetModelGroupsUseCase extends GetModelGroupsUseCase {
   final Market Function() currentMarket;
 
   @override
-  Future<List<ModelGroupEntity>> call(int year, String brand) async {
-    if (currentMarket() != Market.mexico) return unitedStates(year, brand);
+  Future<List<ModelGroupEntity>> call(int year, String brand) =>
+      _groupsOf(currentMarket(), year, brand);
+
+  /// Los grupos del mercado pedido, sin tocar el mercado global de la app.
+  @override
+  Future<List<ModelGroupEntity>> inMarket(
+    String marketCode,
+    int year,
+    String brand,
+  ) => _groupsOf(Market.fromCode(marketCode) ?? currentMarket(), year, brand);
+
+  Future<List<ModelGroupEntity>> _groupsOf(
+    Market market,
+    int year,
+    String brand,
+  ) async {
+    if (market != Market.mexico) return unitedStates(year, brand);
     final groups = await getMxModelGroups(year, brand);
     return grouper.sortStrategy.sort(
       [

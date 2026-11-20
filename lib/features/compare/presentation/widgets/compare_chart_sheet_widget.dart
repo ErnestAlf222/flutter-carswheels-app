@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/compare/domain/domain.dart';
@@ -36,12 +39,44 @@ class CompareChartSheetWidget extends StatefulWidget {
 }
 
 class _CompareChartSheetWidgetState extends State<CompareChartSheetWidget> {
-  // Único estado: la métrica elegida.
+  // Estado: la métrica elegida, si su explicación se ve y el temporizador que la cierra.
   int _selected = 0;
+  bool _infoVisible = false;
+  Timer? _infoTimer;
+
+  @override
+  void dispose() {
+    _infoTimer?.cancel();
+    super.dispose();
+  }
+
+  // Muestra la explicación y la descarta sola tras unos segundos.
+  void _showInfo() {
+    _infoTimer?.cancel();
+    setState(() => _infoVisible = true);
+    _infoTimer = Timer(
+      const Duration(
+        milliseconds: CompareConfig.metricInfoDurationMilliseconds,
+      ),
+      _hideInfo,
+    );
+  }
+
+  void _hideInfo() {
+    _infoTimer?.cancel();
+    if (!mounted || !_infoVisible) return;
+    setState(() => _infoVisible = false);
+  }
+
+  void _select(int index) {
+    setState(() => _selected = index);
+    _showInfo();
+  }
 
   @override
   Widget build(BuildContext context) {
     final metric = widget.metrics[_selected];
+    final still = MediaQuery.of(context).disableAnimations;
     return CompareSheetFrameWidget(
       title: AppTexts.compareChartTitle,
       dark: true,
@@ -55,10 +90,44 @@ class _CompareChartSheetWidgetState extends State<CompareChartSheetWidget> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _MetricSelector(
-              metrics: widget.metrics,
-              selected: _selected,
-              onSelected: (index) => setState(() => _selected = index),
+            Row(
+              children: [
+                Expanded(
+                  child: _MetricSelector(
+                    metrics: widget.metrics,
+                    selected: _selected,
+                    onSelected: _select,
+                  ),
+                ),
+                _InfoButton(
+                  active: _infoVisible,
+                  onTap: _infoVisible ? _hideInfo : _showInfo,
+                ),
+              ],
+            ),
+            AnimatedSwitcher(
+              duration: still
+                  ? Duration.zero
+                  : const Duration(
+                      milliseconds: CompareConfig.metricInfoEnterMilliseconds,
+                    ),
+              transitionBuilder: (child, animation) => SizeTransition(
+                sizeFactor: animation,
+                alignment: Alignment.topCenter,
+                child: FadeTransition(opacity: animation, child: child),
+              ),
+              child: _infoVisible
+                  ? Padding(
+                      key: ValueKey(metric.kind),
+                      padding: const EdgeInsets.only(
+                        top: CompareConfig.metricInfoGap,
+                      ),
+                      child: _InfoBubble(
+                        text: _infoTextOf(metric.kind),
+                        onDismiss: _hideInfo,
+                      ),
+                    )
+                  : const SizedBox.shrink(key: ValueKey('no-info')),
             ),
             const SizedBox(height: AppSpacing.m),
             Text(
@@ -70,6 +139,79 @@ class _CompareChartSheetWidgetState extends State<CompareChartSheetWidget> {
             const SizedBox(height: AppSpacing.l),
             CompareChartWidget(metric: metric, names: widget.names),
           ],
+        ),
+      ),
+    );
+  }
+
+  // Qué mide cada métrica; unidad y sentido coinciden con la tabla.
+  static String _infoTextOf(CompareRowKind kind) => switch (kind) {
+    CompareRowKind.combinedConsumption => AppTexts.compareChartInfoConsumption,
+    CompareRowKind.co2 => AppTexts.compareChartInfoCo2,
+    CompareRowKind.annualCost => AppTexts.compareChartInfoAnnualCost,
+    CompareRowKind.safety => AppTexts.compareChartInfoSafety,
+    _ => '',
+  };
+}
+
+/// Ícono pequeño de información: abre o cierra la explicación.
+class _InfoButton extends StatelessWidget {
+  const _InfoButton({required this.active, required this.onTap});
+
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: active
+          ? AppTexts.compareChartInfoCloseSemanticLabel
+          : AppTexts.compareChartInfoOpenSemanticLabel,
+      excludeSemantics: true,
+      child: SizedBox(
+        width: CompareConfig.metricInfoTouchSize,
+        height: CompareConfig.metricInfoTouchSize,
+        child: InkWell(
+          key: const ValueKey('compare-chart-info-button'),
+          onTap: onTap,
+          customBorder: const CircleBorder(),
+          child: Icon(
+            Symbols.info,
+            fill: active ? 1.0 : 0.0,
+            size: CompareConfig.metricInfoIconSize,
+            color: AppColors.onDark,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Burbuja con la explicación; un toque la cierra.
+class _InfoBubble extends StatelessWidget {
+  const _InfoBubble({required this.text, required this.onDismiss});
+
+  final String text;
+  final VoidCallback onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(CompareConfig.metricInfoRadius);
+    return Semantics(
+      liveRegion: true,
+      container: true,
+      child: Material(
+        color: AppColors.inkSoft,
+        borderRadius: radius,
+        child: InkWell(
+          key: const ValueKey('compare-chart-info-bubble'),
+          onTap: onDismiss,
+          borderRadius: radius,
+          child: Padding(
+            padding: const EdgeInsets.all(CompareConfig.metricInfoPadding),
+            child: Text(text, style: AppTextStyles.onDarkCaption),
+          ),
         ),
       ),
     );

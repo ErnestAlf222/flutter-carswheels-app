@@ -16,4 +16,13 @@ class GetModelGroupsUseCase {
     final models = await repository.fetchModels(year, brand);
     return grouper.group(brand, models);
   }
+
+  /// Los grupos del mercado indicado por su código, sin cambiar el vigente.
+  ///
+  /// Este caso de uso atiende un solo catálogo: devuelve los mismos que [call].
+  Future<List<ModelGroupEntity>> inMarket(
+    String marketCode,
+    int year,
+    String brand,
+  ) => call(year, brand);
 }

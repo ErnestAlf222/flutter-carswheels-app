@@ -17,7 +17,7 @@ class AppTexts {
   static const String photoViewerCloseLabel = 'Cerrar';
   static const String homePageTitle = 'Pantalla Inicio';
   static const String comparePageTitle = 'Comparar';
-  static const String favoritesPageTitle = 'Pantalla Favoritos';
+  static const String favoritesPageTitle = 'Favoritos';
   static const String settingsPageTitle = 'Pantalla Ajustes';
   static const String placeholderItemLabel = 'Elemento de prueba';
   static const String navHomeLabel = 'Inicio';
@@ -175,6 +175,26 @@ class AppTexts {
       min == max ? '$max' : '$min–$max';
   static const String compareWithOtherLabel = 'Comparar con otro';
   static const String addToFavoritesLabel = 'Agregar a favoritos';
+  static const String removeFromFavoritesLabel = 'Quitar de favoritos';
+  static String favoriteAddSemanticLabel(String name) =>
+      'Guardar $name en favoritos';
+  static String favoriteRemoveSemanticLabel(String name) =>
+      'Quitar $name de favoritos';
+  static const String favoriteSavedMessage = 'Guardado en favoritos';
+  static const String favoriteRemovedMessage = 'Quitado de favoritos';
+  static String favoriteRemovedNamedMessage(String name) => 'Quitaste $name';
+  static const String favoriteUndoLabel = 'Deshacer';
+  static String favoritesCountLabel(int count) =>
+      count == 1 ? '1 guardado' : '$count guardados';
+  static const String favoritesFilterAll = 'Todos';
+  static const String favoritesFilterSemanticLabel = 'Filtrar por mercado';
+  static String favoriteMarketYearLabel(String flag, int year) => '$flag $year';
+  static String favoriteCardSemanticLabel(String name, String? label) =>
+      label == null ? name : '$name, $label';
+  static const String favoritesEmptyTitle = 'Aún no tienes favoritos';
+  static const String favoritesEmptyBody =
+      'Toca el corazón de un auto para guardarlo aquí';
+  static const String favoritesExploreLabel = 'Explorar autos';
   static const String backLabel = 'Volver';
   static const String versionSheetTitle = 'Elige una versión';
   static const String authorMissingLabel = 'Autor no indicado';
@@ -301,8 +321,6 @@ class AppTexts {
   static String searchInBrandTitle(String brand) => 'En $brand';
   static String searchNoResultsInBrand(String brand) =>
       'Sin resultados en $brand';
-  static String searchSuggestionLabel(String text) =>
-      '¿Quisiste decir «$text»?';
   static String searchSuggestionSemanticLabel(String text) =>
       'Buscar $text en su lugar';
   static String searchOtherYearsProgressLabel(List<int> years) =>
@@ -425,6 +443,8 @@ class AppTexts {
   static const String comparePickerCloseSemanticLabel = 'Cerrar el selector';
   static const String comparePickerAddLabel = 'Comparar';
   static const String comparePickerAddedLabel = 'En la comparación';
+  static String comparePickerAddedSemanticLabel(String name) =>
+      '$name ya está en la comparación, toca para ver opciones';
   static String comparePickerAddSemanticLabel(String name) =>
       'Agregar $name a la comparación';
   static const String comparePickerHint =
@@ -432,14 +452,7 @@ class AppTexts {
   static const String comparePickerHintDismissSemanticLabel = 'Cerrar el aviso';
   static const String closeLabel = 'Cerrar';
 
-  // Comparador lleno (hoja sobre Detalle).
-  static const String compareFullSheetTitle = 'El comparador está lleno';
-  static String compareFullSheetBody(String name) =>
-      'Toca el vehículo que quieres cambiar por $name.';
-  static const String compareFullSheetClearLabel = 'Limpiar todo y agregar';
   static const String cancelLabel = 'Cancelar';
-  static String compareFullRowSemanticLabel(String name, String version) =>
-      'Reemplazar $name, $version';
 
   // Limpiar con confirmación.
   static const String compareClearDialogTitle = '¿Limpiar la comparación?';
@@ -487,4 +500,57 @@ class AppTexts {
       'Quitar $name del comparador';
   static String compareSlotsCountLabel(int count, int max) =>
       '$count de $max vehículos';
+
+  // Menú de "Comparar" cuando el auto ya está o el comparador está lleno.
+  static String compareActionsAlreadyTitle(String name) =>
+      '$name ya está en la comparación';
+  static const String compareActionsFullTitle = 'El comparador está lleno';
+  static const String compareActionsBody = '¿Qué quieres hacer?';
+  static const String compareActionsSubstituteLabel =
+      'Sustituir un auto de la comparación';
+  static const String compareActionsOtherModelLabel =
+      'Comparar con otro modelo';
+  static const String compareActionsBackLabel = 'Volver';
+  static const String compareSubstituteTitle = 'Elige cuál sustituir';
+  static String compareSubstituteBody(String name) =>
+      'Se reemplazará por $name.';
+  static String compareSubstituteYearFlag(int year, String flag) =>
+      '$year · $flag';
+  static String compareSubstituteRowSemanticLabel(
+    String name,
+    int year,
+    String market,
+  ) => 'Sustituir $name, $year, $market';
+
+  // Burbuja que explica qué mide cada métrica de la gráfica.
+  static const String compareChartInfoConsumption =
+      'Consumo: cuántos kilómetros recorre con un litro. Más es mejor.';
+  static const String compareChartInfoCo2 =
+      'CO₂: gramos de dióxido de carbono que emite por kilómetro. Menos es mejor.';
+  static const String compareChartInfoAnnualCost =
+      'Costo anual: lo que gasta en combustible al año, en dólares. Menos es mejor.';
+  static const String compareChartInfoSafety =
+      'NHTSA: calificación de seguridad en estrellas. Más es mejor.';
+  static const String compareChartInfoCloseSemanticLabel =
+      'Cerrar la explicación';
+  static const String compareChartInfoOpenSemanticLabel =
+      'Qué mide esta métrica';
+
+  // Aviso al cambiar de mercado desde la píldora.
+  static String marketChangedTitle(String market) => 'Cambiaste a $market';
+  static String marketChangedBody(String market, int year) =>
+      'Ahora ves datos de $market · $year';
+  static String marketChangedCompareBody(String market) =>
+      'Ahora ves la comparación de $market';
+
+  // Sugerencias de Buscar con el campo vacío.
+  static const String searchPicksTitle = 'Sugerencias para ti';
+  static String searchPickSemanticLabel(String brand, String model) =>
+      'Ver $brand $model';
+
+  // "¿Quisiste decir…?": línea sutil con el nombre en negrita.
+  static const String searchDidYouMeanLead = '¿Quisiste decir ';
+  static const String searchDidYouMeanTail = '?';
+  static String searchSuggestionLabel(String text) =>
+      '$searchDidYouMeanLead$text$searchDidYouMeanTail';
 }

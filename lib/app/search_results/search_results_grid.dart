@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:cars_wheels_app/app/favorites/favorite_hearts.dart';
 import 'package:cars_wheels_app/app/search_results/search_card_cubits_factory.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
@@ -20,7 +21,14 @@ Widget buildSearchResultsGrid(
   List<SearchResultEntity> results,
   String resetKey,
   ValueChanged<SearchResultEntity> onOpen,
-) => buildSearchResultsGridWithAction(context, results, resetKey, onOpen);
+) => buildSearchResultsGridWithAction(
+  context,
+  results,
+  resetKey,
+  onOpen,
+  // En Buscar cada tarjeta lleva su corazón de favoritos.
+  leadingActionBuilder: buildResultFavoriteHeart,
+);
 
 /// La misma cuadrícula con una acción al pie de cada tarjeta (selector de Comparar).
 Widget buildSearchResultsGridWithAction(
@@ -29,8 +37,9 @@ Widget buildSearchResultsGridWithAction(
   String resetKey,
   ValueChanged<SearchResultEntity> onOpen, {
   SearchResultActionBuilder? actionBuilder,
+  SearchResultActionBuilder? leadingActionBuilder,
 }) {
-  return _SearchCardsScope(
+  return SearchCardsScope(
     resetKey: resetKey,
     child: ModelGridSliver(
       showBrandLabel: true,
@@ -44,6 +53,7 @@ Widget buildSearchResultsGridWithAction(
           index: index,
           onTap: () => onOpen(result),
           action: actionBuilder?.call(context, result),
+          leading: leadingActionBuilder?.call(context, result),
         );
       }, childCount: results.length),
     ),
@@ -51,17 +61,21 @@ Widget buildSearchResultsGridWithAction(
 }
 
 /// Da a las tarjetas sus propios fotos y resúmenes; se reinician al cambiar la clave.
-class _SearchCardsScope extends StatefulWidget {
-  const _SearchCardsScope({required this.resetKey, required this.child});
+class SearchCardsScope extends StatefulWidget {
+  const SearchCardsScope({
+    super.key,
+    required this.resetKey,
+    required this.child,
+  });
 
   final String resetKey;
   final Widget child;
 
   @override
-  State<_SearchCardsScope> createState() => _SearchCardsScopeState();
+  State<SearchCardsScope> createState() => _SearchCardsScopeState();
 }
 
-class _SearchCardsScopeState extends State<_SearchCardsScope> {
+class _SearchCardsScopeState extends State<SearchCardsScope> {
   // Recursos cancelables: se reemplazan al reiniciar la búsqueda.
   late PhotosCubit _photos;
   late SummariesCubit _summaries;
@@ -75,7 +89,7 @@ class _SearchCardsScopeState extends State<_SearchCardsScope> {
   }
 
   @override
-  void didUpdateWidget(_SearchCardsScope oldWidget) {
+  void didUpdateWidget(SearchCardsScope oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.resetKey == widget.resetKey) return;
     // Lo pendiente de la búsqueda anterior ya no hace falta.
@@ -117,12 +131,14 @@ class _SearchResultCard extends StatefulWidget {
     required this.index,
     required this.onTap,
     this.action,
+    this.leading,
   });
 
   final SearchResultEntity result;
   final int index;
   final VoidCallback onTap;
   final Widget? action;
+  final Widget? leading;
 
   @override
   State<_SearchResultCard> createState() => _SearchResultCardState();
@@ -175,6 +191,7 @@ class _SearchResultCardState extends State<_SearchResultCard> {
       animateEntry: widget.index < SearchConfig.animatedResultCount,
       showBrandLabel: true,
       footerAction: widget.action,
+      leadingAction: widget.leading,
     );
   }
 }

@@ -1,6 +1,10 @@
+import 'dart:math';
+
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/search/domain/entities/search_entry_entity.dart';
+import 'package:cars_wheels_app/features/search/domain/entities/search_index_status_entity.dart';
 import 'package:cars_wheels_app/features/search/domain/entities/search_response_entity.dart';
+import 'package:cars_wheels_app/features/search/domain/entities/search_result_entity.dart';
 import 'package:cars_wheels_app/features/search/domain/entities/search_scope_entity.dart';
 import 'package:cars_wheels_app/features/search/domain/services/search_index_store.dart';
 import 'package:cars_wheels_app/features/search/domain/services/search_result_ranker.dart';
@@ -56,6 +60,48 @@ class SearchWithScopeUseCase {
             ),
       brandMatches: _brandMatches(matches, query, scopeBrand),
     );
+  }
+
+  /// Hasta [count] modelos al azar del índice ya construido del alcance.
+  ///
+  /// El mismo [seed] da siempre la misma elección: no usa red, solo lo que el
+  /// índice tiene. Prefiere marcas distintas y, si faltan, completa con otras.
+  /// Con el índice aún en obra y menos de [count] modelos, devuelve nada.
+  List<SearchResultEntity> picks(
+    SearchScopeEntity scope, {
+    required int seed,
+    int count = SearchConfig.picksCount,
+  }) {
+    final record = store.recordOf(scope.key);
+    if (record == null) return const [];
+    final groups = [
+      for (final entry in record.index.entries)
+        if (entry.groupName != null) entry,
+    ];
+    final building = record.status.phase == SearchIndexPhase.building;
+    if (groups.isEmpty || (building && groups.length < count)) return const [];
+    final shuffled = [...groups]..shuffle(Random(seed));
+    final brands = <String>{};
+    final chosen = <SearchEntryEntity>[];
+    // Primera pasada: una por marca; segunda: lo que falte.
+    for (final entry in shuffled) {
+      if (chosen.length >= count) break;
+      if (brands.add(entry.brand)) chosen.add(entry);
+    }
+    for (final entry in shuffled) {
+      if (chosen.length >= count) break;
+      if (!chosen.contains(entry)) chosen.add(entry);
+    }
+    return [
+      for (final entry in chosen)
+        SearchResultEntity(
+          brand: entry.brand,
+          groupName: entry.groupName,
+          variantNames: entry.variantNames,
+          year: scope.year,
+          marketCode: scope.marketCode,
+        ),
+    ];
   }
 
   // Marcas cuyo nombre coincide por prefijo: la exacta primero, luego el orden del índice.

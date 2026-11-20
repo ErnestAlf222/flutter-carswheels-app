@@ -6,7 +6,11 @@ import 'package:cars_wheels_app/app/compare/compare_navigation.dart';
 import 'package:cars_wheels_app/app/compare/compare_picker_sheet.dart';
 import 'package:cars_wheels_app/app/compare/compare_route_args.dart';
 import 'package:cars_wheels_app/app/compare/compare_slot_visuals_builder.dart';
+import 'package:cars_wheels_app/app/favorites/favorite_detail_opener.dart';
+import 'package:cars_wheels_app/app/favorites/favorite_hearts.dart';
+import 'package:cars_wheels_app/app/favorites/favorites_grid.dart';
 import 'package:cars_wheels_app/app/market_catalog/search_market_year_selector.dart';
+import 'package:cars_wheels_app/app/search_results/search_picks_row.dart';
 import 'package:cars_wheels_app/app/search_results/search_result_detail_opener.dart';
 import 'package:cars_wheels_app/app/search_results/search_results_grid.dart';
 import 'package:cars_wheels_app/core/core.dart';
@@ -43,6 +47,10 @@ void openSearchFromHome(BuildContext context) {
   context.go(RoutesConfig.search);
 }
 
+/// Lleva a Inicio desde el estado vacío de Favoritos.
+void openHomeFromFavorites(BuildContext context) =>
+    context.go(RoutesConfig.home);
+
 /// Crea el router: un marco con las cinco pantallas principales.
 GoRouter buildAppRouter() => GoRouter(
   initialLocation: RoutesConfig.home,
@@ -53,8 +61,13 @@ GoRouter buildAppRouter() => GoRouter(
       routes: [
         GoRoute(
           path: RoutesConfig.home,
-          pageBuilder: (context, state) =>
-              _page(state, const HomePage(onSearchTap: openSearchFromHome)),
+          pageBuilder: (context, state) => _page(
+            state,
+            const HomePage(
+              onSearchTap: openSearchFromHome,
+              cardLeadingActionBuilder: buildGroupFavoriteHeart,
+            ),
+          ),
         ),
         GoRoute(
           path: RoutesConfig.search,
@@ -64,6 +77,7 @@ GoRouter buildAppRouter() => GoRouter(
               onOpenResult: openSearchResultInDetail,
               resultsGridBuilder: buildSearchResultsGrid,
               selectorBuilder: buildSearchMarketYearSelector,
+              picksBuilder: buildSearchPicksRow,
             ),
           ),
         ),
@@ -85,7 +99,15 @@ GoRouter buildAppRouter() => GoRouter(
         ),
         GoRoute(
           path: RoutesConfig.favorites,
-          pageBuilder: (context, state) => _page(state, const FavoritesPage()),
+          pageBuilder: (context, state) => _page(
+            state,
+            const FavoritesPage(
+              selectorBuilder: buildSearchMarketYearSelector,
+              gridBuilder: buildFavoritesGrid,
+              onOpen: openFavoriteInDetail,
+              onExplore: openHomeFromFavorites,
+            ),
+          ),
         ),
         GoRoute(
           path: RoutesConfig.settings,
@@ -102,6 +124,7 @@ GoRouter buildAppRouter() => GoRouter(
         DetailPage(
           args: state.extra! as DetailArgsEntity,
           onCompare: addToCompareFromDetail,
+          favoriteButtonBuilder: buildDetailFavoriteButton,
         ),
       ),
     ),

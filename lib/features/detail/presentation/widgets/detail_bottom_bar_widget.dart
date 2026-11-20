@@ -6,9 +6,16 @@ import 'package:cars_wheels_app/features/detail/presentation/widgets/detail_circ
 
 /// Barra fija inferior con el corazón y el botón de comparar.
 class DetailBottomBarWidget extends StatelessWidget {
-  const DetailBottomBarWidget({super.key, required this.onCompare});
+  const DetailBottomBarWidget({
+    super.key,
+    required this.onCompare,
+    this.favoriteButton,
+  });
 
   final VoidCallback onCompare;
+
+  /// Corazón con acción; nulo deja el círculo de siempre, sin acción.
+  final Widget? favoriteButton;
 
   @override
   Widget build(BuildContext context) {
@@ -35,12 +42,13 @@ class DetailBottomBarWidget extends StatelessWidget {
         padding: const EdgeInsets.all(UiConfig.detailBottomBarInset),
         child: Row(
           children: [
-            const DetailCircleButtonWidget(
-              icon: Symbols.favorite,
-              size: UiConfig.detailBottomBarHeight,
-              iconSize: UiConfig.iconSize,
-              semanticLabel: AppTexts.addToFavoritesLabel,
-            ),
+            favoriteButton ??
+                const DetailCircleButtonWidget(
+                  icon: Symbols.favorite,
+                  size: UiConfig.detailBottomBarHeight,
+                  iconSize: UiConfig.iconSize,
+                  semanticLabel: AppTexts.addToFavoritesLabel,
+                ),
             const SizedBox(width: UiConfig.detailBottomBarGap),
             Expanded(
               child: AccentButton(

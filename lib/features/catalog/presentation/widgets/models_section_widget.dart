@@ -8,6 +8,14 @@ import 'package:cars_wheels_app/features/catalog/presentation/widgets/model_grid
 import 'package:cars_wheels_app/features/catalog/presentation/widgets/model_grid_card_widget.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/widgets/model_grid_sliver_widget.dart';
 
+/// Acción opcional de la tarjeta de un modelo (el corazón); la arma la capa app.
+typedef ModelCardActionBuilder = Widget? Function(
+  BuildContext context,
+  String brand,
+  int year,
+  ModelGroupEntity group,
+);
+
 /// Sliver con el nombre de la marca y la cuadrícula de sus modelos.
 class ModelsSectionWidget extends StatelessWidget {
   const ModelsSectionWidget({
@@ -15,6 +23,7 @@ class ModelsSectionWidget extends StatelessWidget {
     required this.brandName,
     required this.state,
     this.onGroupTap,
+    this.leadingActionBuilder,
   });
 
   final String brandName;
@@ -22,6 +31,9 @@ class ModelsSectionWidget extends StatelessWidget {
 
   /// Al tocar la tarjeta de un grupo.
   final ValueChanged<ModelGroupEntity>? onGroupTap;
+
+  /// Acción sobre la foto, arriba a la izquierda; sin ella la tarjeta no cambia.
+  final ModelCardActionBuilder? leadingActionBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +95,11 @@ class ModelsSectionWidget extends StatelessWidget {
     ModelsLoaded(:final groups) when groups.isEmpty => const SliverToBoxAdapter(
       child: EmptyStateWidget(),
     ),
-    ModelsLoaded() => _LoadedGrid(state: current, onGroupTap: onGroupTap),
+    ModelsLoaded() => _LoadedGrid(
+      state: current,
+      onGroupTap: onGroupTap,
+      leadingActionBuilder: leadingActionBuilder,
+    ),
   };
 }
 
@@ -127,10 +143,15 @@ class _SkeletonGrid extends StatelessWidget {
 
 /// Tarjetas visibles de la cuadrícula; solo se construyen las que se ven.
 class _LoadedGrid extends StatelessWidget {
-  const _LoadedGrid({required this.state, this.onGroupTap});
+  const _LoadedGrid({
+    required this.state,
+    this.onGroupTap,
+    this.leadingActionBuilder,
+  });
 
   final ModelsLoaded state;
   final ValueChanged<ModelGroupEntity>? onGroupTap;
+  final ModelCardActionBuilder? leadingActionBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -152,6 +173,12 @@ class _LoadedGrid extends StatelessWidget {
               brand: state.brand,
               year: state.year,
               index: index,
+              leadingAction: leadingActionBuilder?.call(
+                context,
+                state.brand,
+                state.year,
+                state.groups[index],
+              ),
               onTap: onGroupTap == null
                   ? null
                   : () => onGroupTap!(state.groups[index]),

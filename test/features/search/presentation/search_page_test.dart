@@ -8,6 +8,7 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
+import 'package:cars_wheels_app/features/favorites/favorites.dart';
 import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/search/presentation/widgets/widgets.dart';
 import 'package:cars_wheels_app/features/search/search.dart';
@@ -21,6 +22,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../support/brand_logos_test_support.dart';
+import '../../../support/favorites_test_support.dart';
 import '../../../support/market_test_support.dart';
 import '../../../support/photos_test_support.dart';
 import '../../../support/search_test_support.dart';
@@ -91,6 +93,7 @@ Widget _wrap(
       BlocProvider<SearchCubit>.value(value: harness.cubit),
       BlocProvider<BrandLogosCubit>.value(value: buildMockBrandLogosCubit()),
       BlocProvider<MarketCubit>.value(value: buildMarketCubit()),
+      BlocProvider<FavoritesCubit>(create: (_) => buildFavoritesCubit()),
     ],
     child: home,
   ),
@@ -564,19 +567,54 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  _test('sugerencias en chips: tocar una reemplaza el texto', (tester) async {
+  _test('"Quisiste decir": línea sutil, tocable y sin aspecto de chip', (
+    tester,
+  ) async {
     final harness = SearchHarness();
     await tester.pumpWidget(_page(harness));
     await _settle(tester);
     await _type(tester, 'toyta');
-    final chip = find.text(AppTexts.searchSuggestionLabel('toyota'));
-    expect(chip, findsOneWidget);
+    final line = find.byKey(const ValueKey('search-suggestion-toyota'));
+    expect(line, findsOneWidget);
+    // Texto en dos tonos: lead y cola, con el nombre en negrita.
+    expect(
+      find.textContaining(
+        '${AppTexts.searchDidYouMeanLead}toyota${AppTexts.searchDidYouMeanTail}',
+        findRichText: true,
+      ),
+      findsOneWidget,
+    );
+    final rich = tester.widget<RichText>(
+      find.descendant(of: line, matching: find.byType(RichText)).first,
+    );
+    final spans = <TextSpan>[];
+    rich.text.visitChildren((span) {
+      if (span is TextSpan) spans.add(span);
+      return true;
+    });
+    final name = spans.firstWhere((span) => span.text == 'toyota');
+    expect(name.style!.fontWeight, FontWeight.w700);
+    expect(name.style!.color, AppColors.ink);
+    expect(
+      spans.any((span) => span.text == AppTexts.searchDidYouMeanLead),
+      isTrue,
+    );
+    // Sin fondo ni borde de etiqueta; área táctil de 44 px; flecha fina.
+    expect(
+      find.descendant(
+        of: find.byType(SearchSuggestionsWidget),
+        matching: find.byType(Material),
+      ),
+      findsNothing,
+    );
+    expect(tester.getSize(line).height, greaterThanOrEqualTo(44));
+    expect(find.byIcon(Symbols.arrow_forward), findsOneWidget);
     // Nunca se sustituye solo.
     expect(
       tester.widget<TextField>(find.byType(TextField)).controller!.text,
       'toyta',
     );
-    await tester.tap(chip);
+    await tester.tap(line);
     await _settle(tester);
     expect(
       tester.widget<TextField>(find.byType(TextField)).controller!.text,
@@ -584,6 +622,280 @@ void main() {
     );
     expect(find.byType(ModelGridCardWidget), findsNWidgets(3));
     await tester.pumpWidget(const SizedBox());
+  });
+
+  _test('"Quisiste decir" sin desbordes a 360 dp y escala 1.3', (tester) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            disableAnimations: true,
+            textScaler: const TextScaler.linear(1.3),
+          ),
+          child: child!,
+        ),
+        home: Scaffold(
+          body: SearchSuggestionsWidget(
+            suggestions: const [
+              'Mercedes-Benz',
+              'Rolls-Royce Phantom Extended',
+            ],
+            onSelect: (_) {},
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    for (final line in find.byType(InkWell).evaluate()) {
+      expect(
+        tester.getSize(find.byWidget(line.widget)).height,
+        greaterThanOrEqualTo(44),
+      );
+    }
+  });
+
+  group('sugerencias para ti', () {
+    // Las elegidas, tal como las recibe la capa app.
+    List<SearchResultEntity> lastPicks = const [];
+    String lastKey = '';
+
+    Widget pageWith(SearchHarness harness, {int? seed}) => _wrap(
+      harness,
+      MaterialApp(
+        builder: _noAnimations,
+        home: SearchPage(
+          onOpenResult: (_, _) {},
+          resultsGridBuilder: buildSearchResultsGrid,
+          selectorBuilder: _selector,
+          picksSeed: seed,
+          picksBuilder: (context, picks, resetKey, onOpen) {
+            lastPicks = picks;
+            lastKey = resetKey;
+            return Column(
+              children: [
+                for (final pick in picks)
+                  TextButton(
+                    key: ValueKey('pick-${pick.brand}-${pick.groupName}'),
+                    onPressed: () => onOpen(pick),
+                    child: Text('${pick.brand} ${pick.groupName}'),
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
+      cards: _CardCubits(),
+    );
+
+    setUp(() {
+      lastPicks = const [];
+      lastKey = '';
+    });
+
+    _test('con el campo vacío salen 6 modelos del índice, sin repetir', (
+      tester,
+    ) async {
+      final harness = SearchHarness();
+      await tester.pumpWidget(pageWith(harness, seed: 1));
+      await _settle(tester);
+      expect(find.text(AppTexts.searchPicksTitle), findsOneWidget);
+      expect(lastPicks, hasLength(SearchConfig.picksCount));
+      expect({for (final pick in lastPicks) pick.traitsKey}, hasLength(6));
+      // Una por marca primero: las tres marcas del índice aparecen.
+      expect({for (final pick in lastPicks) pick.brand}, hasLength(3));
+      // Del mercado y año vigentes.
+      expect(lastPicks.every((pick) => pick.marketCode == 'us'), isTrue);
+      expect(lastPicks.every((pick) => pick.year == 2025), isTrue);
+      // Los recientes y las marcas siguen arriba.
+      expect(
+        find.text(AppTexts.searchExploreByBrandTitle.toUpperCase()),
+        findsOneWidget,
+      );
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    _test('con la misma semilla se conservan; con otra cambian', (
+      tester,
+    ) async {
+      final harness = SearchHarness();
+      await tester.pumpWidget(pageWith(harness, seed: 1));
+      await _settle(tester);
+      final first = [...lastPicks];
+      // Misma visita: escribir y borrar no las cambia.
+      await _type(tester, 'toy');
+      expect(find.text(AppTexts.searchPicksTitle), findsNothing);
+      await _type(tester, '');
+      await _settle(tester);
+      expect(lastPicks, first);
+      // Otra visita (pantalla nueva con otra semilla): otra elección.
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(pageWith(harness, seed: 2));
+      await _settle(tester);
+      expect(lastPicks, hasLength(6));
+      expect(lastPicks, isNot(first));
+      // La misma semilla da siempre lo mismo.
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(pageWith(harness, seed: 1));
+      await _settle(tester);
+      expect(lastPicks, first);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    _test('con texto escrito no aparecen ni cambian la lista', (tester) async {
+      final harness = SearchHarness();
+      await tester.pumpWidget(pageWith(harness, seed: 1));
+      await _settle(tester);
+      await _type(tester, 'toy');
+      expect(find.text(AppTexts.searchPicksTitle), findsNothing);
+      expect(find.byType(ModelGridCardWidget), findsNWidgets(3));
+      expect(find.byKey(const ValueKey('pick-Honda-Civic')), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    _test('al tocar una se entrega a la capa app', (tester) async {
+      final harness = SearchHarness();
+      final opened = <SearchResultEntity>[];
+      await tester.pumpWidget(
+        _wrap(
+          harness,
+          MaterialApp(
+            builder: _noAnimations,
+            home: SearchPage(
+              onOpenResult: (_, result) => opened.add(result),
+              resultsGridBuilder: buildSearchResultsGrid,
+              selectorBuilder: _selector,
+              picksSeed: 1,
+              picksBuilder: (context, picks, resetKey, onOpen) => TextButton(
+                key: const ValueKey('first-pick'),
+                onPressed: () => onOpen(picks.first),
+                child: const Text('abrir'),
+              ),
+            ),
+          ),
+          cards: _CardCubits(),
+        ),
+      );
+      await _settle(tester);
+      await tester.tap(find.byKey(const ValueKey('first-pick')));
+      await tester.pump();
+      expect(opened, hasLength(1));
+      expect(opened.single.groupName, isNotNull);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    _test('salir de la pestaña y volver las renueva; navegar dentro no', (
+      tester,
+    ) async {
+      // Muchos modelos: otra semilla da otra elección con certeza práctica.
+      final harness = SearchHarness(
+        groupsByBrand: {
+          for (final brand in ['Audi', 'Bmw', 'Ford', 'Kia'])
+            brand: [for (final n in 'ABCDEFGH'.split('')) '$brand $n'],
+        },
+      );
+      final router = GoRouter(
+        initialLocation: RoutesConfig.search,
+        routes: [
+          GoRoute(
+            path: RoutesConfig.search,
+            pageBuilder: (_, state) => NoTransitionPage(
+              key: state.pageKey,
+              child: SearchPage(
+                onOpenResult: (_, _) {},
+                resultsGridBuilder: buildSearchResultsGrid,
+                selectorBuilder: _selector,
+                picksBuilder: (context, picks, resetKey, onOpen) {
+                  lastPicks = picks;
+                  return Text('picks ${picks.length}');
+                },
+              ),
+            ),
+          ),
+          GoRoute(
+            path: RoutesConfig.detail,
+            builder: (_, _) => const Scaffold(body: Text('detalle')),
+          ),
+          GoRoute(
+            path: RoutesConfig.home,
+            builder: (_, _) => const Scaffold(body: Text('inicio')),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        _wrap(
+          harness,
+          MaterialApp.router(builder: _noAnimations, routerConfig: router),
+          cards: _CardCubits(),
+        ),
+      );
+      await _settle(tester);
+      final first = [...lastPicks];
+      expect(first, hasLength(6));
+      // Dentro de la misma visita (Detalle encima y de vuelta): fijas.
+      unawaited(router.push<void>(RoutesConfig.detail));
+      await _settle(tester);
+      router.pop();
+      await _settle(tester);
+      expect(lastPicks, first);
+      // Saliendo de la pestaña y regresando: se renuevan.
+      router.go(RoutesConfig.home);
+      await _settle(tester);
+      expect(find.text('inicio'), findsOneWidget);
+      router.go(RoutesConfig.search);
+      await _settle(tester);
+      expect(lastPicks, hasLength(6));
+      expect(lastPicks, isNot(first));
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    _test('con pocos datos muestra menos y sin datos nada', (tester) async {
+      final few = SearchHarness(
+        groupsByBrand: {
+          'Toyota': ['Camry', 'Corolla'],
+        },
+      );
+      await tester.pumpWidget(pageWith(few, seed: 1));
+      await _settle(tester);
+      expect(lastPicks, hasLength(2));
+      await tester.pumpWidget(const SizedBox());
+
+      lastPicks = const [];
+      final none = SearchHarness(groupsByBrand: const {});
+      await tester.pumpWidget(pageWith(none, seed: 1));
+      await _settle(tester);
+      expect(lastPicks, isEmpty);
+      expect(find.text(AppTexts.searchPicksTitle), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    _test('cambiar de mercado reinicia las sugerencias', (tester) async {
+      final harness = SearchHarness();
+      await tester.pumpWidget(pageWith(harness, seed: 1));
+      await _settle(tester);
+      final before = lastKey;
+      expect(lastPicks.every((pick) => pick.marketCode == 'us'), isTrue);
+      harness.context.change(mxScope);
+      await _settle(tester);
+      // Con el nuevo alcance la clave cambia y las anteriores ya no valen.
+      expect(lastKey, isNot(before));
+      expect(lastPicks.every((pick) => pick.marketCode != 'us'), isTrue);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    _test('no se arman en el selector de Comparar (sin picksBuilder)', (
+      tester,
+    ) async {
+      final harness = SearchHarness();
+      await tester.pumpWidget(_page(harness));
+      await _settle(tester);
+      expect(find.text(AppTexts.searchPicksTitle), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+    });
   });
 
   _test('otros años: botón, filas compactas y apertura con ese año', (

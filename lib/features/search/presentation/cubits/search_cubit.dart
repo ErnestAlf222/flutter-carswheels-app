@@ -77,6 +77,24 @@ class SearchCubit extends Cubit<SearchState> {
   // Hay un pedido de foco sin atender.
   bool _focusPending = false;
 
+  // Sugerencias "para ti" de la visita: se calculan una vez y se conservan.
+  String? _picksKey;
+  List<SearchResultEntity> _picks = const [];
+
+  /// Modelos al azar del alcance vigente para el campo vacío.
+  ///
+  /// Salen del índice ya construido, sin red. Con la misma [seed] y el mismo
+  /// alcance se conservan, aunque el índice siga creciendo; otro mercado, otro
+  /// año u otra semilla las recalculan. Vacío mientras no haya datos.
+  List<SearchResultEntity> picksFor(int seed) {
+    final scope = state.scope;
+    if (scope == null) return const [];
+    final key = '${scope.key} $seed';
+    if (key == _picksKey && _picks.isNotEmpty) return _picks;
+    _picksKey = key;
+    return _picks = searchWithScope.picks(scope, seed: seed);
+  }
+
   /// Pide el índice del alcance vigente (al entrar a la pantalla de búsqueda).
   void ensureIndex() {
     _indexWanted = true;
