@@ -5,6 +5,7 @@ export 'api_config.dart';
 export 'app_config.dart';
 export 'carousel_config.dart';
 export 'catalog_config.dart';
+export 'compare_config.dart';
 export 'conuee_config.dart';
 export 'fuel_economy_config.dart';
 export 'header_config.dart';

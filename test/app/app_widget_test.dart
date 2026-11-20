@@ -11,6 +11,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../support/compare_test_support.dart';
+
 class _FakePhotoCache implements PhotoCacheDatasource {
   @override
   Future<CachedPhotoEntity?> read(String key) async => null;
@@ -103,6 +105,7 @@ App _buildApp() => App(
     mexicoCatalogCache: _FakeMexicoCatalogCache(),
     marketPreference: _FakeMarketPreference(),
     recentSearches: _FakeRecentSearches(),
+    compareSelection: InMemoryCompareSelection(),
   ),
 );
 

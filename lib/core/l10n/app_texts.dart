@@ -16,7 +16,7 @@ class AppTexts {
   static const String expandPhotoSemanticLabel = 'Ver foto en grande';
   static const String photoViewerCloseLabel = 'Cerrar';
   static const String homePageTitle = 'Pantalla Inicio';
-  static const String comparePageTitle = 'Pantalla Comparar';
+  static const String comparePageTitle = 'Comparar';
   static const String favoritesPageTitle = 'Pantalla Favoritos';
   static const String settingsPageTitle = 'Pantalla Ajustes';
   static const String placeholderItemLabel = 'Elemento de prueba';
@@ -357,4 +357,56 @@ class AppTexts {
       'Repetir la búsqueda $text';
   static String searchRecentRemoveSemanticLabel(String text) =>
       'Borrar la búsqueda reciente $text';
+
+  // Comparar.
+  static String compareEmptyTitle(int max) => 'Compara hasta $max vehículos';
+  static const String compareEmptyBody =
+      'Elige al menos 2 vehículos para ver sus diferencias lado a lado.';
+  static const String compareOneVehicleBody =
+      'Agrega al menos otro vehículo para poder compararlos.';
+  static const String compareAddVehicleLabel = 'Agregar vehículo';
+  static const String compareClearLabel = 'Limpiar';
+  static const String compareEmptySlotSemanticLabel =
+      'Espacio libre, toca para agregar un vehículo';
+  static const String compareAlreadyAddedNotice =
+      'Ese vehículo ya está en el comparador';
+  static const String compareFullNotice =
+      'El comparador está lleno: quita un vehículo para agregar otro';
+  static const String compareTableTitle = 'Comparativa';
+  static const String compareTableSupport =
+      'Lo resaltado es el mejor valor en consumo, emisiones, costo anual y seguridad.';
+  static const String compareSectionConsumption = 'Consumo';
+  static const String compareSectionEngine = 'Motor y transmisión';
+  static const String compareSectionSafetyCost = 'Seguridad y costo';
+  static const String compareRowCombinedConsumption =
+      'Consumo combinado (km/l)';
+  static const String compareRowCityConsumption = 'Consumo en ciudad (km/l)';
+  static const String compareRowHighwayConsumption =
+      'Consumo en carretera (km/l)';
+  static const String compareRowEngine = 'Motorización';
+  static const String compareRowAnnualCost = 'Combustible al año (USD)';
+  static const String compareRowSafety = 'Seguridad NHTSA';
+  static const String compareEngineCombustionLabel = 'Combustión';
+  static String compareStarsValue(int stars) =>
+      '$stars de ${UiConfig.safetyStarCount}';
+  static const String compareColumnLoadFailed = 'No se pudo cargar';
+  static const String compareVersionDefaultLabel = 'Versión predeterminada';
+  static const String compareVersionSheetEmpty =
+      'Este modelo no tiene versiones disponibles';
+  static String compareVersionPillSemanticLabel(String name, String version) =>
+      'Versión de $name: $version. Toca para cambiarla';
+  static String compareColumnHeaderLabel(String brand, String model) =>
+      '$brand $model';
+  static String compareCellSemanticLabel(
+    String row,
+    String vehicle,
+    String value, {
+    required bool isBest,
+  }) =>
+      isBest ? '$row, $vehicle: $value, mejor valor' : '$row, $vehicle: $value';
+  static const String comparePickerTitle = 'Elegir';
+  static String compareRemoveSemanticLabel(String name) =>
+      'Quitar $name del comparador';
+  static String compareSlotsCountLabel(int count, int max) =>
+      '$count de $max vehículos';
 }

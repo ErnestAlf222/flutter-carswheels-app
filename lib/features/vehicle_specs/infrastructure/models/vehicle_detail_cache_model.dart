@@ -30,6 +30,7 @@ class VehicleDetailCacheModel {
     this.hybridGasKmPerLiter,
     this.fuelScore,
     this.emissionsScore,
+    this.engineKind,
     this.id = Isar.autoIncrement,
   });
 
@@ -64,4 +65,7 @@ class VehicleDetailCacheModel {
   final double? hybridGasKmPerLiter;
   final int? fuelScore;
   final int? emissionsScore;
+
+  /// Nombre del valor del enum EngineKind; nulo si no se conoce.
+  final String? engineKind;
 }

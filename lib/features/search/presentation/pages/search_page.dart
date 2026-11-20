@@ -30,7 +30,19 @@ class SearchPage extends StatefulWidget {
     required this.onOpenResult,
     required this.resultsGridBuilder,
     required this.selectorBuilder,
+    this.title = AppTexts.searchPageTitle,
+    this.onBack,
+    this.reserveNavSpace = true,
   });
+
+  /// Título del encabezado; el modo selección usa el suyo.
+  final String title;
+
+  /// Con valor, el encabezado muestra volver (modo selección: sin menú flotante).
+  final VoidCallback? onBack;
+
+  /// Deja libre el espacio del menú flotante al final de la lista.
+  final bool reserveNavSpace;
 
   final SearchResultOpener onOpenResult;
   final SearchResultsGridBuilder resultsGridBuilder;
@@ -105,7 +117,7 @@ class _SearchPageState extends State<SearchPage> {
         body: BlocBuilder<SearchCubit, SearchState>(
           builder: (context, state) {
             final bottomPadding =
-                NavConfig.footprint +
+                (widget.reserveNavSpace ? NavConfig.footprint : 0.0) +
                 MediaQuery.paddingOf(context).bottom +
                 ModelGridConfig.listBottomGap;
             final scopeBrand = state.scopeBrand;
@@ -124,6 +136,8 @@ class _SearchPageState extends State<SearchPage> {
                       SliverPersistentHeader(
                         pinned: true,
                         delegate: SearchHeaderDelegate(
+                          title: widget.title,
+                          onBack: widget.onBack,
                           topInset: MediaQuery.paddingOf(context).top,
                           selectorBuilder: widget.selectorBuilder,
                           controller: _controller,

@@ -191,6 +191,7 @@ void main() {
         highwayKmPerLiter: 17,
         combinedKmPerLiter: 14.5,
         annualFuelCostUsd: 1750,
+        engineKind: EngineKind.pluginHybrid,
       ),
       savedAt: DateTime.fromMillisecondsSinceEpoch(1700000000000),
     );
@@ -200,6 +201,7 @@ void main() {
       expect(model.key, 'v1|41213');
       expect(model.vehicleId, 41213);
       expect(model.powertrain, 'pluginHybrid');
+      expect(model.engineKind, 'pluginHybrid');
       expect(model.savedAtMillis, 1700000000000);
       expect(CachedDetailMapper.toEntity(model), entity);
     });

@@ -5,13 +5,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:cars_wheels_app/app/app_dependencies.dart';
+import 'package:cars_wheels_app/app/compare/market_compare_market_source.dart';
 import 'package:cars_wheels_app/app/market_catalog/market_search_context_source.dart';
 import 'package:cars_wheels_app/app/router/app_router_setup.dart';
 import 'package:cars_wheels_app/app/search_results/market_search_traits_source.dart';
 import 'package:cars_wheels_app/app/search_results/search_card_cubits_factory.dart';
+import 'package:cars_wheels_app/app/search_results/search_cubit_factory.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
+import 'package:cars_wheels_app/features/compare/compare.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/navigation/navigation.dart';
@@ -116,6 +119,13 @@ class _AppState extends State<App> {
         RepositoryProvider<ResolveGroupSafetyUseCase>.value(
           value: _dependencies.resolveGroupSafetyUseCase,
         ),
+        // El selector de Comparar crea su propia búsqueda con esta fábrica.
+        RepositoryProvider<SearchCubitFactory>.value(
+          value: SearchCubitFactory(_dependencies.createIsolatedSearchCubit),
+        ),
+        RepositoryProvider<CompareVersionsSource>.value(
+          value: _dependencies.compareVersionsSource,
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -191,6 +201,27 @@ class _AppState extends State<App> {
                   largeListStrategy: ShellSortStrategy<SearchResultEntity>(),
                 ),
               ),
+            ),
+          ),
+          // A nivel de app: la selección sobrevive a Detalle, al selector y a las pestañas.
+          BlocProvider<CompareCubit>(
+            create: (context) => CompareCubit(
+              marketSource: MarketCompareMarketSource(
+                context.read<MarketCubit>(),
+              ),
+              addToCompare: _dependencies.addToCompareUseCase,
+              removeFromCompare: _dependencies.removeFromCompareUseCase,
+              clearCompare: _dependencies.clearCompareUseCase,
+              observeSelection: _dependencies.observeCompareSelectionUseCase,
+              updateSlotVersion: _dependencies.updateCompareSlotVersionUseCase,
+            ),
+          ),
+          // Datos de cada vehículo del comparador; sigue la selección de arriba.
+          BlocProvider<CompareTableCubit>(
+            create: (context) => CompareTableCubit(
+              compare: context.read<CompareCubit>(),
+              vehicleSource: _dependencies.compareVehicleSource,
+              safetySource: _dependencies.compareSafetySource,
             ),
           ),
           BlocProvider<LogoPrecacheCubit>(create: (_) => LogoPrecacheCubit()),

@@ -9,9 +9,16 @@ import 'package:cars_wheels_app/app/market_catalog/market_load_group_details_use
 import 'package:cars_wheels_app/app/market_catalog/market_resolve_group_summary_usecase.dart';
 import 'package:cars_wheels_app/app/market_catalog/market_search_catalog_source.dart';
 import 'package:cars_wheels_app/app/market_catalog/market_summary_key_builder.dart';
+import 'package:cars_wheels_app/app/compare/compare_group_details_loader.dart';
+import 'package:cars_wheels_app/app/compare/compare_version_labeler.dart';
+import 'package:cars_wheels_app/app/compare/market_compare_safety_source.dart';
+import 'package:cars_wheels_app/app/compare/market_compare_vehicle_source.dart';
+import 'package:cars_wheels_app/app/compare/market_compare_versions_source.dart';
+import 'package:cars_wheels_app/app/search_results/market_search_traits_source.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
+import 'package:cars_wheels_app/features/compare/compare.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/mexico_catalog/mexico_catalog.dart';
@@ -64,6 +71,15 @@ class AppDependencies {
     required this.getRecentSearchesUseCase,
     required this.removeRecentSearchUseCase,
     required this.clearRecentSearchesUseCase,
+    required this.createIsolatedSearchCubit,
+    required this.addToCompareUseCase,
+    required this.removeFromCompareUseCase,
+    required this.clearCompareUseCase,
+    required this.observeCompareSelectionUseCase,
+    required this.updateCompareSlotVersionUseCase,
+    required this.compareVehicleSource,
+    required this.compareSafetySource,
+    required this.compareVersionsSource,
     required this.commonsQueue,
     required this.fuelEconomyQueue,
     required this.nhtsaQueue,
@@ -82,6 +98,10 @@ class AppDependencies {
       mexicoCatalogCache: IsarMexicoCatalogCacheDatasource(isar),
       marketPreference: IsarMarketPreferenceDatasource(isar),
       recentSearches: IsarRecentSearchesDatasource(isar),
+      compareSelection: IsarCompareSelectionDatasource(
+        isar,
+        clock: DateTime.now,
+      ),
       commonsLogoCache: IsarCommonsLogoCacheDatasource(isar),
       closeStorage: () => IsarDatabase.close(isar),
     );
@@ -97,6 +117,7 @@ class AppDependencies {
     required MexicoCatalogCacheDatasource mexicoCatalogCache,
     required MarketPreferenceDatasource marketPreference,
     required RecentSearchesDatasource recentSearches,
+    required CompareSelectionDatasource compareSelection,
     CommonsLogoCacheDatasource? commonsLogoCache,
     Future<void> Function()? closeStorage,
   }) {
@@ -151,6 +172,7 @@ class AppDependencies {
       mexicoCatalogCache,
       marketPreference,
       recentSearches,
+      compareSelection,
       commonsLogoCache: commonsLogoCache,
       closeStorage: closeStorage,
     );
@@ -171,7 +193,8 @@ class AppDependencies {
     SafetyCacheDatasource safetyCache,
     MexicoCatalogCacheDatasource mexicoCatalogCache,
     MarketPreferenceDatasource marketPreference,
-    RecentSearchesDatasource recentSearches, {
+    RecentSearchesDatasource recentSearches,
+    CompareSelectionDatasource compareSelection, {
     CommonsLogoCacheDatasource? commonsLogoCache,
     Future<void> Function()? closeStorage,
   }) {
@@ -291,6 +314,39 @@ class AppDependencies {
       smallListStrategy: BubbleSortStrategy<int>(),
       largeListStrategy: ShellSortStrategy<int>(),
     );
+    final marketResolveGroupSummary = MarketResolveGroupSummaryUseCase(
+      unitedStates: resolveGroupSummary,
+      getMxVersions: getMxVersions,
+      summaryBuilder: const MxGroupSummaryBuilder(),
+      currentMarket: currentMarket,
+    );
+    final marketLoadGroupDetails = MarketLoadGroupDetailsUseCase(
+      unitedStates: LoadGroupDetailsUseCase(
+        getGroupOptions: getGroupOptions,
+        resolveVehicleDetail: resolveVehicleDetail,
+        defaultVersionSelector: defaultVersionSelector,
+      ),
+      getMxVersions: getMxVersions,
+      detailBuilder: const MxVehicleDetailBuilder(),
+      labelDisambiguator: const MxVersionLabelDisambiguator(),
+    );
+    final marketGetModelGroups = MarketGetModelGroupsUseCase(
+      unitedStates: GetModelGroupsUseCase(
+        repository: repository,
+        grouper: const ModelGrouper(sortStrategy: groupSortStrategy),
+      ),
+      getMxModelGroups: getMxModelGroups,
+      currentMarket: currentMarket,
+    );
+    // Mismas cachés que Detalle: el comparador no repite peticiones.
+    final compareLoader = CompareGroupDetailsLoader(
+      getModelGroups: marketGetModelGroups,
+      loadGroupDetails: marketLoadGroupDetails,
+      currentMarket: currentMarket,
+    );
+    const compareVersionLabeler = CompareVersionLabeler(
+      VersionDescriptorBuilder(transmissionLabeler: transmissionLabeler),
+    );
     final searchStore = SearchIndexStore();
     final searchSource = MarketSearchCatalogSource(
       unitedStatesBrands: GetBrandsUseCase(
@@ -322,14 +378,7 @@ class AppDependencies {
         getMxBrands: GetMxBrandsUseCase(mexicoCatalogRepository),
         currentMarket: currentMarket,
       ),
-      getModelGroupsUseCase: MarketGetModelGroupsUseCase(
-        unitedStates: GetModelGroupsUseCase(
-          repository: repository,
-          grouper: const ModelGrouper(sortStrategy: groupSortStrategy),
-        ),
-        getMxModelGroups: getMxModelGroups,
-        currentMarket: currentMarket,
-      ),
+      getModelGroupsUseCase: marketGetModelGroups,
       brandLogosRepository: BrandLogosRepositoryImpl(
         BrandLogosCdnDatasource(logosDio),
       ),
@@ -362,12 +411,7 @@ class AppDependencies {
       cancelPendingPhotosUseCase: CancelPendingPhotosUseCase(photosRepository),
       photoKeyBuilder: photoKeyBuilder,
       getGroupSummaryUseCase: getGroupSummary,
-      resolveGroupSummaryUseCase: MarketResolveGroupSummaryUseCase(
-        unitedStates: resolveGroupSummary,
-        getMxVersions: getMxVersions,
-        summaryBuilder: const MxGroupSummaryBuilder(),
-        currentMarket: currentMarket,
-      ),
+      resolveGroupSummaryUseCase: marketResolveGroupSummary,
       cancelPendingSummariesUseCase: CancelPendingSummariesUseCase(
         vehicleSpecsRepository,
       ),
@@ -385,16 +429,7 @@ class AppDependencies {
         transmissionLabeler: transmissionLabeler,
       ),
       defaultVersionSelector: defaultVersionSelector,
-      loadGroupDetailsUseCase: MarketLoadGroupDetailsUseCase(
-        unitedStates: LoadGroupDetailsUseCase(
-          getGroupOptions: getGroupOptions,
-          resolveVehicleDetail: resolveVehicleDetail,
-          defaultVersionSelector: defaultVersionSelector,
-        ),
-        getMxVersions: getMxVersions,
-        detailBuilder: const MxVehicleDetailBuilder(),
-        labelDisambiguator: const MxVersionLabelDisambiguator(),
-      ),
+      loadGroupDetailsUseCase: marketLoadGroupDetails,
       resolveGroupSafetyUseCase: resolveGroupSafety,
       getMxYearsUseCase: GetMxYearsUseCase(mexicoCatalogRepository),
       getMxBrandsUseCase: GetMxBrandsUseCase(mexicoCatalogRepository),
@@ -441,6 +476,87 @@ class AppDependencies {
       getRecentSearchesUseCase: GetRecentSearchesUseCase(recentSearches),
       removeRecentSearchUseCase: RemoveRecentSearchUseCase(recentSearches),
       clearRecentSearchesUseCase: ClearRecentSearchesUseCase(recentSearches),
+      // Cubit de búsqueda propio (selector del comparador): mismo índice y cachés.
+      createIsolatedSearchCubit: (contextSource) {
+        BuildSearchIndexUseCase newBuildIndex() => BuildSearchIndexUseCase(
+          source: searchSource,
+          store: searchStore,
+          sortStrategy: postingSortStrategy,
+        );
+        const ranker = SearchResultRanker(sortStrategy: rankedSortStrategy);
+        return SearchCubit(
+          contextSource: contextSource,
+          buildIndex: newBuildIndex(),
+          searchWithScope: SearchWithScopeUseCase(
+            store: searchStore,
+            ranker: ranker,
+          ),
+          suggestTerms: SuggestSearchTermsUseCase(
+            store: searchStore,
+            sortStrategy: suggestionSortStrategy,
+          ),
+          searchOtherYears: SearchOtherYearsUseCase(
+            buildIndex: newBuildIndex(),
+            searchCatalog: SearchCatalogUseCase(
+              store: searchStore,
+              ranker: ranker,
+            ),
+            selector: const NearestYearsSelector(
+              sortStrategy: yearSortStrategy,
+            ),
+          ),
+          getBrandGroups: GetBrandGroupsUseCase(
+            store: searchStore,
+            ranker: ranker,
+          ),
+          getIndexBrands: GetIndexBrandsUseCase(
+            store: searchStore,
+            sortStrategy: brandNameSortStrategy,
+          ),
+          addRecent: AddRecentSearchUseCase(
+            datasource: recentSearches,
+            clock: DateTime.now,
+          ),
+          getRecents: GetRecentSearchesUseCase(recentSearches),
+          removeRecent: RemoveRecentSearchUseCase(recentSearches),
+          clearRecents: ClearRecentSearchesUseCase(recentSearches),
+          analysisRunner: SearchAnalysisRunner(
+            source: MarketSearchTraitsSource(marketResolveGroupSummary),
+          ),
+          filterService: const SearchFilterService(
+            sortStrategy: AdaptiveSortStrategy<SearchResultEntity>(
+              smallListStrategy: BubbleSortStrategy<SearchResultEntity>(),
+              largeListStrategy: ShellSortStrategy<SearchResultEntity>(),
+            ),
+          ),
+        );
+      },
+      addToCompareUseCase: AddToCompareUseCase(compareSelection),
+      removeFromCompareUseCase: RemoveFromCompareUseCase(compareSelection),
+      clearCompareUseCase: ClearCompareUseCase(compareSelection),
+      observeCompareSelectionUseCase: ObserveCompareSelectionUseCase(
+        compareSelection,
+      ),
+      updateCompareSlotVersionUseCase: UpdateCompareSlotVersionUseCase(
+        compareSelection,
+      ),
+      compareVehicleSource: MarketCompareVehicleSource(
+        loader: compareLoader,
+        versionLabeler: compareVersionLabeler,
+        classTranslator: const VehicleClassTranslator(
+          onUntranslated: _logUntranslatedClass,
+        ),
+        fuelTypeLabeler: const FuelTypeLabeler(
+          onUntranslated: _logUntranslatedText,
+        ),
+        driveLabeler: const DriveLabeler(onUntranslated: _logUntranslatedText),
+        transmissionLabeler: transmissionLabeler,
+      ),
+      compareSafetySource: MarketCompareSafetySource(resolveGroupSafety),
+      compareVersionsSource: MarketCompareVersionsSource(
+        loader: compareLoader,
+        versionLabeler: compareVersionLabeler,
+      ),
       commonsQueue: commonsQueue,
       fuelEconomyQueue: fuelEconomyQueue,
       nhtsaQueue: nhtsaQueue,
@@ -490,6 +606,16 @@ class AppDependencies {
   final GetRecentSearchesUseCase getRecentSearchesUseCase;
   final RemoveRecentSearchUseCase removeRecentSearchUseCase;
   final ClearRecentSearchesUseCase clearRecentSearchesUseCase;
+  final SearchCubit Function(SearchContextSource contextSource)
+  createIsolatedSearchCubit;
+  final AddToCompareUseCase addToCompareUseCase;
+  final RemoveFromCompareUseCase removeFromCompareUseCase;
+  final ClearCompareUseCase clearCompareUseCase;
+  final ObserveCompareSelectionUseCase observeCompareSelectionUseCase;
+  final UpdateCompareSlotVersionUseCase updateCompareSlotVersionUseCase;
+  final CompareVehicleSource compareVehicleSource;
+  final CompareSafetySource compareSafetySource;
+  final CompareVersionsSource compareVersionsSource;
   final RateLimitedQueue commonsQueue;
   final ConcurrencyLimitedQueue fuelEconomyQueue;
   final ConcurrencyLimitedQueue nhtsaQueue;

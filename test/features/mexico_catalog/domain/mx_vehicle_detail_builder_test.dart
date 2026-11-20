@@ -34,6 +34,11 @@ void main() {
       expect(detail.electricConsumptionKwhPer100Kilometers, isNull);
     });
 
+    test('el tipo fino de motorización se conserva', () {
+      expect(mxDetail('COROLLA').engineKind, EngineKind.gasoline);
+      expect(mxDetail('COROLLA HIBRIDO').engineKind, EngineKind.hybrid);
+    });
+
     test('híbrido real cuenta como combustión y conserva su km/l', () {
       final detail = mxDetail('COROLLA HIBRIDO');
       expect(detail.powertrain, Powertrain.combustion);

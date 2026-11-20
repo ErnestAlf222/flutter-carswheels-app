@@ -64,60 +64,65 @@ const VehicleDetailCacheModelSchema = CollectionSchema(
       name: r'emissionsScore',
       type: IsarType.long,
     ),
-    r'fuelScore': PropertySchema(
+    r'engineKind': PropertySchema(
       id: 10,
+      name: r'engineKind',
+      type: IsarType.string,
+    ),
+    r'fuelScore': PropertySchema(
+      id: 11,
       name: r'fuelScore',
       type: IsarType.long,
     ),
     r'fuelType': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'fuelType',
       type: IsarType.string,
     ),
     r'highwayKmPerLiter': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'highwayKmPerLiter',
       type: IsarType.double,
     ),
     r'hybridGasKmPerLiter': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'hybridGasKmPerLiter',
       type: IsarType.double,
     ),
-    r'key': PropertySchema(id: 14, name: r'key', type: IsarType.string),
-    r'make': PropertySchema(id: 15, name: r'make', type: IsarType.string),
-    r'model': PropertySchema(id: 16, name: r'model', type: IsarType.string),
+    r'key': PropertySchema(id: 15, name: r'key', type: IsarType.string),
+    r'make': PropertySchema(id: 16, name: r'make', type: IsarType.string),
+    r'model': PropertySchema(id: 17, name: r'model', type: IsarType.string),
     r'powertrain': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'powertrain',
       type: IsarType.string,
     ),
     r'savedAtMillis': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'savedAtMillis',
       type: IsarType.long,
     ),
     r'totalRangeKilometers': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'totalRangeKilometers',
       type: IsarType.double,
     ),
     r'transmission': PropertySchema(
-      id: 20,
+      id: 21,
       name: r'transmission',
       type: IsarType.string,
     ),
     r'vehicleClass': PropertySchema(
-      id: 21,
+      id: 22,
       name: r'vehicleClass',
       type: IsarType.string,
     ),
     r'vehicleId': PropertySchema(
-      id: 22,
+      id: 23,
       name: r'vehicleId',
       type: IsarType.long,
     ),
-    r'year': PropertySchema(id: 23, name: r'year', type: IsarType.long),
+    r'year': PropertySchema(id: 24, name: r'year', type: IsarType.long),
   },
 
   estimateSize: _vehicleDetailCacheModelEstimateSize,
@@ -157,6 +162,12 @@ int _vehicleDetailCacheModelEstimateSize(
   var bytesCount = offsets.last;
   {
     final value = object.drive;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.engineKind;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
@@ -202,20 +213,21 @@ void _vehicleDetailCacheModelSerialize(
   writer.writeDouble(offsets[7], object.electricConsumptionKwhPer100Kilometers);
   writer.writeDouble(offsets[8], object.electricRangeKilometers);
   writer.writeLong(offsets[9], object.emissionsScore);
-  writer.writeLong(offsets[10], object.fuelScore);
-  writer.writeString(offsets[11], object.fuelType);
-  writer.writeDouble(offsets[12], object.highwayKmPerLiter);
-  writer.writeDouble(offsets[13], object.hybridGasKmPerLiter);
-  writer.writeString(offsets[14], object.key);
-  writer.writeString(offsets[15], object.make);
-  writer.writeString(offsets[16], object.model);
-  writer.writeString(offsets[17], object.powertrain);
-  writer.writeLong(offsets[18], object.savedAtMillis);
-  writer.writeDouble(offsets[19], object.totalRangeKilometers);
-  writer.writeString(offsets[20], object.transmission);
-  writer.writeString(offsets[21], object.vehicleClass);
-  writer.writeLong(offsets[22], object.vehicleId);
-  writer.writeLong(offsets[23], object.year);
+  writer.writeString(offsets[10], object.engineKind);
+  writer.writeLong(offsets[11], object.fuelScore);
+  writer.writeString(offsets[12], object.fuelType);
+  writer.writeDouble(offsets[13], object.highwayKmPerLiter);
+  writer.writeDouble(offsets[14], object.hybridGasKmPerLiter);
+  writer.writeString(offsets[15], object.key);
+  writer.writeString(offsets[16], object.make);
+  writer.writeString(offsets[17], object.model);
+  writer.writeString(offsets[18], object.powertrain);
+  writer.writeLong(offsets[19], object.savedAtMillis);
+  writer.writeDouble(offsets[20], object.totalRangeKilometers);
+  writer.writeString(offsets[21], object.transmission);
+  writer.writeString(offsets[22], object.vehicleClass);
+  writer.writeLong(offsets[23], object.vehicleId);
+  writer.writeLong(offsets[24], object.year);
 }
 
 VehicleDetailCacheModel _vehicleDetailCacheModelDeserialize(
@@ -235,21 +247,22 @@ VehicleDetailCacheModel _vehicleDetailCacheModelDeserialize(
     electricConsumptionKwhPer100Kilometers: reader.readDoubleOrNull(offsets[7]),
     electricRangeKilometers: reader.readDoubleOrNull(offsets[8]),
     emissionsScore: reader.readLongOrNull(offsets[9]),
-    fuelScore: reader.readLongOrNull(offsets[10]),
-    fuelType: reader.readStringOrNull(offsets[11]),
-    highwayKmPerLiter: reader.readDoubleOrNull(offsets[12]),
-    hybridGasKmPerLiter: reader.readDoubleOrNull(offsets[13]),
+    engineKind: reader.readStringOrNull(offsets[10]),
+    fuelScore: reader.readLongOrNull(offsets[11]),
+    fuelType: reader.readStringOrNull(offsets[12]),
+    highwayKmPerLiter: reader.readDoubleOrNull(offsets[13]),
+    hybridGasKmPerLiter: reader.readDoubleOrNull(offsets[14]),
     id: id,
-    key: reader.readString(offsets[14]),
-    make: reader.readString(offsets[15]),
-    model: reader.readString(offsets[16]),
-    powertrain: reader.readString(offsets[17]),
-    savedAtMillis: reader.readLong(offsets[18]),
-    totalRangeKilometers: reader.readDoubleOrNull(offsets[19]),
-    transmission: reader.readStringOrNull(offsets[20]),
-    vehicleClass: reader.readStringOrNull(offsets[21]),
-    vehicleId: reader.readLong(offsets[22]),
-    year: reader.readLong(offsets[23]),
+    key: reader.readString(offsets[15]),
+    make: reader.readString(offsets[16]),
+    model: reader.readString(offsets[17]),
+    powertrain: reader.readString(offsets[18]),
+    savedAtMillis: reader.readLong(offsets[19]),
+    totalRangeKilometers: reader.readDoubleOrNull(offsets[20]),
+    transmission: reader.readStringOrNull(offsets[21]),
+    vehicleClass: reader.readStringOrNull(offsets[22]),
+    vehicleId: reader.readLong(offsets[23]),
+    year: reader.readLong(offsets[24]),
   );
   return object;
 }
@@ -282,15 +295,15 @@ P _vehicleDetailCacheModelDeserializeProp<P>(
     case 9:
       return (reader.readLongOrNull(offset)) as P;
     case 10:
-      return (reader.readLongOrNull(offset)) as P;
-    case 11:
       return (reader.readStringOrNull(offset)) as P;
+    case 11:
+      return (reader.readLongOrNull(offset)) as P;
     case 12:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 13:
       return (reader.readDoubleOrNull(offset)) as P;
     case 14:
-      return (reader.readString(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 15:
       return (reader.readString(offset)) as P;
     case 16:
@@ -298,16 +311,18 @@ P _vehicleDetailCacheModelDeserializeProp<P>(
     case 17:
       return (reader.readString(offset)) as P;
     case 18:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 19:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 20:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 21:
       return (reader.readStringOrNull(offset)) as P;
     case 22:
-      return (reader.readLong(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 23:
+      return (reader.readLong(offset)) as P;
+    case 24:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1766,6 +1781,213 @@ extension VehicleDetailCacheModelQueryFilter
           upper: upper,
           includeUpper: includeUpper,
         ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'engineKind'),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'engineKind'),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'engineKind',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'engineKind',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'engineKind',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'engineKind',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'engineKind',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'engineKind',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'engineKind',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'engineKind',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'engineKind', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  engineKindIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'engineKind', value: ''),
       );
     });
   }
@@ -4009,6 +4231,20 @@ extension VehicleDetailCacheModelQuerySortBy
   }
 
   QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  sortByEngineKind() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'engineKind', Sort.asc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  sortByEngineKindDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'engineKind', Sort.desc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
   sortByFuelScore() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fuelScore', Sort.asc);
@@ -4359,6 +4595,20 @@ extension VehicleDetailCacheModelQuerySortThenBy
   }
 
   QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  thenByEngineKind() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'engineKind', Sort.asc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  thenByEngineKindDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'engineKind', Sort.desc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
   thenByFuelScore() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fuelScore', Sort.asc);
@@ -4647,6 +4897,13 @@ extension VehicleDetailCacheModelQueryWhereDistinct
   }
 
   QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QDistinct>
+  distinctByEngineKind({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'engineKind', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QDistinct>
   distinctByFuelScore() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'fuelScore');
@@ -4825,6 +5082,13 @@ extension VehicleDetailCacheModelQueryProperty
   emissionsScoreProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'emissionsScore');
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, String?, QQueryOperations>
+  engineKindProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'engineKind');
     });
   }
 

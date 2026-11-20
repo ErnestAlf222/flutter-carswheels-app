@@ -1,0 +1,25 @@
+// Entidades
+export 'entities/compare_add_result_entity.dart';
+export 'entities/compare_engine_kind.dart';
+export 'entities/compare_selection_entity.dart';
+export 'entities/compare_slot_entity.dart';
+export 'entities/compare_table_cell_entity.dart';
+export 'entities/compare_table_row_entity.dart';
+export 'entities/compare_table_section_entity.dart';
+export 'entities/compare_vehicle_detail_entity.dart';
+export 'entities/compare_version_option_entity.dart';
+export 'entities/compare_version_update_result.dart';
+// Contratos
+export 'datasources/compare_market_source.dart';
+export 'datasources/compare_safety_source.dart';
+export 'datasources/compare_selection_datasource.dart';
+export 'datasources/compare_vehicle_source.dart';
+export 'datasources/compare_versions_source.dart';
+// Servicios
+export 'services/compare_table_builder.dart';
+// Casos de uso
+export 'usecases/add_to_compare_usecase.dart';
+export 'usecases/clear_compare_usecase.dart';
+export 'usecases/observe_compare_selection_usecase.dart';
+export 'usecases/remove_from_compare_usecase.dart';
+export 'usecases/update_compare_slot_version_usecase.dart';

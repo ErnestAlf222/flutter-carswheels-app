@@ -5,6 +5,7 @@ import 'package:cars_wheels_app/app/app.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
+import 'package:cars_wheels_app/features/compare/compare.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/navigation/navigation.dart';
@@ -19,6 +20,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../support/compare_test_support.dart';
 import '../support/detail_test_support.dart';
 import '../support/market_test_support.dart';
 import '../support/search_test_support.dart';
@@ -95,6 +97,7 @@ Widget _blocs(
       BlocProvider<MarketCubit>.value(value: buildMarketCubit()),
       BlocProvider<SectionLoaderCubit>(create: (_) => SectionLoaderCubit()),
       BlocProvider<SearchCubit>.value(value: SearchHarness().cubit),
+      BlocProvider<CompareCubit>(create: (_) => buildCompareCubit()),
     ],
     child: MaterialApp.router(routerConfig: router),
   );
@@ -118,7 +121,7 @@ void main() {
     await tester.pump();
     final expected = {
       RoutesConfig.search: find.byType(SearchPage),
-      RoutesConfig.compare: find.text(AppTexts.comparePageTitle),
+      RoutesConfig.compare: find.byType(ComparePage),
       RoutesConfig.favorites: find.text(AppTexts.favoritesPageTitle),
       RoutesConfig.settings: find.text(AppTexts.settingsPageTitle),
     };

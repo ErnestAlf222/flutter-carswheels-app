@@ -85,6 +85,9 @@ void main() {
     ).thenAnswer((_) async => const []);
   });
 
+  // Lo que Detalle pidió comparar: los argumentos y la versión elegida.
+  final compareCalls = <(DetailArgsEntity, String?)>[];
+
   Future<void> pumpPage(
     WidgetTester tester, {
     PhotoEntity? photo,
@@ -98,7 +101,13 @@ void main() {
         GoRoute(path: '/', builder: (_, _) => const Text('inicio')),
         GoRoute(
           path: RoutesConfig.detail,
-          builder: (_, _) => DetailPage(args: args),
+          builder: (_, _) => DetailPage(
+            args: args,
+            onCompare: (context, args, versionKey) {
+              compareCalls.add((args, versionKey));
+              context.go(RoutesConfig.compare);
+            },
+          ),
         ),
         GoRoute(
           path: RoutesConfig.compare,
@@ -512,6 +521,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('pantalla comparar'), findsOneWidget);
     expect(router.state.uri.path, RoutesConfig.compare);
+    // Sin elegir otra, entrega la versión predeterminada ya cargada.
+    expect(compareCalls, hasLength(1));
+    expect(compareCalls.single.$1.groupName, testArgs().groupName);
+    expect(compareCalls.single.$2, isNotNull);
   });
 
   testWidgets('hay un solo corazón: el de la barra inferior', (tester) async {

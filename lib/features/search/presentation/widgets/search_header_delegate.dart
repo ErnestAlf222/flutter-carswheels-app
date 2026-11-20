@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/search/presentation/widgets/search_field_widget.dart';
@@ -15,7 +16,15 @@ class SearchHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.onChanged,
     required this.onSubmitted,
     required this.onClear,
+    this.title = AppTexts.searchPageTitle,
+    this.onBack,
   });
+
+  /// Título de la pantalla; el modo selección usa el suyo.
+  final String title;
+
+  /// Con valor, muestra un botón de volver antes del título (modo selección).
+  final VoidCallback? onBack;
 
   /// Área segura superior, ya medida por la pantalla.
   final double topInset;
@@ -89,10 +98,20 @@ class SearchHeaderDelegate extends SliverPersistentHeaderDelegate {
                           ),
                           child: Row(
                             children: [
+                              if (onBack != null) ...[
+                                _BackButton(onTap: onBack!),
+                                const SizedBox(width: AppSpacing.xs),
+                              ],
                               Expanded(
-                                child: Text(
-                                  AppTexts.searchPageTitle,
-                                  style: AppTextStyles.onDarkScreenTitle,
+                                // Un título largo se encoge en vez de desbordar.
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    title,
+                                    maxLines: 1,
+                                    style: AppTextStyles.onDarkScreenTitle,
+                                  ),
                                 ),
                               ),
                               selectorBuilder(context),
@@ -131,10 +150,47 @@ class SearchHeaderDelegate extends SliverPersistentHeaderDelegate {
   // onSubmitted se omite: llega como cierre nuevo en cada build y hace lo mismo.
   @override
   bool shouldRebuild(SearchHeaderDelegate oldDelegate) =>
+      title != oldDelegate.title ||
+      onBack != oldDelegate.onBack ||
       topInset != oldDelegate.topInset ||
       selectorBuilder != oldDelegate.selectorBuilder ||
       controller != oldDelegate.controller ||
       focusNode != oldDelegate.focusNode ||
       onChanged != oldDelegate.onChanged ||
       onClear != oldDelegate.onClear;
+}
+
+/// Botón circular de volver sobre la banda tinta.
+class _BackButton extends StatelessWidget {
+  const _BackButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: AppTexts.backLabel,
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          width: SearchConfig.headerBackButtonSize,
+          height: SearchConfig.headerBackButtonSize,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.onDark.withValues(
+              alpha: MarketConfig.flagDiscOpacity,
+            ),
+          ),
+          child: const Icon(
+            Symbols.arrow_back,
+            size: UiConfig.iconSize,
+            color: AppColors.onDark,
+          ),
+        ),
+      ),
+    );
+  }
 }

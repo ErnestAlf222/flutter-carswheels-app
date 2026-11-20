@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/detail/domain/domain.dart';
@@ -11,11 +10,21 @@ import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/safety/safety.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 
+/// Pide comparar el vehículo de Detalle; lo implementa la capa app.
+///
+/// [versionKey] es la versión elegida; nulo si aún no cargó (la predeterminada).
+typedef DetailCompareHandler = void Function(
+  BuildContext context,
+  DetailArgsEntity args,
+  String? versionKey,
+);
+
 /// Pantalla Detalle de un grupo de modelos.
 class DetailPage extends StatelessWidget {
-  const DetailPage({super.key, required this.args});
+  const DetailPage({super.key, required this.args, required this.onCompare});
 
   final DetailArgsEntity args;
+  final DetailCompareHandler onCompare;
 
   @override
   Widget build(BuildContext context) {
@@ -60,8 +69,12 @@ class DetailPage extends StatelessWidget {
               left: 0,
               right: 0,
               bottom: 0,
-              child: DetailBottomBarWidget(
-                onCompare: () => context.go(RoutesConfig.compare),
+              // El contexto interno ve el DetailCubit para leer la versión elegida.
+              child: Builder(
+                builder: (context) => DetailBottomBarWidget(
+                  onCompare: () =>
+                      onCompare(context, args, _selectedVersionKey(context)),
+                ),
               ),
             ),
           ],
@@ -69,6 +82,14 @@ class DetailPage extends StatelessWidget {
       ),
     );
   }
+}
+
+// Versión elegida en pantalla; nula mientras las versiones no cargan.
+String? _selectedVersionKey(BuildContext context) {
+  final state = context.read<DetailCubit>().state;
+  return state is DetailLoaded
+      ? state.details.versions[state.selectedIndex].variantName
+      : null;
 }
 
 // Entrada escalonada de una sección; solo anima al montarse por primera vez.

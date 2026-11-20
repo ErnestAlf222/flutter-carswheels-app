@@ -75,6 +75,11 @@ VehicleDetailEntity testDetail({
   double? hybridGasKmPerLiter,
   int? fuelScore,
   int? emissionsScore,
+  String? cylindersLabel,
+  String? powerText,
+  String? torqueText,
+  String? compressionRatioText,
+  EngineKind? engineKind,
 }) => VehicleDetailEntity(
   id: id,
   year: 2020,
@@ -101,6 +106,11 @@ VehicleDetailEntity testDetail({
   hybridGasKmPerLiter: hybridGasKmPerLiter,
   fuelScore: fuelScore,
   emissionsScore: emissionsScore,
+  cylindersLabel: cylindersLabel,
+  powerText: powerText,
+  torqueText: torqueText,
+  compressionRatioText: compressionRatioText,
+  engineKind: engineKind,
 );
 
 /// Versión de un grupo con su variante.

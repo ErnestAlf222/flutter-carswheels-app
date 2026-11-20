@@ -47,6 +47,7 @@ class MxVehicleDetailBuilder {
       powerText: vehicle.power,
       torqueText: vehicle.torque,
       compressionRatioText: vehicle.compressionRatio,
+      engineKind: kind,
     );
   }
 

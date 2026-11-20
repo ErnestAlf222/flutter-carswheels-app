@@ -34,6 +34,7 @@ class VehicleDetailEntity extends Equatable {
     this.powerText,
     this.torqueText,
     this.compressionRatioText,
+    this.engineKind,
   });
 
   final int id;
@@ -86,6 +87,9 @@ class VehicleDetailEntity extends Equatable {
   final String? torqueText;
   final String? compressionRatioText;
 
+  /// Tipo de motorización fino (distingue híbrido y combustibles); nulo si no se conoce.
+  final EngineKind? engineKind;
+
   @override
   List<Object?> get props => [
     id,
@@ -117,5 +121,6 @@ class VehicleDetailEntity extends Equatable {
     powerText,
     torqueText,
     compressionRatioText,
+    engineKind,
   ];
 }

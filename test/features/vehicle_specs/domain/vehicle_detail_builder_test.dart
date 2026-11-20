@@ -35,6 +35,19 @@ void main() {
       builder.build(record, 41213, 2020, 'Toyota', 'Corolla');
 
   group('VehicleDetailBuilder', () {
+    test('el tipo fino de motorización sale del atvType', () {
+      expect(build(_record()).engineKind, EngineKind.gasoline);
+      expect(build(_record(atvType: 'Hybrid')).engineKind, EngineKind.hybrid);
+      expect(build(_record(atvType: 'EV')).engineKind, EngineKind.electric);
+      expect(
+        build(_record(atvType: 'Plug-in Hybrid')).engineKind,
+        EngineKind.pluginHybrid,
+      );
+      expect(build(_record(atvType: 'Diesel')).engineKind, EngineKind.diesel);
+      // Un atvType desconocido no inventa un tipo.
+      expect(build(_record(atvType: 'Raro')).engineKind, isNull);
+    });
+
     test('combustión: ciudad, carretera y combinado pasan a km/l', () {
       final detail = build(_record());
       expect(detail.powertrain, Powertrain.combustion);

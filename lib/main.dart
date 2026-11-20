@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cars_wheels_app/app/app.dart';
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/compare/compare.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/mexico_catalog/mexico_catalog.dart';
@@ -26,6 +27,7 @@ Future<void> main() async {
     MexicoCatalogCacheModelSchema,
     MarketPreferenceModelSchema,
     RecentSearchModelSchema,
+    CompareSelectionModelSchema,
     CachedCommonsLogoModelSchema,
   ]);
   runApp(App(dependencies: AppDependencies.withIsar(isar)));

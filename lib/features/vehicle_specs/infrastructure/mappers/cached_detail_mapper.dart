@@ -36,6 +36,9 @@ class CachedDetailMapper {
         hybridGasKmPerLiter: model.hybridGasKmPerLiter,
         fuelScore: model.fuelScore,
         emissionsScore: model.emissionsScore,
+        engineKind: model.engineKind == null
+            ? null
+            : EngineKind.fromName(model.engineKind!),
       ),
       savedAt: DateTime.fromMillisecondsSinceEpoch(model.savedAtMillis),
     );
@@ -71,6 +74,7 @@ class CachedDetailMapper {
       hybridGasKmPerLiter: detail.hybridGasKmPerLiter,
       fuelScore: detail.fuelScore,
       emissionsScore: detail.emissionsScore,
+      engineKind: detail.engineKind?.name,
       savedAtMillis: entity.savedAt.millisecondsSinceEpoch,
     );
   }

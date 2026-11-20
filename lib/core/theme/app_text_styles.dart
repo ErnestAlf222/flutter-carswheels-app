@@ -163,6 +163,35 @@ class AppTextStyles {
     letterSpacing: 1.2,
     color: AppColors.mutedText,
   );
+  // Tabla comparativa: etiqueta de fila, valor, mejor valor y nombre en la banda.
+  static final TextStyle compareRowLabel = GoogleFonts.inter(
+    fontWeight: FontWeight.w600,
+    fontSize: 11,
+    height: 1.3,
+    letterSpacing: 0.3,
+    color: AppColors.mutedText,
+  );
+  static final TextStyle compareValue = GoogleFonts.inter(
+    fontWeight: FontWeight.w500,
+    fontSize: 13,
+    height: 1.3,
+    color: AppColors.ink,
+  );
+  static final TextStyle compareBestValue = compareValue.copyWith(
+    fontWeight: FontWeight.w700,
+  );
+  static final TextStyle compareBandName = GoogleFonts.inter(
+    fontWeight: FontWeight.w600,
+    fontSize: 12,
+    height: 1.2,
+    color: AppColors.ink,
+  );
+  static final TextStyle compareVersionPill = GoogleFonts.inter(
+    fontWeight: FontWeight.w600,
+    fontSize: 11,
+    height: 1.2,
+    color: AppColors.ink,
+  );
   static final TextStyle detailBrandYearLabel = label.copyWith(
     letterSpacing: 1.2,
   );

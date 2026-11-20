@@ -62,6 +62,7 @@ class VehicleDetailBuilder {
           : null,
       fuelScore: _validScore(record.fuelEconomyScore),
       emissionsScore: _validScore(record.greenhouseGasScore),
+      engineKind: classifier.engineKindOf(record.atvType),
     );
   }
 

@@ -61,7 +61,10 @@ void main() {
         GoRoute(path: '/', builder: (_, _) => const Text('inicio')),
         GoRoute(
           path: RoutesConfig.detail,
-          builder: (_, _) => DetailPage(args: args),
+          builder: (_, _) => DetailPage(
+            args: args,
+            onCompare: (context, _, _) => context.go(RoutesConfig.compare),
+          ),
         ),
         GoRoute(
           path: RoutesConfig.compare,

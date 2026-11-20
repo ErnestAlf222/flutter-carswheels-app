@@ -65,6 +65,8 @@ class SearchConfig {
 
   // Encabezado compacto: alto de la fila del título; el campo sobresale la mitad de su alto.
   static const double headerTitleRowHeight = MarketConfig.selectorHeight;
+  // Botón de volver del modo selección, en el encabezado.
+  static const double headerBackButtonSize = 44.0;
   static const double pinnedBandPadding =
       12.0; // Arriba y abajo del campo en la banda fija.
   static const double fieldHeight = 56.0;

@@ -2,6 +2,10 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:cars_wheels_app/app/compare/compare_navigation.dart';
+import 'package:cars_wheels_app/app/compare/compare_picker_page.dart';
+import 'package:cars_wheels_app/app/compare/compare_route_args.dart';
+import 'package:cars_wheels_app/app/compare/compare_slot_visuals_builder.dart';
 import 'package:cars_wheels_app/app/market_catalog/market_search_detail_args_builder.dart';
 import 'package:cars_wheels_app/app/market_catalog/search_market_year_selector.dart';
 import 'package:cars_wheels_app/app/search_results/search_results_grid.dart';
@@ -81,7 +85,18 @@ GoRouter buildAppRouter() => GoRouter(
         ),
         GoRoute(
           path: RoutesConfig.compare,
-          pageBuilder: (context, state) => _page(state, const ComparePage()),
+          pageBuilder: (context, state) {
+            final extra = state.extra;
+            return _page(
+              state,
+              ComparePage(
+                selectorBuilder: buildSearchMarketYearSelector,
+                visuals: marketCompareSlotVisuals,
+                openPickerOnEntry:
+                    extra is CompareRouteArgs && extra.openPicker,
+              ),
+            );
+          },
         ),
         GoRoute(
           path: RoutesConfig.favorites,
@@ -97,8 +112,19 @@ GoRouter buildAppRouter() => GoRouter(
       path: RoutesConfig.detail,
       redirect: (context, state) =>
           state.extra is DetailArgsEntity ? null : RoutesConfig.home,
+      pageBuilder: (context, state) => _flowPage(
+        state,
+        DetailPage(
+          args: state.extra! as DetailArgsEntity,
+          onCompare: addToCompareFromDetail,
+        ),
+      ),
+    ),
+    // Selector de vehículo del comparador: flujo fuera del marco, sin menú.
+    GoRoute(
+      path: RoutesConfig.comparePicker,
       pageBuilder: (context, state) =>
-          _flowPage(state, DetailPage(args: state.extra! as DetailArgsEntity)),
+          _flowPage(state, const ComparePickerPage()),
     ),
     GoRoute(
       path: RoutesConfig.photoViewer,
