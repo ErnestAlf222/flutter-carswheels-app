@@ -10,6 +10,41 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../support/compare_test_support.dart';
 
 const _pickerText = 'selector-de-vehiculo';
+const _addCivic = 'agregar-civic';
+const _addCorolla = 'agregar-corolla';
+
+// Selector de prueba: una hoja con dos botones que agregan por el cubit.
+Future<void> _fakePicker(BuildContext context) => showModalBottomSheet<void>(
+  context: context,
+  builder: (sheet) => Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      const Text(_pickerText),
+      TextButton(
+        onPressed: () async {
+          final result = await sheet.read<CompareCubit>().add(
+            compareSlot(model: 'Civic', brand: 'Honda'),
+          );
+          if (result is CompareAdded && sheet.mounted) {
+            Navigator.of(sheet).pop();
+          }
+        },
+        child: const Text(_addCivic),
+      ),
+      TextButton(
+        onPressed: () async {
+          final result = await sheet.read<CompareCubit>().add(
+            compareSlot(model: 'Corolla'),
+          );
+          if (result is CompareAdded && sheet.mounted) {
+            Navigator.of(sheet).pop();
+          }
+        },
+        child: const Text(_addCorolla),
+      ),
+    ],
+  ),
+);
 
 // Foto y logo de prueba: cajas con llave, sin red ni cubits.
 final CompareSlotVisuals _visuals = CompareSlotVisuals(
@@ -97,12 +132,11 @@ Future<_Harness> _pumpPage(
     routes: [
       GoRoute(
         path: '/',
-        builder: (_, _) =>
-            ComparePage(selectorBuilder: _selector, visuals: _visuals),
-      ),
-      GoRoute(
-        path: RoutesConfig.comparePicker,
-        builder: (_, _) => const Text(_pickerText),
+        builder: (_, _) => ComparePage(
+          selectorBuilder: _selector,
+          visuals: _visuals,
+          onOpenPicker: _fakePicker,
+        ),
       ),
     ],
   );
@@ -277,11 +311,37 @@ void main() {
   testWidgets('Limpiar vacía el comparador', (tester) async {
     final harness = await _pumpPage(tester, initial: _slots(3));
     await tester.tap(find.text(AppTexts.compareClearLabel));
-    await tester.pump();
-    await tester.pump();
+    await tester.pumpAndSettle();
+    // Pide confirmación con el número de vehículos.
+    expect(find.text(AppTexts.compareClearDialogTitle), findsOneWidget);
+    expect(find.text(AppTexts.compareClearDialogBody(3)), findsOneWidget);
+    await tester.tap(find.text(AppTexts.compareClearLabel).last);
+    await tester.pumpAndSettle();
     expect(_filledSlots, findsNothing);
     expect(_dashedSlots, findsNWidgets(3));
     expect(await harness.store.read('us'), isEmpty);
+  });
+
+  testWidgets('cancelar el diálogo de Limpiar no quita nada', (tester) async {
+    final harness = await _pumpPage(tester, initial: _slots(3));
+    await tester.tap(find.text(AppTexts.compareClearLabel));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(AppTexts.cancelLabel));
+    await tester.pumpAndSettle();
+    expect(find.text(AppTexts.compareClearDialogTitle), findsNothing);
+    expect(_filledSlots, findsNWidgets(3));
+    expect(await harness.store.read('us'), hasLength(3));
+  });
+
+  testWidgets('la x de un vehículo quita sin pedir confirmación', (
+    tester,
+  ) async {
+    final harness = await _pumpPage(tester, initial: _slots(3));
+    await tester.tap(find.byIcon(Symbols.close).first);
+    await tester.pump();
+    await tester.pump();
+    expect(find.text(AppTexts.compareClearDialogTitle), findsNothing);
+    expect(await harness.store.read('us'), hasLength(2));
   });
 
   testWidgets('tocar un espacio libre o el botón abre el selector', (
@@ -293,9 +353,42 @@ void main() {
     expect(find.text(_pickerText), findsOneWidget);
     harness.router.pop();
     await tester.pumpAndSettle();
+    expect(find.text(_pickerText), findsNothing);
     await tester.tap(find.text(AppTexts.compareAddVehicleLabel));
     await tester.pumpAndSettle();
     expect(find.text(_pickerText), findsOneWidget);
+  });
+
+  testWidgets('agregar desde la hoja la cierra y actualiza la tabla', (
+    tester,
+  ) async {
+    final harness = await _pumpPage(tester, initial: _slots(1));
+    await tester.tap(find.text(AppTexts.compareAddVehicleLabel));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(_addCivic));
+    await tester.pumpAndSettle();
+    // La hoja se cerró y la tabla ya tiene los dos vehículos, con su mensaje.
+    expect(find.text(_pickerText), findsNothing);
+    expect(_filledSlots, findsNWidgets(2));
+    expect(find.text(AppTexts.compareTableTitle), findsOneWidget);
+    expect(
+      find.text(AppTexts.compareAddedNotice('Honda Civic')),
+      findsOneWidget,
+    );
+    expect(await harness.store.read('us'), hasLength(2));
+    harness.cubit.dismissNotice();
+  });
+
+  testWidgets('un duplicado deja la hoja abierta y avisa', (tester) async {
+    final harness = await _pumpPage(tester, initial: _slots(1));
+    await tester.tap(find.text(AppTexts.compareAddVehicleLabel));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(_addCorolla));
+    await tester.pumpAndSettle();
+    expect(find.text(_pickerText), findsOneWidget);
+    expect(find.text(AppTexts.compareAlreadyAddedNotice), findsOneWidget);
+    expect(await harness.store.read('us'), hasLength(1));
+    harness.cubit.dismissNotice();
   });
 
   testWidgets('mensaje de lleno y de "ya está"; no se duplica ni se pasa', (
@@ -373,6 +466,7 @@ void main() {
           home: ComparePage(
             selectorBuilder: (_) => const SizedBox(),
             visuals: _visuals,
+            onOpenPicker: _fakePicker,
           ),
         ),
       ),

@@ -1,10 +1,17 @@
 // Widgets de la pantalla Comparar
+export 'compare_chart_button_widget.dart';
+export 'compare_chart_painter.dart';
+export 'compare_chart_sheet_widget.dart';
+export 'compare_clear_dialog_widget.dart';
 export 'compare_column_status_widget.dart';
 export 'compare_empty_slot_widget.dart';
 export 'compare_filled_slot_widget.dart';
+export 'compare_full_sheet_widget.dart';
 export 'compare_grid_row_widget.dart';
+export 'compare_help_sheet_widget.dart';
 export 'compare_help_widget.dart';
 export 'compare_notice_widget.dart';
+export 'compare_sheet_frame_widget.dart';
 export 'compare_slot_metrics.dart';
 export 'compare_slot_visuals.dart';
 export 'compare_slots_row_widget.dart';

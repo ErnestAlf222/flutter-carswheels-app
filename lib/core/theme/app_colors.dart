@@ -34,6 +34,12 @@ class AppColors {
   static const Color circleButtonOnPhoto = Color(0x990F1115);
   static const Color photoViewerBackground = Color(0xFF0E0E12);
   static const Color photoViewerCreditText = Color(0xD9FFFFFF);
+  // Gráfica neón sobre tinta: trazo, halo, brillo atenuado y línea base.
+  static const Color chartNeon = Color(0xFFFFD60A);
+  static const Color chartNeonGlow = Color(0x99FFD60A);
+  static const Color chartNeonDim = Color(0x8CFFD60A);
+  static const Color chartNeonDimGlow = Color(0x40FFD60A);
+  static const Color chartAxis = Color(0x40FFFFFF);
   // Insignias de motorización y chips de la tarjeta de modelo.
   static const Color engineElectric = Color(0xFF16A34A);
   static const Color enginePluginHybrid = Color(0xFF0D9488);

@@ -229,6 +229,7 @@ class CompareTableBuilder {
           else
             CompareTableCellEntity(
               text: _textOf(spec, numbers[index], texts[index]),
+              value: numbers[index],
               isBest: bestFlags[index],
             ),
       ],

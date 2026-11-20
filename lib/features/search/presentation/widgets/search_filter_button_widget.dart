@@ -10,6 +10,7 @@ class SearchFilterButton extends StatefulWidget {
     required this.activeCount,
     required this.visible,
     required this.onTap,
+    this.reserveNavSpace = true,
   });
 
   /// Filtros activos; con alguno se muestra la insignia con el número.
@@ -18,6 +19,9 @@ class SearchFilterButton extends StatefulWidget {
   /// Hay resultados en pantalla o filtros activos.
   final bool visible;
   final VoidCallback onTap;
+
+  /// Falso dentro de una hoja: no hay barra de navegación debajo.
+  final bool reserveNavSpace;
 
   @override
   State<SearchFilterButton> createState() => _SearchFilterButtonState();
@@ -76,7 +80,7 @@ class _SearchFilterButtonState extends State<SearchFilterButton>
       right: ScrollConfig.topButtonRightMargin,
       // Encima del botón de subir: su base más su tamaño y la separación.
       bottom:
-          NavConfig.footprint +
+          (widget.reserveNavSpace ? NavConfig.footprint : 0.0) +
           MediaQuery.paddingOf(context).bottom +
           ScrollConfig.topButtonNavGap +
           ScrollConfig.topButtonSize +

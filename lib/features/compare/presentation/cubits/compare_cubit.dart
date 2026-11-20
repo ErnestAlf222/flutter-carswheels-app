@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:cars_wheels_app/core/config/compare_config.dart';
+import 'package:cars_wheels_app/core/l10n/l10n.dart';
 import 'package:cars_wheels_app/features/compare/domain/domain.dart';
 import 'package:cars_wheels_app/features/compare/presentation/cubits/compare_state.dart';
 
@@ -15,6 +16,7 @@ class CompareCubit extends Cubit<CompareState> {
     required this.clearCompare,
     required this.observeSelection,
     required this.updateSlotVersion,
+    required this.replaceSlot,
     this.noticeDuration = const Duration(
       milliseconds: CompareConfig.noticeDurationMilliseconds,
     ),
@@ -29,6 +31,7 @@ class CompareCubit extends Cubit<CompareState> {
   final ClearCompareUseCase clearCompare;
   final ObserveCompareSelectionUseCase observeSelection;
   final UpdateCompareSlotVersionUseCase updateSlotVersion;
+  final ReplaceCompareSlotUseCase replaceSlot;
 
   /// Cuánto se muestra el mensaje breve.
   final Duration noticeDuration;
@@ -38,20 +41,73 @@ class CompareCubit extends Cubit<CompareState> {
   StreamSubscription<CompareSelectionEntity>? _selectionSubscription;
   Timer? _noticeTimer;
 
-  /// Agrega un vehículo; "ya está" y "lleno" dejan un mensaje breve.
-  Future<CompareAddResult> add(CompareSlotEntity slot) async {
+  /// Agrega un vehículo y deja un mensaje breve según el resultado.
+  ///
+  /// [announce] en falso omite el mensaje de "agregado" y el de "lleno": quien
+  /// llama decide qué mostrar (por ejemplo, la hoja de reemplazo de Detalle).
+  Future<CompareAddResult> add(
+    CompareSlotEntity slot, {
+    bool announce = true,
+  }) async {
     final result = await addToCompare(slot);
     if (isClosed) return result;
     switch (result) {
       case CompareAdded():
-        break;
+        if (announce) {
+          _showNotice(
+            result.selection,
+            CompareNotice.added,
+            subject: _nameOf(slot),
+          );
+        }
       case CompareAlreadyPresent():
         _showNotice(result.selection, CompareNotice.alreadyAdded);
       case CompareFull():
-        _showNotice(result.selection, CompareNotice.full);
+        if (announce) _showNotice(result.selection, CompareNotice.full);
     }
     return result;
   }
+
+  /// Cambia [current] por [replacement] en la misma posición, con su mensaje.
+  Future<CompareReplaceResult> replace(
+    CompareSlotEntity current,
+    CompareSlotEntity replacement,
+  ) async {
+    final result = await replaceSlot(current, replacement);
+    final state = this.state;
+    if (isClosed || state is! CompareLoaded) return result;
+    if (result == CompareReplaceResult.replaced) {
+      // La lista guardada llega después por el flujo; el mensaje no la espera.
+      _showNotice(
+        CompareSelectionEntity([
+          for (final item in state.selection.slots)
+            item.identity == current.identity ? replacement : item,
+        ]),
+        CompareNotice.replaced,
+        subject: _nameOf(replacement),
+        other: _nameOf(current),
+      );
+    } else if (result == CompareReplaceResult.alreadyPresent) {
+      _showNotice(state.selection, CompareNotice.alreadyAdded);
+    }
+    return result;
+  }
+
+  /// Vacía la selección y deja solo [slot], con su mensaje.
+  Future<void> clearAndAdd(CompareSlotEntity slot) async {
+    await clearCompare(marketSource.marketCode);
+    final result = await addToCompare(slot);
+    if (isClosed) return;
+    _showNotice(
+      result.selection,
+      CompareNotice.startedNew,
+      subject: _nameOf(slot),
+    );
+  }
+
+  // Nombre corto para los mensajes: marca y modelo.
+  String _nameOf(CompareSlotEntity slot) =>
+      AppTexts.compareColumnHeaderLabel(slot.brand, slot.modelName);
 
   /// Quita un vehículo; la lista se actualiza sola desde lo guardado.
   Future<void> remove(CompareSlotEntity slot) => removeFromCompare(slot);
@@ -106,13 +162,20 @@ class CompareCubit extends Cubit<CompareState> {
     );
   }
 
-  void _showNotice(CompareSelectionEntity selection, CompareNotice notice) {
+  void _showNotice(
+    CompareSelectionEntity selection,
+    CompareNotice notice, {
+    String? subject,
+    String? other,
+  }) {
     final current = state;
     final previousId = current is CompareLoaded ? current.noticeId : 0;
     emit(
       CompareLoaded(
         selection: selection,
         notice: notice,
+        noticeSubject: subject,
+        noticeOther: other,
         noticeId: previousId + 1,
       ),
     );

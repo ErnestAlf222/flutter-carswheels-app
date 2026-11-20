@@ -40,13 +40,68 @@ void main() {
     await other.close();
   });
 
-  test('agregar actualiza la lista sin mensaje', () async {
+  test('agregar actualiza la lista y avisa con el nombre', () async {
     await _pump();
     final result = await cubit.add(compareSlot());
     await _pump();
     expect(result, isA<CompareAdded>());
     expect(_selectionOf(cubit).length, 1);
+    final state = cubit.state as CompareLoaded;
+    expect(state.notice, CompareNotice.added);
+    expect(state.noticeSubject, 'Toyota Corolla');
+  });
+
+  test('agregar sin anunciar no deja mensaje, ni de lleno', () async {
+    await _pump();
+    await cubit.add(compareSlot(), announce: false);
+    await _pump();
     expect((cubit.state as CompareLoaded).notice, isNull);
+    for (final model in ['B', 'C']) {
+      await cubit.add(compareSlot(model: model), announce: false);
+    }
+    await _pump();
+    final result = await cubit.add(compareSlot(model: 'D'), announce: false);
+    // El resultado "lleno" lleva los 3 vehículos actuales.
+    expect(result, isA<CompareFull>());
+    expect(result.selection.slots.map((s) => s.modelName), [
+      'Corolla',
+      'B',
+      'C',
+    ]);
+    expect((cubit.state as CompareLoaded).notice, isNull);
+  });
+
+  test('reemplazar cambia por posición y avisa con los dos nombres', () async {
+    await _pump();
+    for (final model in ['A', 'B', 'C']) {
+      await cubit.add(compareSlot(model: model));
+    }
+    await _pump();
+    final result = await cubit.replace(
+      compareSlot(model: 'B'),
+      compareSlot(model: 'Z', brand: 'Honda'),
+    );
+    await _pump();
+    expect(result, CompareReplaceResult.replaced);
+    expect(_selectionOf(cubit).slots.map((s) => s.modelName), ['A', 'Z', 'C']);
+    final state = cubit.state as CompareLoaded;
+    expect(state.notice, CompareNotice.replaced);
+    expect(state.noticeSubject, 'Honda Z');
+    expect(state.noticeOther, 'Toyota B');
+  });
+
+  test('limpiar y agregar deja solo el nuevo con su mensaje', () async {
+    await _pump();
+    for (final model in ['A', 'B', 'C']) {
+      await cubit.add(compareSlot(model: model));
+    }
+    await _pump();
+    await cubit.clearAndAdd(compareSlot(model: 'Z'));
+    await _pump();
+    expect(_selectionOf(cubit).slots.map((s) => s.modelName), ['Z']);
+    final state = cubit.state as CompareLoaded;
+    expect(state.notice, CompareNotice.startedNew);
+    expect(state.noticeSubject, 'Toyota Z');
   });
 
   test('un duplicado deja el mensaje "ya está" y no duplica', () async {

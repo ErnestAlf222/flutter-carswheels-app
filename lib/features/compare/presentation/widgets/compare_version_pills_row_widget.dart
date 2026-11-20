@@ -35,6 +35,7 @@ class CompareVersionPillsRowWidget extends StatelessWidget {
               final label = _labelOf(slot, table.of(slot));
               return CompareVersionPillWidget(
                 label: label,
+                isLoading: _isLoading(slot, table.of(slot)),
                 semanticLabel: AppTexts.compareVersionPillSemanticLabel(
                   slot.modelName,
                   label,
@@ -53,6 +54,10 @@ class CompareVersionPillsRowWidget extends StatelessWidget {
       ),
     );
   }
+
+  // Con una versión elegida, su nombre aún no llegó mientras la columna carga.
+  bool _isLoading(CompareSlotEntity slot, CompareColumnState column) =>
+      slot.versionKey != null && column is CompareColumnLoading;
 
   // Sin versión elegida es la predeterminada; con una, su nombre legible.
   String _labelOf(CompareSlotEntity slot, CompareColumnState column) {

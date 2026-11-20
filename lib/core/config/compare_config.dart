@@ -73,6 +73,52 @@ class CompareConfig {
   static const double rowGap = 14.0;
   static const double rowLabelGap = 4.0;
 
+  // Pastilla de versión rediseñada: overline, círculo del chevron y estado abierto.
+  static const double versionPillCircleSize = 20.0;
+  static const double versionPillOpenBorderWidth = 1.5;
+  static const double versionPillChevronSize = 14.0;
+  static const double versionPillOverlineGap = 1.0;
+
+  // Hoja de versiones: asa, filas y marca de la elegida.
+  static const double versionRowMinHeight = 56.0;
+  static const double versionCheckSize = 24.0;
+  static const double versionCheckIconSize = 16.0;
+
+  // Hoja de comparador lleno y de ayuda.
+  static const double fullRowPhotoWidth = 64.0;
+  static const double fullRowPhotoHeight = 44.0;
+  static const double fullRowPhotoRadius = 10.0;
+  static const double fullRowGap = 12.0;
+  static const double helpStepCircleSize = 28.0;
+  static const double helpStepGap = 12.0;
+  static const double helpButtonIconSize = 20.0;
+
+  // Selector de vehículo como hoja inferior sobre Comparar.
+  static const double pickerSheetHeightFraction = 0.92;
+
+  // Botón flotante de la gráfica: igual huella que los de Buscar.
+  static const double chartButtonSize = 52.0;
+  static const double chartButtonIconSize = 26.0;
+
+  // Hoja oscura de la gráfica neón.
+  static const double chartSheetMaxHeightFraction = 0.8;
+  static const double chartRowGap = 22.0;
+  static const double chartLabelBarGap = 8.0;
+  static const double chartBarHeight = 14.0;
+  static const double chartAxisWidth = 1.0;
+  static const double chartSegmentHeight = 36.0;
+  static const double chartSegmentGap = 8.0;
+  static const double chartSegmentHorizontalPadding = 14.0;
+  static const double chartValueGap = 12.0;
+
+  // Halo neón: dos capas de desenfoque, la ancha y la cercana.
+  static const double chartGlowOuterSigma = 14.0;
+  static const double chartGlowInnerSigma = 5.0;
+  static const double chartGlowSpread = 2.0;
+
+  // Crecimiento de las barras al abrir y al cambiar de métrica.
+  static const int chartGrowMilliseconds = 520;
+
   // Pastilla del mejor valor.
   static const double bestPillHorizontalPadding = 8.0;
   static const double bestPillVerticalPadding = 2.0;

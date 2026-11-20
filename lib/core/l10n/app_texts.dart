@@ -115,6 +115,7 @@ class AppTexts {
   static const String transmissionCvtLabel = 'CVT';
   static const String descriptorSeparator = ' · ';
   static const String noDataLabel = '—';
+  static const String ellipsis = '…';
 
   // Pantalla Detalle.
   static const String detailConsumptionCaption = 'consumo combinado';
@@ -371,18 +372,21 @@ class AppTexts {
 
   // Comparar.
   static String compareEmptyTitle(int max) => 'Compara hasta $max vehículos';
-  static const String compareEmptyBody =
-      'Elige al menos 2 vehículos para ver sus diferencias lado a lado.';
+  static const String compareEmptyBody = compareOneVehicleBody;
   static const String compareOneVehicleBody =
-      'Agrega al menos otro vehículo para poder compararlos.';
+      'Agrega al menos 2 vehículos (hasta 3) para comparar';
   static const String compareAddVehicleLabel = 'Agregar vehículo';
   static const String compareClearLabel = 'Limpiar';
   static const String compareEmptySlotSemanticLabel =
       'Espacio libre, toca para agregar un vehículo';
-  static const String compareAlreadyAddedNotice =
-      'Ese vehículo ya está en el comparador';
+  static const String compareAlreadyAddedNotice = 'Ya está en la comparación';
   static const String compareFullNotice =
       'El comparador está lleno: quita un vehículo para agregar otro';
+  static String compareAddedNotice(String name) => 'Agregaste $name';
+  static String compareReplacedNotice(String removed, String added) =>
+      'Reemplazaste $removed por $added';
+  static String compareStartedNewNotice(String name) =>
+      'Comparación nueva con $name';
   static const String compareTableTitle = 'Comparativa';
   static const String compareTableSupport =
       'Lo resaltado es el mejor valor en consumo, emisiones, costo anual y seguridad.';
@@ -401,7 +405,9 @@ class AppTexts {
   static String compareStarsValue(int stars) =>
       '$stars de ${UiConfig.safetyStarCount}';
   static const String compareColumnLoadFailed = 'No se pudo cargar';
-  static const String compareVersionDefaultLabel = 'Versión predeterminada';
+  static const String compareVersionDefaultLabel = 'Predeterminada';
+  static const String compareVersionDefaultCaption =
+      'La que se muestra al agregar el vehículo';
   static const String compareVersionSheetEmpty =
       'Este modelo no tiene versiones disponibles';
   static String compareVersionPillSemanticLabel(String name, String version) =>
@@ -415,7 +421,61 @@ class AppTexts {
     required bool isBest,
   }) =>
       isBest ? '$row, $vehicle: $value, mejor valor' : '$row, $vehicle: $value';
-  static const String comparePickerTitle = 'Elegir';
+  static const String comparePickerTitle = 'Agregar vehículo';
+  static const String comparePickerCloseSemanticLabel = 'Cerrar el selector';
+  static const String closeLabel = 'Cerrar';
+
+  // Comparador lleno (hoja sobre Detalle).
+  static const String compareFullSheetTitle = 'El comparador está lleno';
+  static String compareFullSheetBody(String name) =>
+      'Toca el vehículo que quieres cambiar por $name.';
+  static const String compareFullSheetClearLabel = 'Limpiar todo y agregar';
+  static const String cancelLabel = 'Cancelar';
+  static String compareFullRowSemanticLabel(String name, String version) =>
+      'Reemplazar $name, $version';
+
+  // Limpiar con confirmación.
+  static const String compareClearDialogTitle = '¿Limpiar la comparación?';
+  static String compareClearDialogBody(int count) =>
+      'Se quitarán los $count vehículos';
+
+  // Ayuda de Comparar.
+  static const String compareHelpButtonLabel = '¿Cómo funciona?';
+  static const String compareHelpSheetTitle = '¿Cómo funciona?';
+  static const List<String> compareHelpSteps = [
+    'Agrega 2 o 3 vehículos con el botón +.',
+    'Elige la versión de cada uno.',
+    'Lo resaltado en amarillo suave es el mejor valor de cada fila.',
+    'Toca el botón de la gráfica para verlo de un vistazo.',
+  ];
+  static String compareHelpStepNumber(int number) => '$number';
+  static const String compareHelpFootnote = '"Limpiar" quita todo.';
+
+  // Pastilla y hoja de versiones.
+  static const String compareVersionPillOverline = 'Versión';
+  static const String compareVersionPillLoadingValue = 'Cargando…';
+  static String compareVersionSheetTitle(String brand, String model) =>
+      '$brand $model';
+  static const String compareVersionSheetSubtitle = 'Elige una versión';
+
+  // Gráfica visual.
+  static const String compareChartButtonSemanticLabel =
+      'Ver la comparación visual';
+  static const String compareChartTitle = 'Comparación visual';
+  static const String compareChartConsumption = 'Consumo';
+  static const String compareChartCo2 = 'CO₂';
+  static const String compareChartAnnualCost = 'Costo anual';
+  static const String compareChartSafety = 'NHTSA';
+  static String compareChartKmPerLiterValue(String figure) => '$figure km/l';
+  static const String compareChartHintHigher = 'Gana la barra más larga';
+  static const String compareChartHintLower = 'Gana la barra más corta';
+  static String compareChartMetricSemanticLabel(String label) =>
+      'Métrica: $label';
+  static String compareChartBarSemanticLabel(
+    String vehicle,
+    String value, {
+    required bool isBest,
+  }) => isBest ? '$vehicle: $value, mejor valor' : '$vehicle: $value';
   static String compareRemoveSemanticLabel(String name) =>
       'Quitar $name del comparador';
   static String compareSlotsCountLabel(int count, int max) =>

@@ -214,6 +214,7 @@ class _AppState extends State<App> {
               clearCompare: _dependencies.clearCompareUseCase,
               observeSelection: _dependencies.observeCompareSelectionUseCase,
               updateSlotVersion: _dependencies.updateCompareSlotVersionUseCase,
+              replaceSlot: _dependencies.replaceCompareSlotUseCase,
             ),
           ),
           // Datos de cada vehículo del comparador; sigue la selección de arriba.

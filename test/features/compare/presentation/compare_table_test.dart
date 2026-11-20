@@ -143,6 +143,7 @@ Future<_Page> _pump(
           home: ComparePage(
             selectorBuilder: (_) => const SizedBox(),
             visuals: _visuals,
+            onOpenPicker: (_) async {},
           ),
         ),
       ),
@@ -563,6 +564,7 @@ void main() {
             home: ComparePage(
               selectorBuilder: (_) => const SizedBox(),
               visuals: _visuals,
+              onOpenPicker: (_) async {},
             ),
           ),
         ),

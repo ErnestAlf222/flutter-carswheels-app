@@ -89,6 +89,10 @@ class SearchConfig {
   static const double headerBackButtonFillOpacity = 0.14;
   static const double pinnedBandPadding =
       12.0; // Arriba y abajo del campo en la banda fija.
+  // Encabezado compacto de la hoja del selector: relleno y separaciones.
+  static const double compactHeaderTopPadding = 12.0;
+  static const double compactHeaderGap = 12.0;
+  static const double compactHeaderBottomPadding = 20.0;
   static const double fieldHeight = 56.0;
   static const double fieldOverlap = fieldHeight / 2;
   static const double fieldIconSize = 22.0;

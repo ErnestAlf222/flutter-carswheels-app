@@ -192,6 +192,32 @@ class AppTextStyles {
     height: 1.2,
     color: AppColors.ink,
   );
+  static final TextStyle compareVersionOverline = GoogleFonts.inter(
+    fontWeight: FontWeight.w600,
+    fontSize: 9,
+    height: 1.2,
+    letterSpacing: 0.8,
+    color: AppColors.mutedText,
+  );
+  static final TextStyle compareHelpStepNumber = GoogleFonts.outfit(
+    fontWeight: FontWeight.w700,
+    fontSize: 14,
+    height: 1.0,
+    color: AppColors.ink,
+  );
+  // Gráfica sobre tinta: etiqueta del vehículo y valor.
+  static final TextStyle compareChartLabel = GoogleFonts.inter(
+    fontWeight: FontWeight.w600,
+    fontSize: 12,
+    height: 1.2,
+    color: AppColors.mutedOnDark,
+  );
+  static final TextStyle compareChartValue = GoogleFonts.outfit(
+    fontWeight: FontWeight.w700,
+    fontSize: 14,
+    height: 1.2,
+    color: AppColors.onDark,
+  );
   static final TextStyle detailBrandYearLabel = label.copyWith(
     letterSpacing: 1.2,
   );

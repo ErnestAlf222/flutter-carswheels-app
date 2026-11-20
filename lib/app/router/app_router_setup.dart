@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:cars_wheels_app/app/compare/compare_navigation.dart';
-import 'package:cars_wheels_app/app/compare/compare_picker_page.dart';
+import 'package:cars_wheels_app/app/compare/compare_picker_sheet.dart';
 import 'package:cars_wheels_app/app/compare/compare_route_args.dart';
 import 'package:cars_wheels_app/app/compare/compare_slot_visuals_builder.dart';
 import 'package:cars_wheels_app/app/market_catalog/market_search_detail_args_builder.dart';
@@ -92,6 +92,7 @@ GoRouter buildAppRouter() => GoRouter(
               ComparePage(
                 selectorBuilder: buildSearchMarketYearSelector,
                 visuals: marketCompareSlotVisuals,
+                onOpenPicker: showComparePickerSheet,
                 openPickerOnEntry:
                     extra is CompareRouteArgs && extra.openPicker,
               ),
@@ -119,12 +120,6 @@ GoRouter buildAppRouter() => GoRouter(
           onCompare: addToCompareFromDetail,
         ),
       ),
-    ),
-    // Selector de vehículo del comparador: flujo fuera del marco, sin menú.
-    GoRoute(
-      path: RoutesConfig.comparePicker,
-      pageBuilder: (context, state) =>
-          _flowPage(state, const ComparePickerPage()),
     ),
     GoRoute(
       path: RoutesConfig.photoViewer,

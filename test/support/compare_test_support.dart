@@ -87,6 +87,7 @@ CompareCubit buildCompareCubit({
     clearCompare: ClearCompareUseCase(store),
     observeSelection: ObserveCompareSelectionUseCase(store),
     updateSlotVersion: UpdateCompareSlotVersionUseCase(store),
+    replaceSlot: ReplaceCompareSlotUseCase(store),
     noticeDuration: noticeDuration,
   );
 }

@@ -36,6 +36,16 @@ class CompareTableState extends Equatable {
 
   final Map<String, CompareColumnState> columns;
 
+  /// Datos de cada vehículo en el orden dado; nulo si aún carga o falló.
+  List<CompareVehicleDetailEntity?> detailsOf(List<CompareSlotEntity> slots) =>
+      [
+        for (final slot in slots)
+          switch (of(slot)) {
+            CompareColumnLoaded(:final detail) => detail,
+            _ => null,
+          },
+      ];
+
   /// Estado de la columna de un vehículo; cargando si aún no se pidió.
   CompareColumnState of(CompareSlotEntity slot) =>
       columns[slot.identity] ?? const CompareColumnLoading();

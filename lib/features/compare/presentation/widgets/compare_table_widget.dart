@@ -27,13 +27,7 @@ class CompareTableWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final sections = builder.build(
       marketCode: slots.first.marketCode,
-      columns: [
-        for (final slot in slots)
-          switch (table.of(slot)) {
-            CompareColumnLoaded(:final detail) => detail,
-            _ => null,
-          },
-      ],
+      columns: table.detailsOf(slots),
     );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -127,17 +121,22 @@ class _Value extends StatelessWidget {
       excludeSemantics: true,
       child: Align(
         alignment: Alignment.topLeft,
-        child: cell.isBest
-            ? DecoratedBox(
-                decoration: BoxDecoration(
-                  color: AppColors.accentTint,
-                  borderRadius: BorderRadius.circular(
-                    CompareConfig.bestPillRadius,
+        // El relleno se corre hacia afuera: el texto queda en el borde izquierdo
+        // de la columna, igual que la etiqueta, la banda y el espacio de arriba.
+        child: Transform.translate(
+          offset: const Offset(-CompareConfig.bestPillHorizontalPadding, 0),
+          child: cell.isBest
+              ? DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: AppColors.accentTint,
+                    borderRadius: BorderRadius.circular(
+                      CompareConfig.bestPillRadius,
+                    ),
                   ),
-                ),
-                child: content,
-              )
-            : content,
+                  child: content,
+                )
+              : content,
+        ),
       ),
     );
   }

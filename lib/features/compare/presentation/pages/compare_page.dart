@@ -1,11 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/compare/domain/domain.dart';
 import 'package:cars_wheels_app/features/compare/presentation/cubits/cubits.dart';
 import 'package:cars_wheels_app/features/compare/presentation/widgets/widgets.dart';
+
+/// Abre el selector de vehículo sobre Comparar; lo implementa la capa app.
+typedef ComparePickerOpener = Future<void> Function(BuildContext context);
 
 /// Pantalla Comparar: encabezado, hasta 3 espacios y lo que sigue según cuántos haya.
 class ComparePage extends StatefulWidget {
@@ -13,6 +18,7 @@ class ComparePage extends StatefulWidget {
     super.key,
     required this.selectorBuilder,
     required this.visuals,
+    required this.onOpenPicker,
     this.openPickerOnEntry = false,
   });
 
@@ -21,6 +27,9 @@ class ComparePage extends StatefulWidget {
 
   /// Foto y logo de cada vehículo; los implementa la capa app.
   final CompareSlotVisuals visuals;
+
+  /// Selector de vehículo como hoja inferior; lo implementa la capa app.
+  final ComparePickerOpener onOpenPicker;
 
   /// Abre el selector al llegar (con un solo vehículo desde Detalle).
   final bool openPickerOnEntry;
@@ -41,7 +50,7 @@ class _ComparePageState extends State<ComparePage> {
 
   void _openPicker() {
     if (!mounted) return;
-    context.push<void>(RoutesConfig.comparePicker);
+    unawaited(widget.onOpenPicker(context));
   }
 
   @override
@@ -50,48 +59,108 @@ class _ComparePageState extends State<ComparePage> {
         NavConfig.footprint +
         MediaQuery.paddingOf(context).bottom +
         ModelGridConfig.listBottomGap;
+    // Se lee aquí: el Scaffold quita el teclado del MediaQuery de su cuerpo.
+    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: CustomScrollView(
-        slivers: [
-          const StatusBarBandSliver(),
-          SliverToBoxAdapter(
-            child: HeroHeaderWidget(
-              includeTopInset: false,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: UiConfig.pageHorizontalPadding,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      // Con texto grande el título se encoge en vez de desbordar.
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          AppTexts.comparePageTitle,
-                          maxLines: 1,
-                          style: AppTextStyles.onDarkScreenTitle,
-                        ),
-                      ),
+      body: Stack(
+        children: [
+          CustomScrollView(
+            slivers: [
+              const StatusBarBandSliver(),
+              SliverToBoxAdapter(
+                child: HeroHeaderWidget(
+                  includeTopInset: false,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: UiConfig.pageHorizontalPadding,
                     ),
-                    widget.selectorBuilder(context),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          // Con texto grande el título se encoge en vez de desbordar.
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              AppTexts.comparePageTitle,
+                              maxLines: 1,
+                              style: AppTextStyles.onDarkScreenTitle,
+                            ),
+                          ),
+                        ),
+                        widget.selectorBuilder(context),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              BlocBuilder<CompareCubit, CompareState>(
+                builder: (context, state) => _Body(
+                  state: state,
+                  visuals: widget.visuals,
+                  bottomPadding: bottomPadding,
+                  onAdd: _openPicker,
+                ),
+              ),
+            ],
+          ),
+          _ChartButton(keyboardOpen: keyboardOpen),
+        ],
+      ),
+    );
+  }
+}
+
+/// Botón flotante de la gráfica: aparece con métricas comparables.
+class _ChartButton extends StatelessWidget {
+  const _ChartButton({required this.keyboardOpen});
+
+  final bool keyboardOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CompareCubit, CompareState>(
+      builder: (context, state) {
+        final slots = state is CompareLoaded && state.selection.canCompare
+            ? state.selection.slots
+            : const <CompareSlotEntity>[];
+        // Sin vehículos que comparar no hace falta leer la tabla.
+        if (slots.isEmpty) {
+          return CompareChartButtonWidget(
+            visible: false,
+            keyboardOpen: keyboardOpen,
+            onTap: () {},
+          );
+        }
+        return BlocBuilder<CompareTableCubit, CompareTableState>(
+          builder: (context, table) {
+            final metrics = const CompareChartBuilder().build(
+              const CompareTableBuilder().build(
+                marketCode: slots.first.marketCode,
+                columns: table.detailsOf(slots),
+              ),
+            );
+            return CompareChartButtonWidget(
+              visible: metrics.isNotEmpty,
+              keyboardOpen: keyboardOpen,
+              onTap: () => unawaited(
+                showCompareChartSheet(
+                  context,
+                  metrics: metrics,
+                  names: [
+                    for (final slot in slots)
+                      AppTexts.compareColumnHeaderLabel(
+                        slot.brand,
+                        slot.modelName,
+                      ),
                   ],
                 ),
               ),
-            ),
-          ),
-          BlocBuilder<CompareCubit, CompareState>(
-            builder: (context, state) => _Body(
-              state: state,
-              visuals: widget.visuals,
-              bottomPadding: bottomPadding,
-              onAdd: _openPicker,
-            ),
-          ),
-        ],
-      ),
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -138,24 +207,33 @@ class _Body extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _NoticeSlot(notice: notice, noticeId: current.noticeId),
+                _NoticeSlot(
+                  notice: notice,
+                  subject: current.noticeSubject,
+                  other: current.noticeOther,
+                  noticeId: current.noticeId,
+                ),
                 // Alto fijo: el diseño no salta cuando aparece o se va "Limpiar".
                 SizedBox(
                   height: CompareConfig.removeTouchSize,
                   child: Row(
                     children: [
-                      Expanded(
+                      Flexible(
                         child: Text(
                           AppTexts.compareSlotsCountLabel(
                             selection.length,
                             CompareConfig.maxSlots,
                           ),
+                          overflow: TextOverflow.ellipsis,
                           style: AppTextStyles.caption,
                         ),
                       ),
+                      const _HelpButton(),
+                      const Spacer(),
                       if (!selection.isEmpty)
                         TextButton(
-                          onPressed: cubit.clear,
+                          onPressed: () =>
+                              unawaited(_confirmClear(context, selection)),
                           style: TextButton.styleFrom(
                             foregroundColor: AppColors.ink,
                             minimumSize: const Size(
@@ -208,6 +286,43 @@ class _Body extends StatelessWidget {
       ],
     );
   }
+
+  // Limpiar pide confirmar; quitar un solo vehículo no.
+  Future<void> _confirmClear(
+    BuildContext context,
+    CompareSelectionEntity selection,
+  ) async {
+    final cubit = context.read<CompareCubit>();
+    final confirmed = await showCompareClearDialog(context, selection.length);
+    if (confirmed) await cubit.clear();
+  }
+}
+
+/// Botón de ícono "¿Cómo funciona?" junto al contador; no abre nada solo.
+class _HelpButton extends StatelessWidget {
+  const _HelpButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: AppTexts.compareHelpButtonLabel,
+      excludeSemantics: true,
+      child: IconButton(
+        onPressed: () => unawaited(showCompareHelpSheet(context)),
+        tooltip: AppTexts.compareHelpButtonLabel,
+        constraints: const BoxConstraints(
+          minWidth: CompareConfig.removeTouchSize,
+          minHeight: CompareConfig.removeTouchSize,
+        ),
+        icon: const Icon(
+          Symbols.help,
+          size: CompareConfig.helpButtonIconSize,
+          color: AppColors.mutedText,
+        ),
+      ),
+    );
+  }
 }
 
 /// Banda fija de columnas y el cuerpo de la tabla.
@@ -255,9 +370,16 @@ class _TableSlivers extends StatelessWidget {
 
 /// Espacio del mensaje breve: crece y se encoge, o aparece sin animar.
 class _NoticeSlot extends StatelessWidget {
-  const _NoticeSlot({required this.notice, required this.noticeId});
+  const _NoticeSlot({
+    required this.notice,
+    required this.subject,
+    required this.other,
+    required this.noticeId,
+  });
 
   final CompareNotice? notice;
+  final String? subject;
+  final String? other;
   final int noticeId;
 
   @override
@@ -270,6 +392,8 @@ class _NoticeSlot extends StatelessWidget {
             child: CompareNoticeWidget(
               key: ValueKey(noticeId),
               notice: current,
+              subject: subject,
+              other: other,
             ),
           );
     // AnimatedSize no admite duración cero: sin animaciones se omite.

@@ -77,6 +77,7 @@ class AppDependencies {
     required this.clearCompareUseCase,
     required this.observeCompareSelectionUseCase,
     required this.updateCompareSlotVersionUseCase,
+    required this.replaceCompareSlotUseCase,
     required this.compareVehicleSource,
     required this.compareSafetySource,
     required this.compareVersionsSource,
@@ -540,6 +541,7 @@ class AppDependencies {
       updateCompareSlotVersionUseCase: UpdateCompareSlotVersionUseCase(
         compareSelection,
       ),
+      replaceCompareSlotUseCase: ReplaceCompareSlotUseCase(compareSelection),
       compareVehicleSource: MarketCompareVehicleSource(
         loader: compareLoader,
         versionLabeler: compareVersionLabeler,
@@ -613,6 +615,7 @@ class AppDependencies {
   final ClearCompareUseCase clearCompareUseCase;
   final ObserveCompareSelectionUseCase observeCompareSelectionUseCase;
   final UpdateCompareSlotVersionUseCase updateCompareSlotVersionUseCase;
+  final ReplaceCompareSlotUseCase replaceCompareSlotUseCase;
   final CompareVehicleSource compareVehicleSource;
   final CompareSafetySource compareSafetySource;
   final CompareVersionsSource compareVersionsSource;

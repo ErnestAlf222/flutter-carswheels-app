@@ -33,6 +33,7 @@ class SearchPage extends StatefulWidget {
     this.title = AppTexts.searchPageTitle,
     this.onBack,
     this.reserveNavSpace = true,
+    this.compact = false,
   });
 
   /// Título del encabezado; el modo selección usa el suyo.
@@ -40,6 +41,11 @@ class SearchPage extends StatefulWidget {
 
   /// Con valor, el encabezado muestra volver (modo selección: sin menú flotante).
   final VoidCallback? onBack;
+
+  /// Dentro de una hoja: sin encabezado grande ni selector de mercado y año.
+  ///
+  /// [onBack] hace de cierre de la hoja.
+  final bool compact;
 
   /// Deja libre el espacio del menú flotante al final de la lista.
   final bool reserveNavSpace;
@@ -135,17 +141,27 @@ class _SearchPageState extends State<SearchPage> {
                     slivers: [
                       SliverPersistentHeader(
                         pinned: true,
-                        delegate: SearchHeaderDelegate(
-                          title: widget.title,
-                          onBack: widget.onBack,
-                          topInset: MediaQuery.paddingOf(context).top,
-                          selectorBuilder: widget.selectorBuilder,
-                          controller: _controller,
-                          focusNode: _focusNode,
-                          onChanged: cubit.onQueryChanged,
-                          onSubmitted: (_) => cubit.submit(),
-                          onClear: cubit.clearQuery,
-                        ),
+                        delegate: widget.compact
+                            ? SearchCompactHeaderDelegate(
+                                title: widget.title,
+                                onClose: widget.onBack,
+                                controller: _controller,
+                                focusNode: _focusNode,
+                                onChanged: cubit.onQueryChanged,
+                                onSubmitted: (_) => cubit.submit(),
+                                onClear: cubit.clearQuery,
+                              )
+                            : SearchHeaderDelegate(
+                                title: widget.title,
+                                onBack: widget.onBack,
+                                topInset: MediaQuery.paddingOf(context).top,
+                                selectorBuilder: widget.selectorBuilder,
+                                controller: _controller,
+                                focusNode: _focusNode,
+                                onChanged: cubit.onQueryChanged,
+                                onSubmitted: (_) => cubit.submit(),
+                                onClear: cubit.clearQuery,
+                              ),
                       ),
                       if (scopeBrand != null)
                         SliverPersistentHeader(
@@ -181,11 +197,15 @@ class _SearchPageState extends State<SearchPage> {
                       ..._bodySlivers(context, state, bottomPadding),
                     ],
                   ),
-                  ScrollToTopButton(controller: scrollController),
+                  ScrollToTopButton(
+                    controller: scrollController,
+                    reserveNavSpace: widget.reserveNavSpace,
+                  ),
                   SearchFilterButton(
                     activeCount: state.filters.activeCount,
                     visible: state.totalResults > 0 || state.filters.isActive,
                     onTap: () => showSearchFiltersSheet(context),
+                    reserveNavSpace: widget.reserveNavSpace,
                   ),
                 ],
               ),

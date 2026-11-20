@@ -3,6 +3,7 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/compare/domain/domain.dart';
+import 'package:cars_wheels_app/features/compare/presentation/widgets/compare_sheet_frame_widget.dart';
 
 /// Abre la hoja inferior con las versiones disponibles de un vehículo.
 ///
@@ -12,31 +13,14 @@ Future<void> showCompareVersionSheet(
   required CompareSlotEntity slot,
   required CompareVersionsSource source,
   required ValueChanged<String?> onSelected,
-}) {
-  final media = MediaQuery.of(context);
-  return showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    // En el navegador raíz para quedar sobre la barra flotante de pestañas.
-    useRootNavigator: true,
-    useSafeArea: true,
-    backgroundColor: AppColors.surface,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadii.card)),
-    ),
-    constraints: BoxConstraints(
-      maxHeight: media.size.height * UiConfig.detailSheetMaxHeightFraction,
-    ),
-    sheetAnimationStyle: media.disableAnimations
-        ? AnimationStyle.noAnimation
-        : null,
-    builder: (_) => CompareVersionSheetWidget(
-      slot: slot,
-      source: source,
-      onSelected: onSelected,
-    ),
-  );
-}
+}) => showCompareSheet<void>(
+  context,
+  builder: (_) => CompareVersionSheetWidget(
+    slot: slot,
+    source: source,
+    onSelected: onSelected,
+  ),
+);
 
 /// Contenido de la hoja: asa, título y la lista de versiones del modelo.
 class CompareVersionSheetWidget extends StatefulWidget {
@@ -80,51 +64,30 @@ class _CompareVersionSheetWidgetState extends State<CompareVersionSheetWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SizedBox(height: AppSpacing.s),
-        Center(
-          child: Container(
-            width: UiConfig.detailSheetHandleWidth,
-            height: UiConfig.detailSheetHandleHeight,
-            decoration: BoxDecoration(
-              color: AppColors.outline,
-              borderRadius: BorderRadius.circular(
-                UiConfig.detailSheetHandleHeight,
-              ),
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(AppSpacing.l),
-          child: Text(
-            AppTexts.versionSheetTitle,
-            style: AppTextStyles.sectionTitle,
-          ),
-        ),
-        Flexible(
-          child: FutureBuilder<List<CompareVersionOptionEntity>>(
-            future: _versions,
-            builder: (context, snapshot) {
-              if (snapshot.hasError) return _Failed(onRetry: _retry);
-              final options = snapshot.data;
-              if (options == null) {
-                return const Padding(
-                  padding: EdgeInsets.all(CompareConfig.sheetStatusPadding),
-                  child: AppLoader(compact: true),
-                );
-              }
-              return _Options(
-                options: options,
-                selectedKey: widget.slot.versionKey,
-                onSelected: _select,
-              );
-            },
-          ),
-        ),
-      ],
+    return CompareSheetFrameWidget(
+      title: AppTexts.compareVersionSheetTitle(
+        widget.slot.brand,
+        widget.slot.modelName,
+      ),
+      subtitle: AppTexts.compareVersionSheetSubtitle,
+      child: FutureBuilder<List<CompareVersionOptionEntity>>(
+        future: _versions,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) return _Failed(onRetry: _retry);
+          final options = snapshot.data;
+          if (options == null) {
+            return const Padding(
+              padding: EdgeInsets.all(CompareConfig.sheetStatusPadding),
+              child: AppLoader(compact: true),
+            );
+          }
+          return _Options(
+            options: options,
+            selectedKey: widget.slot.versionKey,
+            onSelected: _select,
+          );
+        },
+      ),
     );
   }
 }
@@ -158,6 +121,7 @@ class _Options extends StatelessWidget {
       children: [
         _Row(
           title: AppTexts.compareVersionDefaultLabel,
+          caption: AppTexts.compareVersionDefaultCaption,
           isSelected: selectedKey == null,
           onTap: () => onSelected(null),
         ),
@@ -195,46 +159,51 @@ class _Row extends StatelessWidget {
       selected: isSelected,
       label: subtitle == null ? title : '$title, $subtitle',
       excludeSemantics: true,
-      child: Material(
-        color: isSelected ? AppColors.accentTint : Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              minHeight: CompareConfig.removeTouchSize,
+      child: InkWell(
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minHeight: CompareConfig.versionRowMinHeight,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.l,
+              vertical: AppSpacing.xs,
             ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.l,
-                vertical: AppSpacing.xs,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(title, style: AppTextStyles.bodyStrong),
-                        if (subtitle != null)
-                          Text(
-                            subtitle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTextStyles.caption,
-                          ),
-                      ],
-                    ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: AppTextStyles.bodyStrong),
+                      if (subtitle != null)
+                        Text(
+                          subtitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.caption,
+                        ),
+                    ],
                   ),
-                  if (isSelected) ...[
-                    const SizedBox(width: AppSpacing.xs),
-                    const Icon(
+                ),
+                if (isSelected) ...[
+                  const SizedBox(width: AppSpacing.xs),
+                  Container(
+                    width: CompareConfig.versionCheckSize,
+                    height: CompareConfig.versionCheckSize,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.accent,
+                    ),
+                    child: const Icon(
                       Symbols.check,
-                      size: UiConfig.iconSize,
+                      size: CompareConfig.versionCheckIconSize,
                       color: AppColors.ink,
                     ),
-                  ],
+                  ),
                 ],
-              ),
+              ],
             ),
           ),
         ),

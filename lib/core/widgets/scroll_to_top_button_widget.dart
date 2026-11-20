@@ -7,9 +7,16 @@ import 'package:cars_wheels_app/core/theme/theme.dart';
 
 /// Botón circular traslúcido para volver al inicio; va dentro de un Stack a pantalla completa.
 class ScrollToTopButton extends StatefulWidget {
-  const ScrollToTopButton({super.key, required this.controller});
+  const ScrollToTopButton({
+    super.key,
+    required this.controller,
+    this.reserveNavSpace = true,
+  });
 
   final ScrollController controller;
+
+  /// Falso dentro de una hoja: no hay barra de navegación debajo.
+  final bool reserveNavSpace;
 
   @override
   State<ScrollToTopButton> createState() => _ScrollToTopButtonState();
@@ -86,7 +93,7 @@ class _ScrollToTopButtonState extends State<ScrollToTopButton>
     return Positioned(
       right: ScrollConfig.topButtonRightMargin,
       bottom:
-          NavConfig.footprint +
+          (widget.reserveNavSpace ? NavConfig.footprint : 0.0) +
           MediaQuery.paddingOf(context).bottom +
           ScrollConfig.topButtonNavGap,
       child: ValueListenableBuilder<bool>(
