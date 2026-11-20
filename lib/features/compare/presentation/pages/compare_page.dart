@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/connectivity/connectivity.dart';
 import 'package:cars_wheels_app/features/compare/domain/domain.dart';
 import 'package:cars_wheels_app/features/compare/presentation/cubits/cubits.dart';
 import 'package:cars_wheels_app/features/compare/presentation/widgets/widgets.dart';
@@ -95,6 +96,7 @@ class _ComparePageState extends State<ComparePage> {
                   ),
                 ),
               ),
+              const ConnectivityBandSliver(),
               BlocBuilder<CompareCubit, CompareState>(
                 builder: (context, state) => _Body(
                   state: state,

@@ -83,6 +83,8 @@ class VehicleSpecsConfig {
 
   // Versión de la clave del detalle; 'v3' invalida lo guardado sin los campos nuevos.
   static const String vehicleDetailCacheKeyVersion = 'v5';
+  // Versiones por variante, para abrir Detalle sin red.
+  static const String groupOptionsCacheKeyVersion = 'options-v1';
 
   // Provisional: días de vigencia del detalle guardado.
   static const int vehicleDetailCacheTimeToLiveDays = 30;

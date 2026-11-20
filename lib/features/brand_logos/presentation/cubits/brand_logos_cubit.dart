@@ -11,6 +11,7 @@ class BrandLogosCubit extends Cubit<BrandLogosState> {
   BrandLogosCubit(
     this._repository, {
     this._resolveCommonsLogo,
+    this.fileStore,
     List<String> brandsWithoutLogo = LogosConfig.brandsWithoutUsableLogo,
   }) : _brandsWithoutLogo = brandsWithoutLogo
            .map(TextNormalizer.normalize)
@@ -19,10 +20,15 @@ class BrandLogosCubit extends Cubit<BrandLogosState> {
 
   final BrandLogosRepository _repository;
   final ResolveCommonsLogoUseCase? _resolveCommonsLogo;
+
+  /// Disco de logos; los widgets lo usan para cargar primero lo guardado.
+  final LogoFileStore? fileStore;
   final Set<String> _brandsWithoutLogo;
   // Marcas ya pedidas a Commons y marcas que esperan a que cargue el manifiesto.
   final Set<String> _requested = {};
   final Map<String, String> _pending = {};
+  // Marcas que algún widget pidió: al volver la conexión se vuelven a intentar.
+  final Map<String, String> _wanted = {};
 
   Future<void> loadLogos() async {
     if (state is BrandLogosLoading) return;
@@ -36,6 +42,26 @@ class BrandLogosCubit extends Cubit<BrandLogosState> {
     } catch (error) {
       emit(BrandLogosError(UnknownFailure(error.toString())));
     }
+  }
+
+  /// Al volver la conexión: recarga el manifiesto si falló y repone los logos
+  /// que no cargaron, una vez y sin tocar los que ya se ven.
+  void restoreAfterReconnect() {
+    final current = state;
+    if (current is BrandLogosError) {
+      unawaited(loadLogos());
+      return;
+    }
+    if (current is! BrandLogosLoaded) return;
+    // Un número nuevo hace que cada logo vuelva a intentar su carga.
+    emit(
+      BrandLogosLoaded(
+        current.logoUrls,
+        fallbackUrls: current.fallbackUrls,
+        generation: current.generation + 1,
+      ),
+    );
+    _wanted.values.toList().forEach(ensureLogo);
   }
 
   /// URL del logo de la marca, o null si no hay logo, no es usable o aún no carga.
@@ -55,6 +81,7 @@ class BrandLogosCubit extends Cubit<BrandLogosState> {
     final resolver = _resolveCommonsLogo;
     if (resolver == null) return;
     final key = _keyFor(brandName);
+    _wanted[key] = brandName;
     final current = state;
     if (current is! BrandLogosLoaded) {
       _pending[key] = brandName;
@@ -79,6 +106,7 @@ class BrandLogosCubit extends Cubit<BrandLogosState> {
         BrandLogosLoaded(
           current.logoUrls,
           fallbackUrls: {...current.fallbackUrls, key: logo.url},
+          generation: current.generation,
         ),
       );
     } on AppFailure {

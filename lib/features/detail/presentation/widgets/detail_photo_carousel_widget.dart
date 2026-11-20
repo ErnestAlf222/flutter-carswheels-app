@@ -207,7 +207,7 @@ class _PhotoPage extends StatelessWidget {
     final mode = const PhotoFitResolver().resolve(photo.aspectRatio);
     final fit = mode == PhotoFitMode.cover ? BoxFit.cover : BoxFit.contain;
     const loading = PhotoPlaceholderWidget(kind: PhotoPlaceholderKind.loading);
-    final sharp = CachedNetworkImage(
+    final network = CachedNetworkImage(
       imageUrl: photo.thumbnailUrl,
       httpHeaders: PhotosConfig.requestHeaders,
       fit: fit,
@@ -226,6 +226,12 @@ class _PhotoPage extends StatelessWidget {
       ),
       errorWidget: (context, _, _) =>
           _EmptyOrLoading(isLoading: false, brandName: brandName),
+    );
+    // Abierto desde Favoritos, la foto guardada en el teléfono va antes que la red.
+    final sharp = LocalFirstImageWidget(
+      localPath: photo.localPath,
+      fit: fit,
+      networkBuilder: (context) => network,
     );
     final tag = heroTag;
     final image = tag == null

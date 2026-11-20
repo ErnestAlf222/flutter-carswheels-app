@@ -34,6 +34,15 @@ class CompareTableCubit extends Cubit<CompareTableState> {
     unawaited(_load(slot));
   }
 
+  /// Al volver la conexión: repite una vez las columnas que fallaron.
+  void restoreAfterReconnect() {
+    final current = compare.state;
+    if (current is! CompareLoaded) return;
+    for (final slot in current.selection.slots) {
+      retry(slot);
+    }
+  }
+
   void _onCompare(CompareState compareState) {
     if (compareState is! CompareLoaded) return;
     final slots = compareState.selection.slots;

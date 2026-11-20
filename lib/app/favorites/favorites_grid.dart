@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:cars_wheels_app/app/favorites/favorite_card_cubits.dart';
+import 'package:cars_wheels_app/app/favorites/favorite_photo_mapper.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/favorites/favorites.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
@@ -142,19 +143,11 @@ class _FavoritesCardsScopeState extends State<_FavoritesCardsScope> {
     );
   }
 
-  static PhotoSlot _photoSlotOf(FavoriteSnapshotEntity snapshot) {
+  PhotoSlot _photoSlotOf(FavoriteSnapshotEntity snapshot) {
     final photo = snapshot.photo;
     if (photo == null) return const PhotoMissing();
-    return PhotoFound(
-      PhotoEntity(
-        thumbnailUrl: photo.thumbnailUrl,
-        authorName: photo.authorName,
-        licenseName: photo.licenseName,
-        sourceUrl: photo.sourceUrl,
-        isReference: photo.isReference,
-        aspectRatio: photo.aspectRatio,
-      ),
-    );
+    // Con el archivo guardado la tarjeta se ve completa sin conexión.
+    return PhotoFound(favoritePhotoEntityOf(context, photo));
   }
 
   @override

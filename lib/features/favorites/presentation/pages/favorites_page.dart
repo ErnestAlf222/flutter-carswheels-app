@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/connectivity/connectivity.dart';
 import 'package:cars_wheels_app/features/favorites/domain/domain.dart';
 import 'package:cars_wheels_app/features/favorites/presentation/cubits/cubits.dart';
 import 'package:cars_wheels_app/features/favorites/presentation/widgets/favorites_empty_widget.dart';
@@ -79,6 +80,10 @@ class _FavoritesPageState extends State<FavoritesPage> {
                   count: favorites.length,
                   selectorBuilder: widget.selectorBuilder,
                 ),
+              ),
+              // Aquí dice además que lo guardado sigue disponible sin conexión.
+              const ConnectivityBandSliver(
+                offlineLabel: AppTexts.offlineFavoritesBandLabel,
               ),
               if (state is FavoritesLoading)
                 const SliverFillRemaining(

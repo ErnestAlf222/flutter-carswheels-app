@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
+import 'package:cars_wheels_app/features/connectivity/connectivity.dart';
 import 'package:cars_wheels_app/features/catalog/domain/domain.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/cubits/cubits.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
@@ -273,6 +274,7 @@ class _HomeContentState extends State<_HomeContent>
                       : () => widget.onSearchTap(context),
                 ),
               ),
+              const ConnectivityBandSliver(),
               ..._bodySlivers(context, state),
             ],
           ),
@@ -290,7 +292,9 @@ class _HomeContentState extends State<_HomeContent>
       CatalogError() => [
         SliverFillRemaining(
           hasScrollBody: false,
-          child: ErrorStateWidget(onRetry: context.read<CatalogCubit>().retry),
+          child: ConnectivityErrorStateWidget(
+            onRetry: context.read<CatalogCubit>().retry,
+          ),
         ),
       ],
       // Cambio de mercado: solo la zona de contenido muestra el loader.

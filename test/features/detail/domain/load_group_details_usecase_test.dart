@@ -14,6 +14,9 @@ class _FakeGetGroupOptions implements GetGroupOptionsUseCase {
   VehicleSpecsRepository get repository => throw UnimplementedError();
 
   @override
+  GroupOptionsCacheDatasource? get cache => null;
+
+  @override
   Future<List<GroupOptionEntity>> call({
     required int year,
     required String brand,

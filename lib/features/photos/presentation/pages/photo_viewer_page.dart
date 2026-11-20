@@ -7,6 +7,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/photos/domain/domain.dart';
 import 'package:cars_wheels_app/features/photos/presentation/cubits/cubits.dart';
+import 'package:cars_wheels_app/features/photos/presentation/widgets/local_first_image_widget.dart';
 
 /// Visor a pantalla completa: acerca con pellizco y desliza entre fotos.
 class PhotoViewerPage extends StatelessWidget {
@@ -122,19 +123,23 @@ class _ZoomablePhoto extends StatelessWidget {
       minScale: 1.0,
       maxScale: UiConfig.photoViewerMaxScale,
       child: Center(
-        child: CachedNetworkImage(
-          imageUrl: photo.thumbnailUrl,
-          httpHeaders: PhotosConfig.requestHeaders,
+        child: LocalFirstImageWidget(
+          localPath: photo.localPath,
           fit: BoxFit.contain,
-          placeholder: (context, _) => CachedNetworkImage(
-            imageUrl: smallUrl,
+          networkBuilder: (context) => CachedNetworkImage(
+            imageUrl: photo.thumbnailUrl,
             httpHeaders: PhotosConfig.requestHeaders,
             fit: BoxFit.contain,
-            placeholder: (context, _) => loading,
-            errorWidget: (context, _, _) => loading,
+            placeholder: (context, _) => CachedNetworkImage(
+              imageUrl: smallUrl,
+              httpHeaders: PhotosConfig.requestHeaders,
+              fit: BoxFit.contain,
+              placeholder: (context, _) => loading,
+              errorWidget: (context, _, _) => loading,
+            ),
+            errorWidget: (context, _, _) =>
+                const PhotoPlaceholderWidget(kind: PhotoPlaceholderKind.empty),
           ),
-          errorWidget: (context, _, _) =>
-              const PhotoPlaceholderWidget(kind: PhotoPlaceholderKind.empty),
         ),
       ),
     );

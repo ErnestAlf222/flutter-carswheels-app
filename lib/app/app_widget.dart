@@ -17,6 +17,7 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/compare/compare.dart';
+import 'package:cars_wheels_app/features/connectivity/connectivity.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/favorites/favorites.dart';
 import 'package:cars_wheels_app/features/market/market.dart';
@@ -50,6 +51,34 @@ class _AppState extends State<App> {
   // Posición de scroll de las secciones; vive tanto como la app.
   final ScrollOffsetStore _scrollOffsets = ScrollOffsetStore();
   AppDependencies get _dependencies => widget.dependencies;
+
+  @override
+  void initState() {
+    super.initState();
+    // Al iniciar se borran las fotos de favoritos que ya no son de nadie.
+    if (FavoritesConfig.cleanOrphansOnStart) {
+      unawaited(_cleanOrphanPhotos());
+    }
+  }
+
+  Future<void> _cleanOrphanPhotos() async {
+    try {
+      await _dependencies.cleanOrphanFavoritePhotosUseCase?.call();
+    } on Object {
+      // Sin limpiar, solo sobran archivos; se vuelve a intentar al siguiente inicio.
+    }
+  }
+
+  // Vuelve la conexión: cada sección que quedó sin datos se recarga una vez.
+  void _restoreAfterReconnect(BuildContext context) {
+    context.read<BrandLogosCubit>().restoreAfterReconnect();
+    unawaited(context.read<CatalogCubit>().restoreAfterReconnect());
+    unawaited(context.read<ModelsCubit>().retry());
+    context.read<PhotosCubit>().restoreAfterReconnect();
+    context.read<SummariesCubit>().restoreAfterReconnect();
+    context.read<SearchCubit>().restoreAfterReconnect();
+    context.read<CompareTableCubit>().restoreAfterReconnect();
+  }
 
   @override
   void dispose() {
@@ -108,6 +137,9 @@ class _AppState extends State<App> {
           value: _dependencies.getAvailableYearsUseCase,
         ),
         RepositoryProvider<ScrollOffsetStore>.value(value: _scrollOffsets),
+        // Para que Favoritos y Detalle usen la foto guardada en el teléfono.
+        if (_dependencies.favoritePhotoStore case final store?)
+          RepositoryProvider<FavoritePhotoStore>.value(value: store),
         RepositoryProvider<GetBrandsUseCase>.value(
           value: _dependencies.getBrandsUseCase,
         ),
@@ -189,9 +221,13 @@ class _AppState extends State<App> {
             create: (context) => BrandLogosCubit(
               context.read<BrandLogosRepository>(),
               resolveCommonsLogo: _dependencies.resolveCommonsLogoUseCase,
+              fileStore: _dependencies.logoFileStore,
             )..loadLogos(),
           ),
           BlocProvider<MarketCubit>.value(value: _dependencies.marketCubit),
+          BlocProvider<ConnectivityCubit>.value(
+            value: _dependencies.connectivityCubit,
+          ),
           BlocProvider<CatalogCubit>(
             create: (context) {
               final market = context.read<MarketCubit>();
@@ -291,25 +327,39 @@ class _AppState extends State<App> {
               restoreFavorite: _dependencies.restoreFavoriteUseCase,
               completeSnapshot: _dependencies.completeFavoriteSnapshotUseCase,
               snapshotSource: _dependencies.favoriteSnapshotSource,
+              attachPhoto: _dependencies.attachFavoritePhotoUseCase,
+              deletePhoto: _dependencies.deleteFavoritePhotoUseCase,
             ),
           ),
-          BlocProvider<LogoPrecacheCubit>(create: (_) => LogoPrecacheCubit()),
+          BlocProvider<LogoPrecacheCubit>(
+            create: (_) => LogoPrecacheCubit(
+              service: LogoPrecacheService(store: _dependencies.logoFileStore),
+            ),
+          ),
           BlocProvider<SectionLoaderCubit>(create: (_) => SectionLoaderCubit()),
         ],
-        child: BlocListener<MarketCubit, MarketState>(
-          // Solo el cambio hecho por la persona; la restauración inicial no cuenta.
-          listenWhen: isUserMarketChange,
-          listener: _onMarketChanged,
-          child: MaterialApp.router(
-            debugShowCheckedModeBanner: AppConfig.showDebugBanner,
-            title: AppConfig.appName,
-            theme: AppTheme.light,
-            routerConfig: _router,
-            scaffoldMessengerKey: _messengerKey,
-            // El mensaje de favoritos va sobre cualquier pantalla, sobre el menú flotante.
-            builder: (context, child) => FavoritesMessageHost(
-              bottomInset: NavConfig.footprint,
-              child: child ?? const SizedBox.shrink(),
+        child: Builder(
+          builder: (context) => ConnectivityLifecycleHost(
+            cubit: _dependencies.connectivityCubit,
+            child: ConnectivityRestoreListener(
+              onRestored: () => _restoreAfterReconnect(context),
+              child: BlocListener<MarketCubit, MarketState>(
+                // Solo el cambio hecho por la persona; la restauración inicial no cuenta.
+                listenWhen: isUserMarketChange,
+                listener: _onMarketChanged,
+                child: MaterialApp.router(
+                  debugShowCheckedModeBanner: AppConfig.showDebugBanner,
+                  title: AppConfig.appName,
+                  theme: AppTheme.light,
+                  routerConfig: _router,
+                  scaffoldMessengerKey: _messengerKey,
+                  // El mensaje de favoritos va sobre cualquier pantalla, sobre el menú flotante.
+                  builder: (context, child) => FavoritesMessageHost(
+                    bottomInset: NavConfig.footprint,
+                    child: child ?? const SizedBox.shrink(),
+                  ),
+                ),
+              ),
             ),
           ),
         ),

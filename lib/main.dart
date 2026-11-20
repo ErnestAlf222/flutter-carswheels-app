@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cars_wheels_app/app/app.dart';
@@ -31,6 +32,11 @@ Future<void> main() async {
     CompareSelectionModelSchema,
     FavoriteModelSchema,
     CachedCommonsLogoModelSchema,
+    GroupOptionsCacheModelSchema,
   ]);
-  runApp(App(dependencies: AppDependencies.withIsar(isar)));
+  // Carpeta de la app para los logos y las fotos de favoritos guardados.
+  final filesRoot = await getApplicationSupportDirectory();
+  runApp(
+    App(dependencies: AppDependencies.withIsar(isar, filesRoot: filesRoot)),
+  );
 }

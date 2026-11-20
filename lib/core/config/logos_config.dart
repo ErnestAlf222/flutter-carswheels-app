@@ -14,6 +14,8 @@ class LogosConfig {
   static const String logosSourceLabel = 'logos';
   // Versión fijada el 2026-11-12; se actualiza a propósito, no de forma automática.
   static const String logosVersion = '3f0929e70e0a9a2a502063edc4b3e5c0146cba74';
+  // Servidor del CDN: toda URL suya debe llevar la versión fijada.
+  static const String logosBaseUrlHost = 'https://cdn.jsdelivr.net/';
   static const String logosBaseUrl =
       'https://cdn.jsdelivr.net/gh/vehiclespecs/brand-logos@$logosVersion/';
   static const String manifestFileName = 'brands.json';
@@ -101,4 +103,26 @@ class LogosConfig {
   static const String commonsLogoCacheKeyVersion = 'v1';
   static const String commonsLogoCacheKeyTag = 'brand-logo';
   static const String commonsLogoCacheKeySeparator = '|';
+}
+
+/// Logos guardados en disco: ya saneados y con la versión fijada en el nombre.
+class LogoDiskConfig {
+  const LogoDiskConfig._();
+
+  // Carpeta dentro del directorio de soporte de la app.
+  static const String directoryName = 'brand_logos';
+  static const String fileExtension = '.svg';
+  static const String versionSeparator = '__';
+  // Largo del prefijo de la versión fijada que entra en el nombre del archivo.
+  static const int versionPrefixLength = 12;
+  // Versión de la regla de guardado; subirla descarta lo guardado.
+  static const String formatVersion = 'f1';
+  // Logos de respaldo de Commons: sin versión fijada, solo la de la regla.
+  static const String commonsVersionTag = 'commons';
+  // Patrón de la versión fijada en la URL de jsDelivr (hash completo de git).
+  static const String pinnedVersionPattern = r'@([0-9a-f]{40})/';
+  static const String svgOpenMarker = '<svg';
+  // Provisionales: un logo normal pesa pocos KB; el total acota la carpeta.
+  static const int maxFileBytes = 262144;
+  static const int maxTotalBytes = 8388608;
 }

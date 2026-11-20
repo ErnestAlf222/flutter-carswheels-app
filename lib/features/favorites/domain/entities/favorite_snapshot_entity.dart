@@ -41,6 +41,17 @@ class FavoriteSnapshotEntity extends Equatable {
       variantNames.isEmpty &&
       photo == null;
 
+  /// Copia con otra foto; lo demás se conserva.
+  FavoriteSnapshotEntity withPhoto(FavoritePhotoEntity? photo) =>
+      FavoriteSnapshotEntity(
+        label: label,
+        engineKinds: engineKinds,
+        minKmPerLiter: minKmPerLiter,
+        maxKmPerLiter: maxKmPerLiter,
+        variantNames: variantNames,
+        photo: photo,
+      );
+
   /// Copia que conserva [fallback] como variantes si esta no trae ninguna.
   FavoriteSnapshotEntity withVariantsIfMissing(List<String> fallback) =>
       variantNames.isNotEmpty || fallback.isEmpty

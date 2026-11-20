@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/connectivity/connectivity.dart';
 import 'package:cars_wheels_app/features/catalog/domain/domain.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/cubits/cubits.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/widgets/model_grid_card_skeleton_widget.dart';
@@ -90,7 +91,9 @@ class ModelsSectionWidget extends StatelessWidget {
     ModelsInitial() => const SliverToBoxAdapter(child: SizedBox.shrink()),
     ModelsLoading() => const _SkeletonGrid(),
     ModelsError() => SliverToBoxAdapter(
-      child: ErrorStateWidget(onRetry: context.read<ModelsCubit>().retry),
+      child: ConnectivityErrorStateWidget(
+        onRetry: context.read<ModelsCubit>().retry,
+      ),
     ),
     ModelsLoaded(:final groups) when groups.isEmpty => const SliverToBoxAdapter(
       child: EmptyStateWidget(),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/connectivity/connectivity.dart';
 import 'package:cars_wheels_app/features/detail/domain/domain.dart';
 import 'package:cars_wheels_app/features/detail/presentation/cubits/cubits.dart';
 import 'package:cars_wheels_app/features/detail/presentation/widgets/widgets.dart';
@@ -63,39 +64,64 @@ class DetailPage extends StatelessWidget {
       ],
       child: Scaffold(
         backgroundColor: AppColors.surface,
-        body: Stack(
-          children: [
-            CustomScrollView(
-              slivers: [
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: DetailHeaderDelegate(
-                    brandName: args.brand,
-                    groupName: args.groupName,
-                    heroTag: args.heroTag,
-                    topInset: MediaQuery.paddingOf(context).top,
+        body: Builder(
+          builder: (context) => ConnectivityRestoreListener(
+            onRestored: () => _restore(context),
+            child: Stack(
+              children: [
+                CustomScrollView(
+                  slivers: [
+                    SliverPersistentHeader(
+                      pinned: true,
+                      delegate: DetailHeaderDelegate(
+                        brandName: args.brand,
+                        groupName: args.groupName,
+                        heroTag: args.heroTag,
+                        topInset: MediaQuery.paddingOf(context).top,
+                      ),
+                    ),
+                    const ConnectivityBandSliver(),
+                    SliverToBoxAdapter(child: _DetailBody(args: args)),
+                  ],
+                ),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  // El contexto interno ve el DetailCubit para leer la versión elegida.
+                  child: Builder(
+                    builder: (context) => DetailBottomBarWidget(
+                      favoriteButton: favoriteButtonBuilder?.call(
+                        context,
+                        args,
+                      ),
+                      onCompare: () => onCompare(
+                        context,
+                        args,
+                        _selectedVersionKey(context),
+                      ),
+                    ),
                   ),
                 ),
-                SliverToBoxAdapter(child: _DetailBody(args: args)),
               ],
             ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              // El contexto interno ve el DetailCubit para leer la versión elegida.
-              child: Builder(
-                builder: (context) => DetailBottomBarWidget(
-                  favoriteButton: favoriteButtonBuilder?.call(context, args),
-                  onCompare: () =>
-                      onCompare(context, args, _selectedVersionKey(context)),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
+  }
+
+  // Recarga una sola vez lo que quedó sin cargar por falta de red.
+  void _restore(BuildContext context) {
+    final detail = context.read<DetailCubit>();
+    if (detail.state is DetailError || detail.state is DetailEmpty) {
+      detail.retry();
+    }
+    final gallery = context.read<DetailGalleryCubit>();
+    if (gallery.state.photos.length <= 1) gallery.load(args);
+    if (args.market != Market.mexico) {
+      context.read<DetailSafetyCubit>().retryFailed(args);
+    }
   }
 }
 
@@ -182,7 +208,9 @@ class _DetailBody extends StatelessWidget {
     DetailError() => Padding(
       key: const ValueKey('error'),
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
-      child: ErrorStateWidget(onRetry: context.read<DetailCubit>().retry),
+      child: ConnectivityErrorStateWidget(
+        onRetry: context.read<DetailCubit>().retry,
+      ),
     ),
   };
 }
@@ -208,6 +236,7 @@ class _LoadedContent extends StatelessWidget {
         );
     return Column(
       children: [
+        const DetailOfflineNoticeWidget(),
         _entry(
           1,
           VersionSelectorButtonWidget(

@@ -2,8 +2,10 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:cars_wheels_app/app/favorites/favorite_photo_mapper.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
+import 'package:cars_wheels_app/features/connectivity/connectivity.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/favorites/favorites.dart';
 import 'package:cars_wheels_app/features/market/market.dart';
@@ -28,23 +30,17 @@ Future<void> openFavoriteInDetail(
       year: favorite.year,
     ),
   );
-  final variants = await _variantsOf(context, favorite, market);
   final photo = snapshot.photo;
+  final photoEntity = photo == null
+      ? null
+      : favoritePhotoEntityOf(context, photo);
+  final variants = await _variantsOf(context, favorite, market);
   final args = DetailArgsEntity(
     brand: favorite.brand,
     groupName: favorite.modelName,
     year: favorite.year,
     variantNames: variants,
-    photo: photo == null
-        ? null
-        : PhotoEntity(
-            thumbnailUrl: photo.thumbnailUrl,
-            authorName: photo.authorName,
-            licenseName: photo.licenseName,
-            sourceUrl: photo.sourceUrl,
-            isReference: photo.isReference,
-            aspectRatio: photo.aspectRatio,
-          ),
+    photo: photoEntity,
     heroTag: heroTag,
     market: market,
   );
@@ -59,6 +55,8 @@ Future<List<String>> _variantsOf(
   Market market,
 ) async {
   final saved = favorite.snapshot.variantNames;
+  // Sin conexión no se espera a la red: se abre con las variantes guardadas.
+  if (saved.isNotEmpty && ConnectivityScope.isOfflineNow(context)) return saved;
   final getModelGroups = context.read<GetModelGroupsUseCase>();
   try {
     final groups = await getModelGroups.inMarket(

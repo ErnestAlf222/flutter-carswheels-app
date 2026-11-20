@@ -7,6 +7,17 @@ class AppTexts {
   static const String emptyStateTitle = 'Sin registros';
   static const String errorStateTitle = 'No se pudo cargar la información';
   static const String retryButtonLabel = 'Reintentar';
+  // Conexión: banda bajo el encabezado y estados sin red.
+  static const String offlineBandLabel = 'Sin conexión · mostrando lo guardado';
+  static const String offlineFavoritesBandLabel =
+      'Sin conexión · tus favoritos están guardados en el teléfono';
+  static const String onlineRestoredLabel = 'Conexión restablecida';
+  static const String offlineStateTitle = 'Sin conexión a internet';
+  static const String offlineStateBody =
+      'Revisa tu conexión y vuelve a intentarlo. Lo que ya guardaste sigue disponible.';
+  static const String offlineUnavailableLabel = 'No disponible sin conexión';
+  static const String offlineDetailNotice =
+      'Algunos datos, como calificaciones de seguridad y retiros, no están guardados y aparecerán al volver la conexión.';
   static const String refreshFailedLabel = 'No se pudo actualizar';
   static const String referencePhotoLabel = 'Foto de referencia';
   static const String loaderSemanticLabel = 'Cargando';

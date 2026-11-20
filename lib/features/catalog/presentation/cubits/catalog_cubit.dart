@@ -30,12 +30,15 @@ class CatalogCubit extends Cubit<CatalogState> {
 
   /// Carga inicial: años disponibles y marcas del año preferido o el más reciente.
   /// Con [force] reemplaza una carga en curso (cambio de mercado).
-  Future<void> loadBrands({bool force = false}) async {
+  ///
+  /// Con [silent] (al volver la conexión) no pasa por el loader: la pantalla
+  /// conserva su error hasta que lleguen los datos.
+  Future<void> loadBrands({bool force = false, bool silent = false}) async {
     if (state is CatalogLoading && !force) return;
     final token = Object();
     _latestLoad[_loadKey] = token;
     final loadingTimer = Stopwatch()..start();
-    emit(const CatalogLoading());
+    if (!silent) emit(const CatalogLoading());
     try {
       final years = await getAvailableYears();
       final preferred = preferredYear?.call();
@@ -43,14 +46,16 @@ class CatalogCubit extends Cubit<CatalogState> {
           ? preferred
           : years.first;
       final brands = await getBrands(year);
-      await _waitMinimumLoading(loadingTimer);
+      if (!silent) await _waitMinimumLoading(loadingTimer);
       if (_isStale(token)) return;
       emit(CatalogLoaded(year: year, brands: brands, availableYears: years));
     } on AppFailure catch (failure) {
+      if (silent) return;
       await _waitMinimumLoading(loadingTimer);
       if (_isStale(token)) return;
       emit(CatalogError(failure));
     } catch (error) {
+      if (silent) return;
       await _waitMinimumLoading(loadingTimer);
       if (_isStale(token)) return;
       emit(CatalogError(UnknownFailure(error.toString())));
@@ -133,6 +138,16 @@ class CatalogCubit extends Cubit<CatalogState> {
     } catch (error) {
       if (_latestLoad[_loadKey] != token) return;
       emit(current.failedRefresh(year, UnknownFailure(error.toString())));
+    }
+  }
+
+  /// Al volver la conexión: repite una vez la carga que falló, sin loader.
+  Future<void> restoreAfterReconnect() async {
+    final current = state;
+    if (current is CatalogError) {
+      await loadBrands(silent: true);
+    } else if (current is CatalogLoaded && current.failedYear != null) {
+      await selectYear(current.failedYear!);
     }
   }
 

@@ -21,6 +21,9 @@ class PhotosCubit extends Cubit<PhotosState> {
   // Marca del último pedido por clave; descarta resultados de pedidos viejos.
   final Map<String, Object> _latestRequestByKey = {};
 
+  // Pedidos que fallaron (sin red, sin respuesta): se reintentan al volver la conexión.
+  final Map<String, PhotoRequest> _failedRequests = {};
+
   /// Clave de foto de un pedido.
   String keyFor(PhotoRequest request) => keyBuilder.build(
     brand: request.brand,
@@ -46,6 +49,14 @@ class PhotosCubit extends Cubit<PhotosState> {
     for (final entry in toResolve.entries) {
       _resolve(entry.key, entry.value);
     }
+  }
+
+  /// Al volver la conexión: repite una vez las fotos que fallaron, hasta el tope.
+  void restoreAfterReconnect({
+    int maxItems = ConnectivityConfig.restoreMaxItems,
+  }) {
+    final retry = _failedRequests.values.take(maxItems).toList();
+    if (retry.isNotEmpty) requestPhotos(retry);
   }
 
   /// Cancela lo pendiente; lo que seguía cargando queda listo para pedirse de nuevo.
@@ -75,9 +86,11 @@ class PhotosCubit extends Cubit<PhotosState> {
       // Cancelada a propósito: cancelPending ya dejó el espacio como fallido.
       return;
     } catch (_) {
+      _failedRequests[key] = request;
       _emitResult(key, requestToken, const PhotoFailed());
       return;
     }
+    _failedRequests.remove(key);
     _emitResult(key, requestToken, result);
   }
 

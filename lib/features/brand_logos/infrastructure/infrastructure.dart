@@ -1,6 +1,7 @@
 // Fuentes de datos
 export 'datasources/brand_logos_cdn_datasource.dart';
 export 'datasources/commons_logo_datasource_impl.dart';
+export 'datasources/file_logo_file_store.dart';
 export 'datasources/isar_commons_logo_cache_datasource.dart';
 // Modelos
 export 'models/brand_logos_manifest_model.dart';

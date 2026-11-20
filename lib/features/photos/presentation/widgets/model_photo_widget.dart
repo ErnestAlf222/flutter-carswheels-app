@@ -8,6 +8,7 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/photos/domain/domain.dart';
 import 'package:cars_wheels_app/features/photos/presentation/cubits/cubits.dart';
+import 'package:cars_wheels_app/features/photos/presentation/widgets/local_first_image_widget.dart';
 
 /// Foto de un modelo; sin foto muestra el recuadro de respaldo.
 class ModelPhotoWidget extends StatelessWidget {
@@ -84,6 +85,7 @@ class ModelPhotoWidget extends StatelessWidget {
 
   Widget _content(PhotoEntity photo, int? memCacheWidth) => _PhotoContent(
     brand: brand,
+    localPath: photo.localPath,
     thumbnailUrl: thumbnailUrlBuilder.forUrl(
       photo.thumbnailUrl,
       PhotosConfig.listThumbnailWidthPixels,
@@ -107,12 +109,14 @@ class _PhotoContent extends StatelessWidget {
   const _PhotoContent({
     required this.brand,
     required this.thumbnailUrl,
+    required this.localPath,
     required this.memCacheWidth,
     required this.showNoPhotoBadge,
   });
 
   final String brand;
   final String thumbnailUrl;
+  final String? localPath;
   final int? memCacheWidth;
   final bool showNoPhotoBadge;
 
@@ -124,17 +128,23 @@ class _PhotoContent extends StatelessWidget {
         : const Duration(
             milliseconds: AnimationConfig.fadeDurationMilliseconds,
           );
-    return CachedNetworkImage(
-      imageUrl: thumbnailUrl,
-      httpHeaders: PhotosConfig.requestHeaders,
+    // Con el archivo local no hace falta la red; si falla, se usa la URL.
+    return LocalFirstImageWidget(
+      localPath: localPath,
       fit: BoxFit.cover,
-      alignment: Alignment.center,
-      memCacheWidth: memCacheWidth,
-      fadeInDuration: fade,
-      fadeOutDuration: fade,
-      placeholder: (context, _) => _LoadingBox(brand: brand),
-      errorWidget: (context, _, _) =>
-          _NoPhotoBox(brand: brand, showBadge: showNoPhotoBadge),
+      cacheWidth: memCacheWidth,
+      networkBuilder: (context) => CachedNetworkImage(
+        imageUrl: thumbnailUrl,
+        httpHeaders: PhotosConfig.requestHeaders,
+        fit: BoxFit.cover,
+        alignment: Alignment.center,
+        memCacheWidth: memCacheWidth,
+        fadeInDuration: fade,
+        fadeOutDuration: fade,
+        placeholder: (context, _) => _LoadingBox(brand: brand),
+        errorWidget: (context, _, _) =>
+            _NoPhotoBox(brand: brand, showBadge: showNoPhotoBadge),
+      ),
     );
   }
 }

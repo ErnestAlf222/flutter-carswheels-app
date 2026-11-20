@@ -9,6 +9,7 @@ class PhotoEntity extends Equatable {
     required this.sourceUrl,
     required this.isReference,
     this.aspectRatio,
+    this.localPath,
   });
 
   final String thumbnailUrl;
@@ -22,6 +23,9 @@ class PhotoEntity extends Equatable {
   /// Ancho entre alto de la miniatura; nulo si no se conoce.
   final double? aspectRatio;
 
+  /// Ruta del archivo guardado en el teléfono; si existe se usa antes que la red.
+  final String? localPath;
+
   @override
   List<Object?> get props => [
     thumbnailUrl,
@@ -30,5 +34,6 @@ class PhotoEntity extends Equatable {
     sourceUrl,
     isReference,
     aspectRatio,
+    localPath,
   ];
 }

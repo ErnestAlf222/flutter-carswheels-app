@@ -9,6 +9,7 @@ export 'detail_figures_card_widget.dart';
 export 'detail_header_delegate.dart';
 export 'detail_info_row_widget.dart';
 export 'detail_info_rows_widget.dart';
+export 'detail_offline_notice_widget.dart';
 export 'detail_mx_figures_card_widget.dart';
 export 'detail_mx_info_rows_widget.dart';
 export 'detail_photo_carousel_widget.dart';

@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
+import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/favorites/favorites.dart';
 import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
@@ -15,6 +18,7 @@ class MarketFavoriteSnapshotSource implements FavoriteSnapshotSource {
     required this.resolveModelPhoto,
     required this.classTranslator,
     required this.currentMarket,
+    this.loadGroupDetails,
   });
 
   final GetModelGroupsUseCase getModelGroups;
@@ -22,6 +26,10 @@ class MarketFavoriteSnapshotSource implements FavoriteSnapshotSource {
   final ResolveModelPhotoUseCase resolveModelPhoto;
   final VehicleClassTranslator classTranslator;
   final Market Function() currentMarket;
+
+  /// Si se da, al guardar se dejan en caché las versiones del modelo: así
+  /// Detalle abre sin conexión con lo guardado.
+  final LoadGroupDetailsUseCase? loadGroupDetails;
 
   @override
   Future<FavoriteSnapshotEntity?> snapshotOf(FavoriteIdentity identity) async {
@@ -31,6 +39,8 @@ class MarketFavoriteSnapshotSource implements FavoriteSnapshotSource {
     final variants = await _variantsOf(identity);
     final summary = await _summaryOf(identity, variants);
     final photo = await _photoOf(identity);
+    // En segundo plano: la instantánea no espera a las versiones.
+    unawaited(_warmDetails(identity, market, variants));
     return FavoriteSnapshotEntity(
       // México trae el combustible ya traducido; EE. UU., la clase a traducir.
       label:
@@ -53,6 +63,31 @@ class MarketFavoriteSnapshotSource implements FavoriteSnapshotSource {
               aspectRatio: photo.aspectRatio,
             ),
     );
+  }
+
+  // Lleva las versiones del modelo a la caché; sin red o sin datos no hace nada.
+  Future<void> _warmDetails(
+    FavoriteIdentity identity,
+    Market market,
+    List<String> variants,
+  ) async {
+    final loader = loadGroupDetails;
+    if (loader == null || variants.isEmpty) return;
+    try {
+      await loader(
+        DetailArgsEntity(
+          brand: identity.brand,
+          groupName: identity.modelName,
+          year: identity.year,
+          variantNames: variants,
+          photo: null,
+          heroTag: identity.key,
+          market: market,
+        ),
+      );
+    } on Object {
+      // Es un adelanto: Detalle volverá a pedirlo cuando se abra con red.
+    }
   }
 
   Future<List<String>> _variantsOf(FavoriteIdentity identity) async {

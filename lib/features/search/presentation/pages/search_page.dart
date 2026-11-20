@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/connectivity/connectivity.dart';
 import 'package:cars_wheels_app/features/search/domain/domain.dart';
 import 'package:cars_wheels_app/features/search/presentation/cubits/cubits.dart';
 import 'package:cars_wheels_app/features/search/presentation/widgets/widgets.dart';
@@ -191,6 +192,7 @@ class _SearchPageState extends State<SearchPage> {
                                 onClear: cubit.clearQuery,
                               ),
                       ),
+                      const ConnectivityBandSliver(),
                       if (widget.belowHeader case final notice?)
                         SliverToBoxAdapter(child: notice),
                       if (scopeBrand != null)
@@ -257,7 +259,7 @@ class _SearchPageState extends State<SearchPage> {
       return [
         SliverFillRemaining(
           hasScrollBody: false,
-          child: ErrorStateWidget(onRetry: cubit.retryIndex),
+          child: ConnectivityErrorStateWidget(onRetry: cubit.retryIndex),
         ),
       ];
     }

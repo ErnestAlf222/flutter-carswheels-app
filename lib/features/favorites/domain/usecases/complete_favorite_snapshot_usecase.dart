@@ -11,6 +11,22 @@ class CompleteFavoriteSnapshotUseCase {
   Future<void> call(String key, FavoriteSnapshotEntity snapshot) async {
     final existing = await datasource.read(key);
     if (existing == null || existing.snapshot == snapshot) return;
-    await datasource.put(existing.withSnapshot(snapshot));
+    // La misma foto conserva su archivo local ya descargado.
+    final oldPhoto = existing.snapshot.photo;
+    final newPhoto = snapshot.photo;
+    final keepsFile =
+        oldPhoto != null &&
+        newPhoto != null &&
+        newPhoto.localFileName == null &&
+        newPhoto.thumbnailUrl == oldPhoto.thumbnailUrl;
+    await datasource.put(
+      existing.withSnapshot(
+        keepsFile
+            ? snapshot.withPhoto(
+                newPhoto.withLocalFileName(oldPhoto.localFileName),
+              )
+            : snapshot,
+      ),
+    );
   }
 }

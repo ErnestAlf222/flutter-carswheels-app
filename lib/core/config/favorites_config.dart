@@ -29,6 +29,8 @@ class FavoritesConfig {
   static const String payloadPhotoSourceKey = 'source';
   static const String payloadPhotoReferenceKey = 'reference';
   static const String payloadPhotoAspectKey = 'aspect';
+  // Nombre del archivo local de la foto; ausente en lo guardado antes de existir.
+  static const String payloadPhotoLocalKey = 'local';
 
   // Mensajes breves: el normal y el que lleva "Deshacer".
   static const int messageDurationMilliseconds = 2500;
@@ -85,4 +87,19 @@ class FavoritesConfig {
   static const double burstOutlineWidth = 1.2;
   static const double burstFadeStart = 0.55;
   static const double burstBoxSize = 120.0;
+
+  // Fotos de favoritos en disco: carpeta propia, nombre derivado de la identidad.
+  static const String photosDirectoryName = 'favorite_photos';
+  static const String photoFileExtension = '.jpg';
+  static const String photoTempExtension = '.part';
+  static const String photoNameSeparator = '_';
+  static const int photoSlugMaxLength = 24;
+  // Calidad: ancho de la miniatura; Commons solo sirve anchos estándar (960 sí, 800 da 400).
+  static const int photoWidthPixels = 960;
+  // Provisional: una miniatura de 960 px pesa unos 150 KB.
+  static const int photoMaxBytes = 1048576;
+  static const int photoDownloadTimeoutSeconds = 20;
+  // Limpieza de archivos huérfanos al iniciar; los recientes no se tocan.
+  static const bool cleanOrphansOnStart = true;
+  static const int orphanGraceMinutes = 10;
 }

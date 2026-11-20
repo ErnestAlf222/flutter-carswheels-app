@@ -16,6 +16,15 @@ class DetailSafetyCubit extends Cubit<DetailSafetyState> {
     await Future.wait([_loadRatings(args), _loadRecalls(args)]);
   }
 
+  /// Al volver la conexión: repite solo la parte que falló, una vez.
+  Future<void> retryFailed(DetailArgsEntity args) async {
+    await Future.wait([
+      if (state.ratings is SafetyFailed<GroupSafetyEntity>) _loadRatings(args),
+      if (state.recalls is SafetyFailed<RecallSummaryEntity>)
+        _loadRecalls(args),
+    ]);
+  }
+
   Future<void> _loadRatings(DetailArgsEntity args) async {
     final SafetyLoad<GroupSafetyEntity> result;
     try {

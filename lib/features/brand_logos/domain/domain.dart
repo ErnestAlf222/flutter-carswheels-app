@@ -2,6 +2,7 @@
 export 'datasources/brand_logos_datasource.dart';
 export 'datasources/commons_logo_cache_datasource.dart';
 export 'datasources/commons_logo_datasource.dart';
+export 'datasources/logo_file_store.dart';
 // Entidades
 export 'entities/entities.dart';
 // Repositorios

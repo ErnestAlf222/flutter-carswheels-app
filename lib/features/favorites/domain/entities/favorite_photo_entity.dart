@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
-/// Referencia a la foto principal guardada: su URL y los créditos.
+/// Referencia a la foto principal guardada: su URL, los créditos y, si ya se
+/// descargó, el nombre del archivo local.
 class FavoritePhotoEntity extends Equatable {
   const FavoritePhotoEntity({
     required this.thumbnailUrl,
@@ -9,6 +10,7 @@ class FavoritePhotoEntity extends Equatable {
     required this.sourceUrl,
     required this.isReference,
     this.aspectRatio,
+    this.localFileName,
   });
 
   final String thumbnailUrl;
@@ -20,6 +22,21 @@ class FavoritePhotoEntity extends Equatable {
   final bool isReference;
   final double? aspectRatio;
 
+  /// Archivo en la carpeta de fotos de favoritos; nulo si solo hay la URL.
+  final String? localFileName;
+
+  /// Misma foto con el archivo local indicado (o sin él).
+  FavoritePhotoEntity withLocalFileName(String? fileName) =>
+      FavoritePhotoEntity(
+        thumbnailUrl: thumbnailUrl,
+        authorName: authorName,
+        licenseName: licenseName,
+        sourceUrl: sourceUrl,
+        isReference: isReference,
+        aspectRatio: aspectRatio,
+        localFileName: fileName,
+      );
+
   @override
   List<Object?> get props => [
     thumbnailUrl,
@@ -28,5 +45,6 @@ class FavoritePhotoEntity extends Equatable {
     sourceUrl,
     isReference,
     aspectRatio,
+    localFileName,
   ];
 }

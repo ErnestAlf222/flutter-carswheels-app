@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/brand_logos/domain/domain.dart';
 import 'package:cars_wheels_app/features/brand_logos/presentation/cubits/cubits.dart';
 import 'package:cars_wheels_app/features/brand_logos/presentation/loaders/loaders.dart';
 
@@ -42,11 +43,22 @@ class _BrandLogoWidgetState extends State<BrandLogoWidget> {
     final url = context.select<BrandLogosCubit, String?>(
       (cubit) => cubit.urlFor(widget.brandName),
     );
+    // Sube al volver la conexión: el logo que falló se pide de nuevo.
+    final generation = context.select<BrandLogosCubit, int>((cubit) {
+      final current = cubit.state;
+      return current is BrandLogosLoaded ? current.generation : 0;
+    });
     final monogram = _Monogram(brandName: widget.brandName, size: widget.size);
     if (url == null) return monogram;
     if (url.endsWith(LogosConfig.svgExtension)) {
       return SvgPicture(
-        SanitizedSvgNetworkLoader(url, headers: LogosConfig.requestHeaders),
+        DiskFirstSvgLoader(
+          url,
+          headers: LogosConfig.requestHeaders,
+          store: context.read<BrandLogosCubit>().fileStore,
+          fileName: const LogoFileNamer().svgFileNameFor(url),
+        ),
+        key: ValueKey(generation),
         width: widget.size,
         height: widget.size,
         placeholderBuilder: (_) => monogram,

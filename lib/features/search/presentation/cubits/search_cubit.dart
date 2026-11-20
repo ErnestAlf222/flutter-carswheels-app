@@ -115,6 +115,17 @@ class SearchCubit extends Cubit<SearchState> {
     _startBuild(scope, retryFailedOnly: state.isPartial);
   }
 
+  /// Al volver la conexión: repite una vez el índice que falló o quedó parcial.
+  void restoreAfterReconnect() {
+    final scope = state.scope;
+    if (!_indexWanted || scope == null) return;
+    if (state.indexFailed || state.isPartial) {
+      retryIndex();
+    } else if (state.indexStatus == null && _indexSubscription == null) {
+      _startBuild(scope);
+    }
+  }
+
   /// Pide que el campo de búsqueda se enfoque al mostrarse.
   void requestFocus() {
     _focusPending = true;

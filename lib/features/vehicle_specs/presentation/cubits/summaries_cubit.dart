@@ -21,6 +21,9 @@ class SummariesCubit extends Cubit<SummariesState> {
   // Marca del último pedido por clave; descarta resultados de pedidos viejos.
   final Map<String, Object> _latestRequestByKey = {};
 
+  // Pedidos que fallaron: se reintentan una vez al volver la conexión.
+  final Map<String, SummaryRequest> _failedRequests = {};
+
   /// Clave del espacio de un grupo.
   String keyFor(String brand, String groupName, int year) =>
       keyBuilder.build(brand: brand, groupName: groupName, year: year);
@@ -43,6 +46,14 @@ class SummariesCubit extends Cubit<SummariesState> {
     for (final entry in toResolve.entries) {
       _resolve(entry.key, entry.value);
     }
+  }
+
+  /// Al volver la conexión: repite una vez los resúmenes que fallaron, hasta el tope.
+  void restoreAfterReconnect({
+    int maxItems = ConnectivityConfig.restoreMaxItems,
+  }) {
+    final retry = _failedRequests.values.take(maxItems).toList();
+    if (retry.isNotEmpty) requestSummaries(retry);
   }
 
   /// Cancela lo pendiente; lo que seguía cargando queda listo para pedirse de nuevo.
@@ -73,9 +84,11 @@ class SummariesCubit extends Cubit<SummariesState> {
       // Cancelada a propósito: cancelPending ya dejó el espacio como fallido.
       return;
     } catch (_) {
+      _failedRequests[key] = request;
       _emitResult(key, requestToken, const SummaryFailed());
       return;
     }
+    _failedRequests.remove(key);
     _emitResult(key, requestToken, result);
   }
 

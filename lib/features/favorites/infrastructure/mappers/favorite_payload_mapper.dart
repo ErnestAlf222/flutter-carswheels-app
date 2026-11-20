@@ -49,6 +49,7 @@ class FavoritePayloadMapper {
               FavoritesConfig.payloadPhotoSourceKey: photo.sourceUrl,
               FavoritesConfig.payloadPhotoReferenceKey: photo.isReference,
               FavoritesConfig.payloadPhotoAspectKey: photo.aspectRatio,
+              FavoritesConfig.payloadPhotoLocalKey: photo.localFileName,
             },
     });
   }
@@ -101,6 +102,9 @@ class FavoritePayloadMapper {
                 aspectRatio:
                     (photoJson[FavoritesConfig.payloadPhotoAspectKey] as num?)
                         ?.toDouble(),
+                // Ausente en lo guardado antes de las fotos locales: queda nulo.
+                localFileName:
+                    photoJson[FavoritesConfig.payloadPhotoLocalKey] as String?,
               ),
       ),
     );

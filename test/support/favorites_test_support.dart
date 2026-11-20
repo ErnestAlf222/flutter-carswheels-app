@@ -113,6 +113,8 @@ FavoritesCubit buildFavoritesCubit({
   DateTime Function()? clock,
   Duration messageDuration = const Duration(seconds: 30),
   Duration undoDuration = const Duration(seconds: 30),
+  AttachFavoritePhotoUseCase? attachPhoto,
+  DeleteFavoritePhotoUseCase? deletePhoto,
 }) {
   final store = datasource ?? InMemoryFavoritesDatasource();
   final now = clock ?? DateTime.now;
@@ -124,6 +126,8 @@ FavoritesCubit buildFavoritesCubit({
     restoreFavorite: RestoreFavoriteUseCase(store),
     completeSnapshot: CompleteFavoriteSnapshotUseCase(store),
     snapshotSource: snapshotSource ?? FakeFavoriteSnapshotSource(),
+    attachPhoto: attachPhoto,
+    deletePhoto: deletePhoto,
     clock: now,
     messageDuration: messageDuration,
     undoDuration: undoDuration,

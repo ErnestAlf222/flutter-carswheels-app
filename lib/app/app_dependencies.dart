@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar_community/isar.dart';
@@ -21,6 +23,7 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/compare/compare.dart';
+import 'package:cars_wheels_app/features/connectivity/connectivity.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/favorites/favorites.dart';
 import 'package:cars_wheels_app/features/market/market.dart';
@@ -34,6 +37,13 @@ import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 class AppDependencies {
   AppDependencies._({
     required this.marketCubit,
+    required this.networkSignals,
+    required this.connectivityCubit,
+    this.logoFileStore,
+    this.favoritePhotoStore,
+    this.attachFavoritePhotoUseCase,
+    this.deleteFavoritePhotoUseCase,
+    this.cleanOrphanFavoritePhotosUseCase,
     required this.summaryKeyBuilder,
     required this.catalogRepository,
     required this.getAvailableYearsUseCase,
@@ -100,8 +110,10 @@ class AppDependencies {
   });
 
   /// Compone la app con la caché de fotos guardada en la instancia de Isar.
-  factory AppDependencies.withIsar(Isar isar) {
+  factory AppDependencies.withIsar(Isar isar, {Directory? filesRoot}) {
     return AppDependencies.create(
+      filesRoot: filesRoot,
+      groupOptionsCache: IsarGroupOptionsCacheDatasource(isar),
       photoCache: IsarPhotoCacheDatasource(isar),
       galleryCache: IsarGalleryCacheDatasource(isar),
       summaryCache: IsarSummaryCacheDatasource(isar),
@@ -133,43 +145,68 @@ class AppDependencies {
     required CompareSelectionDatasource compareSelection,
     required FavoritesDatasource favorites,
     CommonsLogoCacheDatasource? commonsLogoCache,
+    GroupOptionsCacheDatasource? groupOptionsCache,
+    Directory? filesRoot,
     Future<void> Function()? closeStorage,
   }) {
+    // Todas las peticiones reportan aquí si hay o no conexión.
+    final signals = NetworkSignals();
     final fuelEconomyDio = ApiClientFactory.create(
+      signals: signals,
       baseUrl: ApiConfig.fuelEconomyBaseUrl,
       acceptHeaderValue: NetworkConfig.jsonAcceptHeaderValue,
       userAgent: UserAgentsConfig.fuelEconomyUserAgent,
       sourceLabel: FuelEconomyConfig.fuelEconomySourceLabel,
     );
     final logosDio = ApiClientFactory.create(
+      signals: signals,
       baseUrl: LogosConfig.logosBaseUrl,
       acceptHeaderValue: NetworkConfig.jsonAcceptHeaderValue,
       userAgent: UserAgentsConfig.logosUserAgent,
       sourceLabel: LogosConfig.logosSourceLabel,
     );
     final commonsDio = ApiClientFactory.create(
+      signals: signals,
       baseUrl: ApiConfig.commonsApiUrl,
       acceptHeaderValue: NetworkConfig.jsonAcceptHeaderValue,
       userAgent: UserAgentsConfig.commonsUserAgent,
       sourceLabel: PhotosConfig.commonsSourceLabel,
     );
     final nhtsaApiDio = ApiClientFactory.create(
+      signals: signals,
       baseUrl: ApiConfig.nhtsaApiBaseUrl,
       acceptHeaderValue: NetworkConfig.jsonAcceptHeaderValue,
       userAgent: UserAgentsConfig.nhtsaUserAgent,
       sourceLabel: SafetyConfig.nhtsaSourceLabel,
     );
     final nhtsaVpicDio = ApiClientFactory.create(
+      signals: signals,
       baseUrl: ApiConfig.nhtsaVpicBaseUrl,
       acceptHeaderValue: NetworkConfig.jsonAcceptHeaderValue,
       userAgent: UserAgentsConfig.nhtsaUserAgent,
       sourceLabel: SafetyConfig.nhtsaSourceLabel,
     );
     final conueeDio = ApiClientFactory.create(
+      signals: signals,
       baseUrl: ApiConfig.conueeApiBaseUrl,
       acceptHeaderValue: NetworkConfig.jsonAcceptHeaderValue,
       userAgent: UserAgentsConfig.conueeUserAgent,
       sourceLabel: ConueeConfig.sourceLabel,
+    );
+    // La sonda va aparte: sin registro ni señales, para no contarse a sí misma.
+    final probeDio = ApiClientFactory.create(
+      baseUrl: ApiConfig.fuelEconomyBaseUrl,
+      acceptHeaderValue: NetworkConfig.jsonAcceptHeaderValue,
+      userAgent: UserAgentsConfig.fuelEconomyUserAgent,
+      sourceLabel: FuelEconomyConfig.fuelEconomySourceLabel,
+      enableLogging: false,
+    );
+    final photoDio = ApiClientFactory.create(
+      baseUrl: ApiConfig.commonsApiUrl,
+      acceptHeaderValue: NetworkConfig.imageAcceptHeaderValue,
+      userAgent: UserAgentsConfig.commonsUserAgent,
+      sourceLabel: PhotosConfig.commonsSourceLabel,
+      signals: signals,
     );
     return AppDependencies.fromDio(
       fuelEconomyDio,
@@ -189,6 +226,11 @@ class AppDependencies {
       compareSelection,
       favorites,
       commonsLogoCache: commonsLogoCache,
+      groupOptionsCache: groupOptionsCache,
+      filesRoot: filesRoot,
+      networkSignals: signals,
+      probeDio: probeDio,
+      photoDio: photoDio,
       closeStorage: closeStorage,
     );
   }
@@ -212,8 +254,63 @@ class AppDependencies {
     CompareSelectionDatasource compareSelection,
     FavoritesDatasource favorites, {
     CommonsLogoCacheDatasource? commonsLogoCache,
+    GroupOptionsCacheDatasource? groupOptionsCache,
+    Directory? filesRoot,
+    NetworkSignals? networkSignals,
+    Dio? probeDio,
+    Dio? photoDio,
     Future<void> Function()? closeStorage,
   }) {
+    final signals = networkSignals ?? NetworkSignals();
+    final connectivityCubit = ConnectivityCubit(
+      signals: signals,
+      probe: DioConnectionProbe(
+        dio: probeDio ?? fuelEconomyDio,
+        url: ApiConfig.fuelEconomyBaseUrl,
+        timeout: const Duration(
+          seconds: ConnectivityConfig.probeTimeoutSeconds,
+        ),
+      ),
+      judge: ConnectionJudge(
+        slowFailuresToGoOffline: ConnectivityConfig.slowFailuresToGoOffline,
+      ),
+      backoff: const ReconnectBackoff(
+        initialDelay: Duration(
+          seconds: ConnectivityConfig.probeInitialDelaySeconds,
+        ),
+        maxDelay: Duration(seconds: ConnectivityConfig.probeMaxDelaySeconds),
+        factor: ConnectivityConfig.probeBackoffFactor,
+      ),
+      restoredNoticeDuration: const Duration(
+        milliseconds: ConnectivityConfig.restoredNoticeMilliseconds,
+      ),
+    );
+    // Sin carpeta de archivos (pruebas) no hay logos ni fotos en disco.
+    final logoFileStore = filesRoot == null
+        ? null
+        : FileLogoFileStore(
+            directory: Directory(
+              '${filesRoot.path}/${LogoDiskConfig.directoryName}',
+            ),
+            maxFileBytes: LogoDiskConfig.maxFileBytes,
+            maxTotalBytes: LogoDiskConfig.maxTotalBytes,
+          );
+    final favoritePhotoStore = filesRoot == null
+        ? null
+        : FileFavoritePhotoStore(
+            directory: Directory(
+              '${filesRoot.path}/${FavoritesConfig.photosDirectoryName}',
+            ),
+            dio: photoDio ?? commonsDio,
+            maxBytes: FavoritesConfig.photoMaxBytes,
+            timeout: const Duration(
+              seconds: FavoritesConfig.photoDownloadTimeoutSeconds,
+            ),
+            downloadUrlOf: (url) => const ThumbnailUrlBuilder().forUrl(
+              url,
+              FavoritesConfig.photoWidthPixels,
+            ),
+          );
     final repository = CatalogRepositoryImpl(
       FuelEconomyCatalogDatasource(fuelEconomyDio),
     );
@@ -256,7 +353,10 @@ class AppDependencies {
       queue: fuelEconomyQueue,
     );
     final getGroupSummary = GetGroupSummaryUseCase(vehicleSpecsRepository);
-    final getGroupOptions = GetGroupOptionsUseCase(vehicleSpecsRepository);
+    final getGroupOptions = GetGroupOptionsUseCase(
+      vehicleSpecsRepository,
+      cache: groupOptionsCache,
+    );
     final resolveVehicleDetail = ResolveVehicleDetailUseCase(
       cache: detailCache,
       repository: vehicleSpecsRepository,
@@ -388,6 +488,29 @@ class AppDependencies {
     const favoriteClock = DateTime.now;
     return AppDependencies._(
       marketCubit: marketCubit,
+      networkSignals: signals,
+      connectivityCubit: connectivityCubit,
+      logoFileStore: logoFileStore,
+      favoritePhotoStore: favoritePhotoStore,
+      attachFavoritePhotoUseCase: favoritePhotoStore == null
+          ? null
+          : AttachFavoritePhotoUseCase(
+              datasource: favorites,
+              store: favoritePhotoStore,
+            ),
+      deleteFavoritePhotoUseCase: favoritePhotoStore == null
+          ? null
+          : DeleteFavoritePhotoUseCase(favoritePhotoStore),
+      cleanOrphanFavoritePhotosUseCase: favoritePhotoStore == null
+          ? null
+          : CleanOrphanFavoritePhotosUseCase(
+              datasource: favorites,
+              store: favoritePhotoStore,
+              clock: DateTime.now,
+              grace: const Duration(
+                minutes: FavoritesConfig.orphanGraceMinutes,
+              ),
+            ),
       summaryKeyBuilder: MarketSummaryKeyBuilder(currentMarket),
       catalogRepository: repository,
       getAvailableYearsUseCase: MarketGetAvailableYearsUseCase(
@@ -407,6 +530,7 @@ class AppDependencies {
       getModelGroupsUseCase: marketGetModelGroups,
       brandLogosRepository: BrandLogosRepositoryImpl(
         BrandLogosCdnDatasource(logosDio),
+        store: logoFileStore,
       ),
       // Sin caché no hay logos de respaldo: solo se piden con la caché lista.
       resolveCommonsLogoUseCase: commonsLogoCache == null
@@ -590,6 +714,7 @@ class AppDependencies {
         resolveModelPhoto: resolveModelPhoto,
         classTranslator: classTranslator,
         currentMarket: currentMarket,
+        loadGroupDetails: marketLoadGroupDetails,
       ),
       compareVersionLabeler: MarketCompareVersionLabeler(
         loader: compareLoader,
@@ -608,6 +733,17 @@ class AppDependencies {
   }
 
   final MarketCubit marketCubit;
+
+  /// Señales de conexión de las peticiones y el cubit que las interpreta.
+  final NetworkSignals networkSignals;
+  final ConnectivityCubit connectivityCubit;
+
+  /// Disco de logos y de fotos de favoritos; nulos si no hay carpeta de archivos.
+  final LogoFileStore? logoFileStore;
+  final FavoritePhotoStore? favoritePhotoStore;
+  final AttachFavoritePhotoUseCase? attachFavoritePhotoUseCase;
+  final DeleteFavoritePhotoUseCase? deleteFavoritePhotoUseCase;
+  final CleanOrphanFavoritePhotosUseCase? cleanOrphanFavoritePhotosUseCase;
   final SummaryKeyBuilder summaryKeyBuilder;
   final CatalogRepository catalogRepository;
   final GetAvailableYearsUseCase getAvailableYearsUseCase;
@@ -700,6 +836,8 @@ class AppDependencies {
     await nhtsaQueue.close();
     await conueeQueue.close();
     await marketCubit.close();
+    await connectivityCubit.close();
+    await networkSignals.close();
     await closeStorage();
   }
 }
