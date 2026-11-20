@@ -39,7 +39,11 @@ class BuildSearchIndexUseCase {
     SearchScopeEntity scope, {
     bool retryFailedOnly = false,
   }) {
-    final existing = store.recordOf(scope.key);
+    final stored = store.recordOf(scope.key);
+    // Una caché inconsistente (listo con marcas fallidas, filas de menos) se descarta.
+    final usable = stored == null || stored.isConsistent;
+    if (!usable) store.remove(scope.key);
+    final existing = usable ? stored : null;
     final isFinished =
         existing != null && existing.status.phase != SearchIndexPhase.building;
     final retry =
@@ -122,6 +126,10 @@ class BuildSearchIndexUseCase {
           try {
             final groups = await source.fetchGroups(scope, brand);
             if (run.cancelled) return;
+            // Una marca del menú sin ningún grupo es una respuesta incompleta.
+            if (groups.isEmpty) {
+              throw StateError(SearchConfig.emptyBrandMessage);
+            }
             entries.addAll([
               for (final group in groups)
                 SearchEntryEntity(
@@ -144,7 +152,7 @@ class BuildSearchIndexUseCase {
           : SearchConfig.indexBuildConcurrency;
       await Future.wait(List.generate(workerCount, (_) => worker()));
       if (run.cancelled) return;
-      final finalStatus = failed.isEmpty
+      final finalStatus = failed.isEmpty && finished.length == pending.length
           ? SearchIndexStatusEntity.ready(totalBrands: total)
           : SearchIndexStatusEntity.partial(
               totalBrands: total,

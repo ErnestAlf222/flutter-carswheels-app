@@ -66,15 +66,34 @@ class SearchOtherYearsWidget extends StatelessWidget {
     required this.status,
     required this.onCancel,
     required this.onOpen,
+    this.shown,
+    this.filtersActive = false,
+    this.analysis,
+    this.onClearFilters,
   });
 
   final SearchOtherYearsStatusEntity status;
   final VoidCallback onCancel;
   final ValueChanged<SearchResultEntity> onOpen;
 
+  /// Resultados ya filtrados; nulo muestra todos los de [status].
+  final List<SearchResultEntity>? shown;
+
+  /// Hay filtros activos: un año sin coincidencias se oculta.
+  final bool filtersActive;
+
+  /// Estado compacto del análisis de rasgos, si aplica.
+  final Widget? analysis;
+
+  /// Quita todos los filtros desde el aviso "Sin coincidencias".
+  final VoidCallback? onClearFilters;
+
   @override
   Widget build(BuildContext context) {
-    final results = status.results;
+    final results = shown ?? status.results;
+    final noMatches =
+        filtersActive && status.results.isNotEmpty && results.isEmpty;
+    final analysisStatus = analysis;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -107,13 +126,16 @@ class SearchOtherYearsWidget extends StatelessWidget {
               ),
             ],
           ),
-        ] else if (results.isEmpty)
+        ] else if (noMatches)
+          _NoMatches(onClear: onClearFilters)
+        else if (results.isEmpty)
           Text(
             status.failedYears.isEmpty
                 ? AppTexts.searchOtherYearsNone
                 : AppTexts.searchOtherYearsFailed,
             style: AppTextStyles.caption,
           ),
+        ?analysisStatus,
         for (final group in _groups(results, status.checkedYears))
           _YearGroup(group: group, onOpen: onOpen),
       ],
@@ -146,6 +168,39 @@ class _YearGroupData {
 
   final int year;
   final List<SearchResultEntity> results;
+}
+
+/// Aviso cuando los filtros no dejan ninguna coincidencia en otros años.
+class _NoMatches extends StatelessWidget {
+  const _NoMatches({required this.onClear});
+
+  final VoidCallback? onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final clear = onClear;
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            AppTexts.searchOtherYearsNoFilterMatches,
+            key: const ValueKey('search-other-years-no-filter-matches'),
+            style: AppTextStyles.caption,
+          ),
+        ),
+        if (clear != null)
+          TextButton(
+            key: const ValueKey('search-other-years-clear-filters'),
+            onPressed: clear,
+            style: TextButton.styleFrom(foregroundColor: AppColors.ink),
+            child: Text(
+              AppTexts.searchActiveFiltersClear,
+              style: AppTextStyles.bodyStrong,
+            ),
+          ),
+      ],
+    );
+  }
 }
 
 /// Un año: encabezado con línea y cantidad, y sus filas.

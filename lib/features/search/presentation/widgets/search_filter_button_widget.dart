@@ -117,8 +117,8 @@ class _SearchFilterButtonState extends State<SearchFilterButton>
                     ),
                     if (activeCount > 0)
                       Positioned(
-                        top: SearchConfig.filterBadgeOffset,
-                        right: SearchConfig.filterBadgeOffset,
+                        top: SearchConfig.filterBadgeTopOffset,
+                        right: SearchConfig.filterBadgeRightOffset,
                         child: _Badge(count: activeCount),
                       ),
                   ],
@@ -132,7 +132,7 @@ class _SearchFilterButtonState extends State<SearchFilterButton>
   }
 }
 
-/// Círculo amarillo con el número de filtros activos.
+/// Cápsula amarilla con el número de filtros activos; entra con un golpe de escala.
 class _Badge extends StatelessWidget {
   const _Badge({required this.count});
 
@@ -140,28 +140,46 @@ class _Badge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      key: const ValueKey('search-filter-badge'),
-      constraints: const BoxConstraints(
-        minWidth: SearchConfig.filterBadgeSize,
-        minHeight: SearchConfig.filterBadgeSize,
+    final still = MediaQuery.of(context).disableAnimations;
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(
+        begin: still ? 1.0 : SearchConfig.filterBadgeStartScale,
+        end: 1.0,
       ),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: AppColors.accent,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: AppColors.surface,
-          width: SearchConfig.filterBadgeBorderWidth,
+      duration: still
+          ? Duration.zero
+          : const Duration(
+              milliseconds: SearchConfig.filterBadgePopMilliseconds,
+            ),
+      curve: Curves.easeOutBack,
+      builder: (context, scale, child) =>
+          Transform.scale(scale: scale, child: child),
+      child: Container(
+        key: const ValueKey('search-filter-badge'),
+        constraints: const BoxConstraints(
+          minWidth: SearchConfig.filterBadgeMinWidth,
+          minHeight: SearchConfig.filterBadgeHeight,
         ),
-      ),
-      child: Text(
-        AppTexts.searchFilterNumberLabel(count),
-        style: AppTextStyles.caption.copyWith(
-          color: AppColors.ink,
-          fontWeight: FontWeight.w700,
-          fontSize: SearchConfig.filterBadgeFontSize,
-          height: 1.0,
+        padding: const EdgeInsets.symmetric(
+          horizontal: SearchConfig.filterBadgeHorizontalPadding,
+        ),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: AppColors.accent,
+          borderRadius: BorderRadius.circular(AppRadii.pill),
+          border: Border.all(
+            color: AppColors.surface,
+            width: SearchConfig.filterBadgeBorderWidth,
+          ),
+        ),
+        child: Text(
+          AppTexts.searchFilterNumberLabel(count),
+          style: AppTextStyles.caption.copyWith(
+            color: AppColors.ink,
+            fontWeight: FontWeight.w700,
+            fontSize: SearchConfig.filterBadgeFontSize,
+            height: 1.0,
+          ),
         ),
       ),
     );

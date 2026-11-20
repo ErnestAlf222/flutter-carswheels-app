@@ -17,7 +17,7 @@ class SearchAnalysisRunner {
   const SearchAnalysisRunner({
     required this.source,
     this.maxConcurrent = SearchConfig.analysisConcurrency,
-    this.maxResults = SearchConfig.analysisMaxResults,
+    this.maxResults = SearchConfig.analysisRunMaxResults,
   }) : assert(maxConcurrent > 0);
 
   final SearchTraitsSource source;

@@ -1,10 +1,12 @@
 // Widgets de la pantalla de búsqueda
+export 'search_active_filters_row_widget.dart';
 export 'search_analysis_status_widget.dart';
 export 'search_brand_item_widget.dart';
 export 'search_brand_row_widget.dart';
 export 'search_field_widget.dart';
 export 'search_filter_button_widget.dart';
 export 'search_filter_chip_widget.dart';
+export 'search_filter_labels.dart';
 export 'search_filtered_empty_widget.dart';
 export 'search_filters_sheet_widget.dart';
 export 'search_header_delegate.dart';

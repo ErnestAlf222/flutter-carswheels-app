@@ -18,6 +18,24 @@ class SearchConfig {
   // Marcas cuyos grupos se piden a la vez al construir el índice.
   static const int indexBuildConcurrency = 4;
 
+  // Mientras el índice avanza, los eventos se agrupan antes de repetir la consulta.
+  static const int indexRerunCoalesceMilliseconds = 150;
+
+  // Reintento automático de marcas fallidas: espera base, factor y tope de intentos.
+  static const int indexRetryBaseDelayMilliseconds = 1500;
+  static const int indexRetryBackoffFactor = 2;
+  static const int indexRetryMaxAttempts = 4;
+
+  // Mensaje técnico cuando una marca del menú llega sin grupos.
+  static const String emptyBrandMessage = 'La marca llegó sin grupos';
+
+  // Otros años: tope de resultados cuyos rasgos se analizan para los filtros.
+  static const int otherYearsAnalysisMaxResults = maxOtherYearsResults;
+
+  // Tope de resultados de una corrida del análisis: año vigente y otros años.
+  static const int analysisRunMaxResults =
+      analysisMaxResults + otherYearsAnalysisMaxResults;
+
   // Marcas coincidentes que se muestran arriba de los resultados.
   static const int maxBrandMatches = 3;
 
@@ -130,10 +148,18 @@ class SearchConfig {
   static const double sectionGap = 20.0;
 
   // Filtros: insignia del botón, hoja inferior y chips.
-  static const double filterBadgeSize = 18.0;
-  static const double filterBadgeOffset = -4.0;
-  static const double filterBadgeBorderWidth = 1.5;
+  static const double filterBadgeHeight = 18.0;
+  static const double filterBadgeMinWidth = 20.0;
+  static const double filterBadgeHorizontalPadding = 5.0;
+  static const double filterBadgeTopOffset = -5.0;
+  static const double filterBadgeRightOffset = -6.0;
+  static const double filterBadgeBorderWidth = 1.0;
   static const double filterBadgeFontSize = 11.0;
+  static const int filterBadgePopMilliseconds = 160;
+  static const double filterBadgeStartScale = 0.4;
+
+  // Franja de filtros activos bajo el encabezado de resultados.
+  static const double activeFiltersRowHeight = 36.0;
   static const double filterSheetMaxHeightFraction = 0.85;
   static const double filterSheetHandleWidth = 40.0;
   static const double filterSheetHandleHeight = 4.0;

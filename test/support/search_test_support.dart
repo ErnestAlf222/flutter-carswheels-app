@@ -52,6 +52,15 @@ class FakeSearchCatalogSource implements SearchCatalogSource {
   final Map<String, List<String>> groupsByBrand;
   final Set<String> failingBrands = {};
 
+  /// Fallos que quedan por marca: cada pedido consume uno y falla.
+  final Map<String, int> failuresLeft = {};
+
+  /// Compuertas por marca: el pedido espera a que la suya se complete.
+  final Map<String, Completer<void>> brandGates = {};
+
+  /// Marcas cuyo pedido responde sin grupos (respuesta incompleta).
+  final Set<String> emptyBrands = {};
+
   /// Si es verdadero, pedir las marcas falla (sin conexión).
   bool failBrands = false;
   final List<String> groupRequests = [];
@@ -82,7 +91,15 @@ class FakeSearchCatalogSource implements SearchCatalogSource {
     try {
       final pending = gate;
       if (pending != null) await pending.future;
+      final brandGate = brandGates[brand];
+      if (brandGate != null) await brandGate.future;
       if (failingBrands.contains(brand)) throw StateError('falla $brand');
+      final left = failuresLeft[brand] ?? 0;
+      if (left > 0) {
+        failuresLeft[brand] = left - 1;
+        throw StateError('falla $brand');
+      }
+      if (emptyBrands.contains(brand)) return const [];
       return [
         for (final name in groupsByBrand[brand]!)
           SearchGroupEntity(name: name, variantNames: [name]),

@@ -7,6 +7,20 @@ class SearchIndexRecord {
 
   final SearchIndex index;
   final SearchIndexStatusEntity status;
+
+  /// Un índice listo exige todas las marcas indexadas y sin fallidas; uno parcial
+  /// exige las fallidas. Cualquier otra combinación es una caché inválida.
+  bool get isConsistent {
+    final brandRows = index.entries.where((entry) => entry.groupName == null);
+    if (brandRows.length != status.totalBrands) return false;
+    return switch (status.phase) {
+      SearchIndexPhase.ready =>
+        status.failedBrands.isEmpty &&
+            status.completedBrands == status.totalBrands,
+      SearchIndexPhase.partial => status.failedBrands.isNotEmpty,
+      SearchIndexPhase.building => true,
+    };
+  }
 }
 
 /// Índices de la sesión por clave mercado|año; viven solo en memoria.

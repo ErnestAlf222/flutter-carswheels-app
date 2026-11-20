@@ -493,9 +493,15 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
     expect(find.byType(ModelGridCardWidget), findsNWidgets(3));
-    expect(find.text(AppTexts.searchPartialMessage), findsNothing);
+    // En obra se avisa el avance, sin el botón de reintento.
+    expect(
+      find.byKey(const ValueKey('search-indexing-notice')),
+      findsOneWidget,
+    );
+    expect(find.text(AppTexts.retryButtonLabel), findsNothing);
     harness.source.gate!.complete();
     await _settle(tester);
+    expect(find.byKey(const ValueKey('search-indexing-notice')), findsNothing);
     expect(find.byType(LinearProgressIndicator), findsNothing);
     expect(find.byType(ModelGridCardWidget), findsNWidgets(3));
     await tester.pumpWidget(const SizedBox());
@@ -656,7 +662,7 @@ void main() {
     harness.source.failingBrands.add('Honda');
     await tester.pumpWidget(_page(harness));
     await _settle(tester);
-    expect(find.text(AppTexts.searchPartialMessage), findsOneWidget);
+    expect(find.text(AppTexts.searchIndexingNotice(2, 3)), findsOneWidget);
     final button = tester.widget<Material>(
       find
           .descendant(
@@ -669,7 +675,7 @@ void main() {
     harness.source.failingBrands.clear();
     await tester.tap(find.text(AppTexts.retryButtonLabel));
     await _settle(tester);
-    expect(find.text(AppTexts.searchPartialMessage), findsNothing);
+    expect(find.byKey(const ValueKey('search-indexing-notice')), findsNothing);
     expect(harness.cubit.state.indexStatus?.phase, SearchIndexPhase.ready);
     await tester.pumpWidget(const SizedBox());
   });

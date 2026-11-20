@@ -161,14 +161,20 @@ class _SearchPageState extends State<SearchPage> {
                             progress: state.indexStatus?.progress,
                           ),
                         ),
-                      if (state.isPartial)
+                      if (state.indexStatus != null &&
+                          (state.isPartial ||
+                              (state.isPreparing && state.hasQuery)))
                         SliverToBoxAdapter(
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
                               horizontal: UiConfig.pageHorizontalPadding,
                             ),
                             child: SearchPartialNoticeWidget(
-                              onRetry: cubit.retryIndex,
+                              indexed: state.indexStatus!.indexedBrands,
+                              total: state.indexStatus!.totalBrands,
+                              onRetry: state.isPartial
+                                  ? cubit.retryIndex
+                                  : null,
                             ),
                           ),
                         ),
@@ -236,7 +242,7 @@ class _SearchPageState extends State<SearchPage> {
       );
     }
     if (state.totalResults > 0) {
-      // Los filtros se aplican a las secciones de resultados, no a otros años.
+      // Los filtros se aplican a las secciones de resultados y a otros años.
       final service = cubit.filterService;
       final shown = service.apply(state.results, state.filters, state.traits);
       final shownOthers = service.apply(
@@ -264,11 +270,21 @@ class _SearchPageState extends State<SearchPage> {
       final note = state.isTruncated
           ? AppTexts.searchResultsTruncatedLabel(state.totalResults)
           : null;
+      // La franja de filtros activos va bajo el primer encabezado de resultados.
+      final strip = state.filters.isActive
+          ? SearchActiveFiltersRow(
+              count: state.filters.activeCount,
+              onOpen: () => showSearchFiltersSheet(context),
+              onClear: cubit.clearFilters,
+            )
+          : null;
       if (state.filters.isActive && shown.isEmpty && shownOthers.isEmpty) {
         slivers.add(
           SliverToBoxAdapter(
             child: SearchFilteredEmptyWidget(
-              onClear: cubit.clearFilters,
+              summary: SearchFilterLabels.summary(state.filters),
+              onClearFilters: cubit.clearFilters,
+              onClearAll: cubit.clearAll,
               status: showStatus ? status : null,
             ),
           ),
@@ -288,6 +304,7 @@ class _SearchPageState extends State<SearchPage> {
               ),
               results: shown,
               resetKey: state.resultsKey,
+              strip: strip,
             ),
           );
         } else if (state.results.isEmpty) {
@@ -310,6 +327,7 @@ class _SearchPageState extends State<SearchPage> {
               ),
               results: shownOthers,
               resetKey: '${state.resultsKey} others',
+              strip: shown.isEmpty ? strip : null,
             ),
           );
         }
@@ -328,6 +346,7 @@ class _SearchPageState extends State<SearchPage> {
             ),
             results: shown,
             resetKey: state.resultsKey,
+            strip: strip,
           ),
         );
       }
@@ -360,9 +379,15 @@ class _SearchPageState extends State<SearchPage> {
     required Widget header,
     required List<SearchResultEntity> results,
     required String resetKey,
+    Widget? strip,
   }) {
     return [
-      _padded(child: header, top: AppSpacing.xs, bottom: AppSpacing.s),
+      _padded(
+        child: header,
+        top: AppSpacing.xs,
+        bottom: strip == null ? AppSpacing.s : 0,
+      ),
+      if (strip != null) _padded(child: strip, top: 0, bottom: AppSpacing.xs),
       SliverPadding(
         padding: const EdgeInsets.symmetric(
           horizontal: UiConfig.pageHorizontalPadding,
@@ -382,12 +407,31 @@ class _SearchPageState extends State<SearchPage> {
     final cubit = context.read<SearchCubit>();
     final status = state.otherYears;
     if (status != null) {
+      // Los mismos filtros guían también los resultados de otros años.
+      final service = cubit.filterService;
+      final filters = state.filters;
+      final pending = filters.engines.isEmpty
+          ? 0
+          : service.unanalyzedCount(status.results, filters, state.traits);
+      final showStatus =
+          filters.needsTraits && (state.isAnalyzing || pending > 0);
       return [
         _padded(
           child: SearchOtherYearsWidget(
             status: status,
             onCancel: cubit.cancelOtherYears,
             onOpen: (result) => _openResult(context, result),
+            shown: service.apply(status.results, filters, state.traits),
+            filtersActive: filters.isActive,
+            onClearFilters: cubit.clearFilters,
+            analysis: showStatus
+                ? SearchAnalysisStatusWidget(
+                    isAnalyzing: state.isAnalyzing,
+                    analyzed: state.otherYearsAnalyzedCount,
+                    total: state.otherYearsCandidates.length,
+                    pending: pending,
+                  )
+                : null,
           ),
           top: AppSpacing.m,
           bottom: 0,

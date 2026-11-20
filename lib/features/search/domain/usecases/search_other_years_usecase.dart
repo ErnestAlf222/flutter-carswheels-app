@@ -61,8 +61,10 @@ class SearchOtherYearsUseCase {
         year: year,
       );
       try {
+        SearchIndexStatusEntity? lastStatus;
         await for (final indexStatus in buildIndex(yearScope)) {
           if (cancelled()) return;
+          lastStatus = indexStatus;
           final inner = indexStatus.phase == SearchIndexPhase.building
               ? indexStatus.progress
               : 1.0;
@@ -72,6 +74,8 @@ class SearchOtherYearsUseCase {
           );
         }
         if (cancelled()) return;
+        // Un año con marcas sin indexar se avisa, pero sus coincidencias se muestran.
+        if (lastStatus?.phase == SearchIndexPhase.partial) failed.add(year);
         results.addAll(searchCatalog(yearScope, query));
         if (results.length > SearchConfig.maxOtherYearsResults) {
           results.removeRange(

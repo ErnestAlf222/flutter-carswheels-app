@@ -92,6 +92,17 @@ class SearchState extends Equatable {
     ...otherResults,
   ].take(SearchConfig.analysisMaxResults).toList();
 
+  /// Resultados de otros años que se analizan, hasta su propio tope.
+  List<SearchResultEntity> get otherYearsCandidates =>
+      [...?otherYears?.results]
+          .take(SearchConfig.otherYearsAnalysisMaxResults)
+          .toList();
+
+  /// Cuántos de los resultados de otros años ya tienen sus rasgos.
+  int get otherYearsAnalyzedCount => otherYearsCandidates
+      .where((result) => traits.containsKey(result.traitsKey))
+      .length;
+
   /// Cuántos de los resultados a analizar ya tienen sus rasgos.
   int get analyzedCount => analysisCandidates
       .where((result) => traits.containsKey(result.traitsKey))

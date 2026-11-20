@@ -6,6 +6,7 @@ import 'package:cars_wheels_app/features/search/domain/domain.dart';
 import 'package:cars_wheels_app/features/search/presentation/cubits/cubits.dart';
 import 'package:cars_wheels_app/features/search/presentation/widgets/search_analysis_status_widget.dart';
 import 'package:cars_wheels_app/features/search/presentation/widgets/search_filter_chip_widget.dart';
+import 'package:cars_wheels_app/features/search/presentation/widgets/search_filter_labels.dart';
 
 /// Abre la hoja de filtros; al abrir pide el análisis y al cerrar lo cancela.
 Future<void> showSearchFiltersSheet(BuildContext context) {
@@ -96,6 +97,19 @@ class _Content extends StatelessWidget {
             ),
           ),
           Padding(
+            padding: const EdgeInsets.fromLTRB(
+              UiConfig.pageHorizontalPadding,
+              AppSpacing.xs,
+              UiConfig.pageHorizontalPadding,
+              0,
+            ),
+            child: Text(
+              AppTexts.searchFiltersAlsoOtherYears,
+              key: const ValueKey('search-filters-other-years-note'),
+              style: AppTextStyles.caption,
+            ),
+          ),
+          Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: UiConfig.pageHorizontalPadding,
             ),
@@ -170,7 +184,7 @@ class _Content extends StatelessWidget {
         if (options.contains(option))
           SearchFilterChip(
             key: ValueKey('search-filter-engine-${option.name}'),
-            label: _engineLabel(option),
+            label: SearchFilterLabels.engine(option),
             count: counts[option],
             selected: state.filters.engines.contains(option),
             enabled:
@@ -245,11 +259,4 @@ class _Content extends StatelessWidget {
       children: chips,
     ),
   ];
-
-  String _engineLabel(SearchEngineOption option) => switch (option) {
-    SearchEngineOption.electric => AppTexts.searchFiltersEngineElectric,
-    SearchEngineOption.hybrid => AppTexts.searchFiltersEngineHybrid,
-    SearchEngineOption.pluginHybrid => AppTexts.searchFiltersEnginePluginHybrid,
-    SearchEngineOption.combustion => AppTexts.searchFiltersEngineCombustion,
-  };
 }

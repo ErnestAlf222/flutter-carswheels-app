@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -57,6 +58,13 @@ class SearchCubit extends Cubit<SearchState> {
   StreamSubscription<SearchOtherYearsStatusEntity>? _otherYearsSubscription;
   StreamSubscription<SearchTraitsUpdate>? _analysisSubscription;
 
+  // Agrupa los avances del índice antes de repetir la consulta vigente.
+  Timer? _indexRerunTimer;
+
+  // Reintento automático con retroceso del índice parcial o fallido.
+  Timer? _indexRetryTimer;
+  int _indexRetryAttempts = 0;
+
   // La hoja de filtros está abierta: el análisis corre aunque no haya filtros.
   bool _filtersSheetOpen = false;
 
@@ -83,6 +91,9 @@ class SearchCubit extends Cubit<SearchState> {
     _indexWanted = true;
     final scope = state.scope;
     if (scope == null) return;
+    // Un reintento manual cancela la espera automática y la reinicia.
+    _indexRetryTimer?.cancel();
+    _indexRetryAttempts = 0;
     _startBuild(scope, retryFailedOnly: state.isPartial);
   }
 
@@ -245,6 +256,8 @@ class SearchCubit extends Cubit<SearchState> {
           (status) {
             if (isClosed || state.scope != scope) return;
             emit(state.copyWith(otherYears: status));
+            // Con filtros que lo necesitan, los años nuevos se analizan solos.
+            _ensureAnalysis();
           },
           onError: (Object _) {
             if (isClosed) return;
@@ -384,6 +397,9 @@ class SearchCubit extends Cubit<SearchState> {
   }
 
   void _cancelBuild() {
+    _indexRerunTimer?.cancel();
+    _indexRetryTimer?.cancel();
+    _indexRetryAttempts = 0;
     unawaited(_indexSubscription?.cancel());
     _indexSubscription = null;
     buildIndex.cancel();
@@ -407,6 +423,28 @@ class SearchCubit extends Cubit<SearchState> {
   void setSortOrder(SearchSortOrder sort) {
     final next = state.filters.sort == sort ? SearchSortOrder.relevance : sort;
     _setFilters(state.filters.copyWith(sort: next));
+  }
+
+  /// Limpia de una vez el texto, el alcance de marca y los filtros.
+  void clearAll() {
+    _debounceTimer?.cancel();
+    _cancelOtherYears();
+    _cancelAnalysis();
+    emit(
+      state.copyWith(
+        query: '',
+        clearScopeBrand: true,
+        filters: SearchFiltersEntity.none,
+        results: const [],
+        otherResults: const [],
+        brandMatches: const [],
+        suggestions: const [],
+        searchedText: '',
+        isSearching: false,
+        clearOtherYears: true,
+        otherYearsFailed: false,
+      ),
+    );
   }
 
   /// Quita todos los filtros y el orden.
@@ -433,8 +471,13 @@ class SearchCubit extends Cubit<SearchState> {
   // Pide los rasgos que faltan, solo con la hoja abierta o filtros que los usan.
   void _ensureAnalysis() {
     if (isClosed || !(_filtersSheetOpen || state.filters.needsTraits)) return;
+    // Los otros años solo se analizan si los filtros dependen de los rasgos.
+    final candidates = [
+      ...state.analysisCandidates,
+      if (state.filters.needsTraits) ...state.otherYearsCandidates,
+    ];
     final missing = [
-      for (final result in state.analysisCandidates)
+      for (final result in candidates)
         if (!state.traits.containsKey(result.traitsKey)) result,
     ];
     if (missing.isEmpty) return;
@@ -486,13 +529,30 @@ class SearchCubit extends Cubit<SearchState> {
         .listen(
           (status) {
             if (isClosed || state.scope != scope) return;
+            final first = state.indexStatus == null;
             emit(state.copyWith(indexStatus: status));
-            // Con cada avance se repite la consulta vigente.
+            if (status.phase == SearchIndexPhase.building && !first) {
+              // Mientras avanza, los eventos se agrupan en una sola consulta.
+              _scheduleIndexRerun();
+              return;
+            }
+            // Primer avance, listo o parcial: la consulta se repite de inmediato.
+            _indexRerunTimer?.cancel();
             _applySearch();
+            if (status.phase == SearchIndexPhase.ready) {
+              _indexRetryTimer?.cancel();
+              _indexRetryAttempts = 0;
+            } else if (status.phase == SearchIndexPhase.partial) {
+              _scheduleIndexRetry(scope, retryFailedOnly: true);
+            }
           },
           onError: (Object _) {
             if (isClosed || state.scope != scope) return;
             emit(state.copyWith(indexFailed: true));
+            // Sin siquiera las marcas: se reintenta todo, con retroceso.
+            if (state.indexStatus == null) {
+              _scheduleIndexRetry(scope, retryFailedOnly: false);
+            }
           },
         );
     subscription.onDone(() {
@@ -503,8 +563,50 @@ class SearchCubit extends Cubit<SearchState> {
     _indexSubscription = subscription;
   }
 
+  // Repite la consulta tras una pausa corta; los avances intermedios se funden.
+  void _scheduleIndexRerun() {
+    if (_indexRerunTimer?.isActive ?? false) return;
+    _indexRerunTimer = Timer(
+      const Duration(milliseconds: SearchConfig.indexRerunCoalesceMilliseconds),
+      () {
+        _indexRerunTimer = null;
+        _applySearch();
+      },
+    );
+  }
+
+  // Reintenta solo, con espera creciente, hasta el tope de intentos.
+  void _scheduleIndexRetry(
+    SearchScopeEntity scope, {
+    required bool retryFailedOnly,
+  }) {
+    if (!_indexWanted ||
+        _indexRetryAttempts >= SearchConfig.indexRetryMaxAttempts) {
+      return;
+    }
+    final factor = pow(
+      SearchConfig.indexRetryBackoffFactor,
+      _indexRetryAttempts,
+    );
+    final delay = Duration(
+      milliseconds:
+          SearchConfig.indexRetryBaseDelayMilliseconds * factor.toInt(),
+    );
+    _indexRetryTimer?.cancel();
+    _indexRetryTimer = Timer(delay, () {
+      _indexRetryTimer = null;
+      if (isClosed || state.scope != scope) return;
+      final stillNeeded = retryFailedOnly ? state.isPartial : state.indexFailed;
+      if (!stillNeeded) return;
+      _indexRetryAttempts++;
+      _startBuild(scope, retryFailedOnly: retryFailedOnly);
+    });
+  }
+
   @override
   Future<void> close() async {
+    _indexRerunTimer?.cancel();
+    _indexRetryTimer?.cancel();
     _debounceTimer?.cancel();
     await _scopeSubscription?.cancel();
     await _indexSubscription?.cancel();

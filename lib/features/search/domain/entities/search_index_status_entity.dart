@@ -48,6 +48,10 @@ class SearchIndexStatusEntity extends Equatable {
   final int totalBrands;
   final List<String> failedBrands;
 
+  /// Marcas con sus grupos ya indexados (sin contar las fallidas).
+  int get indexedBrands =>
+      (completedBrands - failedBrands.length).clamp(0, totalBrands);
+
   /// Avance de 0 a 1.
   double get progress => totalBrands == 0 ? 1 : completedBrands / totalBrands;
 

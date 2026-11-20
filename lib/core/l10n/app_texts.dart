@@ -268,8 +268,6 @@ class AppTexts {
   static const String searchHomeBarSemanticLabel =
       'Abrir la búsqueda de marcas y modelos';
   static const String searchPreparingLabel = 'Preparando la búsqueda…';
-  static const String searchPartialMessage =
-      'Faltaron algunas marcas en la búsqueda';
   static const String searchRecentsTitle = 'Recientes';
   static const String searchClearAllLabel = 'Borrar todo';
   static const String searchIdleHint =
@@ -339,6 +337,19 @@ class AppTexts {
       'Ningún resultado con estos filtros';
   static const String searchFiltersEmptyHint =
       'Quita algún filtro para ver más modelos';
+  static const String searchFiltersAlsoOtherYears =
+      'Los filtros también se aplican a otros años';
+  static const String searchFiltersSummarySeparator = ' · ';
+  static const String searchActiveFiltersClear = 'Limpiar';
+  static const String searchClearEverything = 'Limpiar todo';
+  static const String searchOtherYearsNoFilterMatches =
+      'Sin coincidencias con los filtros';
+  static String searchActiveFiltersLabel(int count) =>
+      'Filtros activos ($count)';
+  static String searchFiltersEmptyActive(String filters) =>
+      'Filtros activos: $filters';
+  static String searchIndexingNotice(int done, int total) =>
+      'Indexando… $done de $total marcas · los resultados se completan al terminar';
   static String searchFiltersButtonSemanticLabel(int active) => active == 0
       ? searchFiltersButtonLabel
       : '$searchFiltersButtonLabel, $active activos';
