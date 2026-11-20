@@ -1,5 +1,5 @@
 import 'package:cars_wheels_app/app/compare/compare_group_details_loader.dart';
-import 'package:cars_wheels_app/app/compare/compare_version_labeler.dart';
+import 'package:cars_wheels_app/app/compare/compare_version_namer.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/compare/compare.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
@@ -8,7 +8,7 @@ import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 class MarketCompareVehicleSource implements CompareVehicleSource {
   const MarketCompareVehicleSource({
     required this.loader,
-    required this.versionLabeler,
+    required this.versionNamer,
     required this.classTranslator,
     required this.fuelTypeLabeler,
     required this.driveLabeler,
@@ -16,7 +16,7 @@ class MarketCompareVehicleSource implements CompareVehicleSource {
   });
 
   final CompareGroupDetailsLoader loader;
-  final CompareVersionLabeler versionLabeler;
+  final CompareVersionNamer versionNamer;
   final VehicleClassTranslator classTranslator;
   final FuelTypeLabeler fuelTypeLabeler;
   final DriveLabeler driveLabeler;
@@ -36,7 +36,7 @@ class MarketCompareVehicleSource implements CompareVehicleSource {
     final torque = detail.torqueText;
     final cylinders = detail.cylinders;
     return CompareVehicleDetailEntity(
-      versionLabel: versionLabeler.labelOf(version),
+      versionLabel: versionNamer.labelOf(version),
       engineKind: _engineKindOf(detail),
       combinedKmPerLiter: detail.combinedKmPerLiter,
       cityKmPerLiter: detail.cityKmPerLiter,

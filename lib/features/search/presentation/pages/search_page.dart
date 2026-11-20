@@ -34,6 +34,7 @@ class SearchPage extends StatefulWidget {
     this.onBack,
     this.reserveNavSpace = true,
     this.compact = false,
+    this.belowHeader,
   });
 
   /// Título del encabezado; el modo selección usa el suyo.
@@ -46,6 +47,9 @@ class SearchPage extends StatefulWidget {
   ///
   /// [onBack] hace de cierre de la hoja.
   final bool compact;
+
+  /// Aviso opcional bajo el encabezado; la capa app lo arma (modo comparar).
+  final Widget? belowHeader;
 
   /// Deja libre el espacio del menú flotante al final de la lista.
   final bool reserveNavSpace;
@@ -163,6 +167,8 @@ class _SearchPageState extends State<SearchPage> {
                                 onClear: cubit.clearQuery,
                               ),
                       ),
+                      if (widget.belowHeader case final notice?)
+                        SliverToBoxAdapter(child: notice),
                       if (scopeBrand != null)
                         SliverPersistentHeader(
                           pinned: true,

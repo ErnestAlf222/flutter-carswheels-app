@@ -35,11 +35,16 @@ class ModelGridMetrics {
       ModelGridConfig.efficiencyBarTopGap +
       ModelGridConfig.efficiencyBarHeight;
 
+  /// Alto de la fila de acción opcional con su separación superior.
+  static const double actionRowTotalHeight =
+      ModelGridConfig.actionTopGap + ModelGridConfig.actionRowHeight;
+
   /// Alto total de la celda para un ancho de celda y una escala de texto.
   static double cellHeight(
     double cellWidth,
     TextScaler scaler, {
     bool showBrandLabel = false,
+    bool reserveActionRow = false,
   }) =>
       (photoHeight(cellWidth) +
               (showBrandLabel ? brandLabelHeight(scaler) : 0) +
@@ -49,6 +54,7 @@ class ModelGridMetrics {
               classHeight(scaler) +
               ModelGridConfig.consumptionTopGap +
               consumptionHeight(scaler) +
+              (reserveActionRow ? actionRowTotalHeight : 0) +
               ModelGridConfig.textBottomPadding)
           .ceilToDouble();
 

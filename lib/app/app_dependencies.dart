@@ -10,7 +10,8 @@ import 'package:cars_wheels_app/app/market_catalog/market_resolve_group_summary_
 import 'package:cars_wheels_app/app/market_catalog/market_search_catalog_source.dart';
 import 'package:cars_wheels_app/app/market_catalog/market_summary_key_builder.dart';
 import 'package:cars_wheels_app/app/compare/compare_group_details_loader.dart';
-import 'package:cars_wheels_app/app/compare/compare_version_labeler.dart';
+import 'package:cars_wheels_app/app/compare/compare_version_namer.dart';
+import 'package:cars_wheels_app/app/compare/market_compare_version_labeler.dart';
 import 'package:cars_wheels_app/app/compare/market_compare_safety_source.dart';
 import 'package:cars_wheels_app/app/compare/market_compare_vehicle_source.dart';
 import 'package:cars_wheels_app/app/compare/market_compare_versions_source.dart';
@@ -81,6 +82,7 @@ class AppDependencies {
     required this.compareVehicleSource,
     required this.compareSafetySource,
     required this.compareVersionsSource,
+    required this.compareVersionLabeler,
     required this.commonsQueue,
     required this.fuelEconomyQueue,
     required this.nhtsaQueue,
@@ -345,7 +347,7 @@ class AppDependencies {
       loadGroupDetails: marketLoadGroupDetails,
       currentMarket: currentMarket,
     );
-    const compareVersionLabeler = CompareVersionLabeler(
+    const compareVersionNamer = CompareVersionNamer(
       VersionDescriptorBuilder(transmissionLabeler: transmissionLabeler),
     );
     final searchStore = SearchIndexStore();
@@ -544,7 +546,7 @@ class AppDependencies {
       replaceCompareSlotUseCase: ReplaceCompareSlotUseCase(compareSelection),
       compareVehicleSource: MarketCompareVehicleSource(
         loader: compareLoader,
-        versionLabeler: compareVersionLabeler,
+        versionNamer: compareVersionNamer,
         classTranslator: const VehicleClassTranslator(
           onUntranslated: _logUntranslatedClass,
         ),
@@ -555,9 +557,13 @@ class AppDependencies {
         transmissionLabeler: transmissionLabeler,
       ),
       compareSafetySource: MarketCompareSafetySource(resolveGroupSafety),
+      compareVersionLabeler: MarketCompareVersionLabeler(
+        loader: compareLoader,
+        namer: compareVersionNamer,
+      ),
       compareVersionsSource: MarketCompareVersionsSource(
         loader: compareLoader,
-        versionLabeler: compareVersionLabeler,
+        versionNamer: compareVersionNamer,
       ),
       commonsQueue: commonsQueue,
       fuelEconomyQueue: fuelEconomyQueue,
@@ -619,6 +625,7 @@ class AppDependencies {
   final CompareVehicleSource compareVehicleSource;
   final CompareSafetySource compareSafetySource;
   final CompareVersionsSource compareVersionsSource;
+  final CompareVersionLabeler compareVersionLabeler;
   final RateLimitedQueue commonsQueue;
   final ConcurrencyLimitedQueue fuelEconomyQueue;
   final ConcurrencyLimitedQueue nhtsaQueue;

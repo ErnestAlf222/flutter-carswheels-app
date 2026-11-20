@@ -1,8 +1,9 @@
 import 'package:cars_wheels_app/app/compare/compare_group_details_loader.dart';
 import 'package:cars_wheels_app/app/compare/compare_slot_builder.dart';
-import 'package:cars_wheels_app/app/compare/compare_version_labeler.dart';
+import 'package:cars_wheels_app/app/compare/compare_version_namer.dart';
 import 'package:cars_wheels_app/app/compare/market_compare_safety_source.dart';
 import 'package:cars_wheels_app/app/compare/market_compare_market_source.dart';
+import 'package:cars_wheels_app/app/compare/market_compare_version_labeler.dart';
 import 'package:cars_wheels_app/app/compare/market_compare_vehicle_source.dart';
 import 'package:cars_wheels_app/app/compare/market_compare_versions_source.dart';
 import 'package:cars_wheels_app/core/core.dart';
@@ -104,13 +105,13 @@ void main() {
       currentMarket: () => market,
     );
 
-    const labeler = CompareVersionLabeler(
+    const labeler = CompareVersionNamer(
       VersionDescriptorBuilder(transmissionLabeler: TransmissionLabeler()),
     );
 
     MarketCompareVehicleSource build() => MarketCompareVehicleSource(
       loader: loader(),
-      versionLabeler: labeler,
+      versionNamer: labeler,
       classTranslator: const VehicleClassTranslator(),
       fuelTypeLabeler: const FuelTypeLabeler(),
       driveLabeler: const DriveLabeler(),
@@ -282,7 +283,7 @@ void main() {
         );
         final options = await MarketCompareVersionsSource(
           loader: loader(),
-          versionLabeler: labeler,
+          versionNamer: labeler,
         ).versionsOf(compareSlot());
         expect(options.map((option) => option.key), ['V0', 'V1']);
         expect(
@@ -308,7 +309,7 @@ void main() {
         );
         final options = await MarketCompareVersionsSource(
           loader: loader(),
-          versionLabeler: labeler,
+          versionNamer: labeler,
         ).versionsOf(compareSlot(marketCode: 'mx'));
         expect(options.single.key, 'RAW');
         expect(options.single.label, 'LE 2.0L');
@@ -316,11 +317,72 @@ void main() {
     );
 
     test(
+      'versionsOf marca la predeterminada con la regla de Detalle',
+      () async {
+        when(() => load(any())).thenAnswer(
+          (_) async => GroupDetailsEntity(
+            versions: [testVersion(testDetail()), testVersion(testDetail())],
+            defaultIndex: 1,
+          ),
+        );
+        final options = await MarketCompareVersionsSource(
+          loader: loader(),
+          versionNamer: labeler,
+        ).versionsOf(compareSlot());
+        expect(options.map((option) => option.isDefault), [false, true]);
+      },
+    );
+
+    group('MarketCompareVersionLabeler', () {
+      MarketCompareVersionLabeler build() =>
+          MarketCompareVersionLabeler(loader: loader(), namer: labeler);
+
+      test(
+        'EE. UU.: la etiqueta legible sale del descriptor de Detalle',
+        () async {
+          when(() => load(any())).thenAnswer(
+            (_) async =>
+                details([testDetail(), testDetail(transmission: null)]),
+          );
+          final label = await build().labelOf(compareSlot(versionKey: 'V0'));
+          expect(label, contains(AppTexts.transmissionAutomaticLabel));
+          // Nunca la clave cruda con el nombre de la variante.
+          expect(label, isNot('V0'));
+        },
+      );
+
+      test('México: la etiqueta propia con el formato de Detalle', () async {
+        market = Market.mexico;
+        when(() => load(any())).thenAnswer(
+          (_) async => GroupDetailsEntity(
+            versions: [
+              testVersion(testDetail(), variantName: 'RAW', label: 'LE 2.0L'),
+            ],
+            defaultIndex: 0,
+          ),
+        );
+        expect(
+          await build().labelOf(
+            compareSlot(marketCode: 'mx', versionKey: 'RAW'),
+          ),
+          'LE 2.0L',
+        );
+      });
+
+      test('sin versión elegida, o una que ya no existe, es nula', () async {
+        when(() => load(any()))
+            .thenAnswer((_) async => details([testDetail()]));
+        expect(await build().labelOf(compareSlot()), isNull);
+        expect(await build().labelOf(compareSlot(versionKey: 'otra')), isNull);
+      });
+    });
+
+    test(
       'versionsOf: otro mercado da lista vacía y la falla se relanza',
       () async {
         final source = MarketCompareVersionsSource(
           loader: loader(),
-          versionLabeler: labeler,
+          versionNamer: labeler,
         );
         expect(await source.versionsOf(compareSlot(marketCode: 'mx')), isEmpty);
         when(() => load(any())).thenThrow(const NetworkFailure('sin red'));

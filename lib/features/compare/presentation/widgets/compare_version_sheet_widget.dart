@@ -129,6 +129,7 @@ class _Options extends StatelessWidget {
           _Row(
             title: option.label,
             caption: option.caption,
+            isDefault: option.isDefault,
             isSelected: option.key == selectedKey,
             onTap: () => onSelected(option.key),
           ),
@@ -144,11 +145,15 @@ class _Row extends StatelessWidget {
     required this.isSelected,
     required this.onTap,
     this.caption,
+    this.isDefault = false,
   });
 
   final String title;
   final String? caption;
   final bool isSelected;
+
+  /// Marca la versión que Detalle elige por defecto.
+  final bool isDefault;
   final VoidCallback onTap;
 
   @override
@@ -177,6 +182,11 @@ class _Row extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(title, style: AppTextStyles.bodyStrong),
+                      if (isDefault)
+                        Text(
+                          AppTexts.compareVersionDefaultLabel,
+                          style: AppTextStyles.caption,
+                        ),
                       if (subtitle != null)
                         Text(
                           subtitle,

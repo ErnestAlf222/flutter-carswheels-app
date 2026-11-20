@@ -6,6 +6,7 @@ class CompareVersionOptionEntity extends Equatable {
     required this.key,
     required this.label,
     this.caption,
+    this.isDefault = false,
   });
 
   /// Clave que se guarda en el espacio (variantName en EE. UU., rawModel en México).
@@ -17,6 +18,9 @@ class CompareVersionOptionEntity extends Equatable {
   /// Texto secundario opcional, por ejemplo el nombre original de la variante.
   final String? caption;
 
+  /// Es la versión que Detalle elige por defecto para el modelo.
+  final bool isDefault;
+
   @override
-  List<Object?> get props => [key, label, caption];
+  List<Object?> get props => [key, label, caption, isDefault];
 }

@@ -259,6 +259,7 @@ class _Body extends StatelessWidget {
                   CompareVersionPillsRowWidget(
                     selection: selection,
                     versionsSource: context.read<CompareVersionsSource>(),
+                    versionLabeler: context.read<CompareVersionLabeler>(),
                   ),
                   const SizedBox(height: CompareConfig.tableTopGap),
                   Text(

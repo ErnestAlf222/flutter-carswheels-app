@@ -15,6 +15,7 @@ export 'entities/compare_version_update_result.dart';
 export 'datasources/compare_market_source.dart';
 export 'datasources/compare_safety_source.dart';
 export 'datasources/compare_selection_datasource.dart';
+export 'datasources/compare_version_labeler.dart';
 export 'datasources/compare_vehicle_source.dart';
 export 'datasources/compare_versions_source.dart';
 // Servicios

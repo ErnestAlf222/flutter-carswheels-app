@@ -5,6 +5,7 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/compare/domain/domain.dart';
 import 'package:cars_wheels_app/features/compare/presentation/widgets/compare_sheet_frame_widget.dart';
 import 'package:cars_wheels_app/features/compare/presentation/widgets/compare_slot_visuals.dart';
+import 'package:cars_wheels_app/features/compare/presentation/widgets/compare_version_label_widget.dart';
 
 /// Lo que se eligió en la hoja de comparador lleno.
 ///
@@ -23,12 +24,14 @@ Future<CompareFullChoice?> showCompareFullSheet(
   required List<CompareSlotEntity> current,
   required CompareSlotEntity incoming,
   required CompareSlotVisuals visuals,
+  required CompareVersionLabeler versionLabeler,
 }) => showCompareSheet<CompareFullChoice>(
   context,
   builder: (_) => CompareFullSheetWidget(
     current: current,
     incoming: incoming,
     visuals: visuals,
+    versionLabeler: versionLabeler,
   ),
 );
 
@@ -39,11 +42,15 @@ class CompareFullSheetWidget extends StatelessWidget {
     required this.current,
     required this.incoming,
     required this.visuals,
+    required this.versionLabeler,
   });
 
   final List<CompareSlotEntity> current;
   final CompareSlotEntity incoming;
   final CompareSlotVisuals visuals;
+
+  /// Nombre legible de la versión de cada vehículo actual.
+  final CompareVersionLabeler versionLabeler;
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +71,7 @@ class CompareFullSheetWidget extends StatelessWidget {
               _Row(
                 slot: slot,
                 visuals: visuals,
+                versionLabeler: versionLabeler,
                 onTap: () =>
                     Navigator.of(context).pop(CompareFullChoice.replace(slot)),
               ),
@@ -100,80 +108,89 @@ class CompareFullSheetWidget extends StatelessWidget {
 
 /// Un vehículo actual: foto pequeña, marca, modelo y versión.
 class _Row extends StatelessWidget {
-  const _Row({required this.slot, required this.visuals, required this.onTap});
+  const _Row({
+    required this.slot,
+    required this.visuals,
+    required this.versionLabeler,
+    required this.onTap,
+  });
 
   final CompareSlotEntity slot;
   final CompareSlotVisuals visuals;
+  final CompareVersionLabeler versionLabeler;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final version = slot.versionKey ?? AppTexts.compareVersionDefaultLabel;
-    return Semantics(
-      button: true,
-      label: AppTexts.compareFullRowSemanticLabel(
-        AppTexts.compareColumnHeaderLabel(slot.brand, slot.modelName),
-        version,
-      ),
-      excludeSemantics: true,
-      child: InkWell(
-        onTap: onTap,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            minHeight: CompareConfig.versionRowMinHeight,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.l,
-              vertical: AppSpacing.xs,
+    return CompareVersionLabelBuilder(
+      slot: slot,
+      labeler: versionLabeler,
+      builder: (context, version) => Semantics(
+        button: true,
+        label: AppTexts.compareFullRowSemanticLabel(
+          AppTexts.compareColumnHeaderLabel(slot.brand, slot.modelName),
+          version,
+        ),
+        excludeSemantics: true,
+        child: InkWell(
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              minHeight: CompareConfig.versionRowMinHeight,
             ),
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(
-                    CompareConfig.fullRowPhotoRadius,
-                  ),
-                  child: SizedBox(
-                    width: CompareConfig.fullRowPhotoWidth,
-                    height: CompareConfig.fullRowPhotoHeight,
-                    child: ExcludeSemantics(
-                      child: visuals.photoBuilder(context, slot),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.l,
+                vertical: AppSpacing.xs,
+              ),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      CompareConfig.fullRowPhotoRadius,
+                    ),
+                    child: SizedBox(
+                      width: CompareConfig.fullRowPhotoWidth,
+                      height: CompareConfig.fullRowPhotoHeight,
+                      child: ExcludeSemantics(
+                        child: visuals.photoBuilder(context, slot),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: CompareConfig.fullRowGap),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        slot.brand.toUpperCase(),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.brandOverline,
-                      ),
-                      Text(
-                        slot.modelName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.bodyStrong,
-                      ),
-                      Text(
-                        version,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.caption,
-                      ),
-                    ],
+                  const SizedBox(width: CompareConfig.fullRowGap),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          slot.brand.toUpperCase(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.brandOverline,
+                        ),
+                        Text(
+                          slot.modelName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.bodyStrong,
+                        ),
+                        Text(
+                          version,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.caption,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                const Icon(
-                  Symbols.swap_horiz,
-                  size: UiConfig.iconSize,
-                  color: AppColors.mutedText,
-                ),
-              ],
+                  const SizedBox(width: AppSpacing.xs),
+                  const Icon(
+                    Symbols.swap_horiz,
+                    size: UiConfig.iconSize,
+                    color: AppColors.mutedText,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

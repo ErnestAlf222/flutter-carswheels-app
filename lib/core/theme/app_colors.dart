@@ -40,6 +40,9 @@ class AppColors {
   static const Color chartNeonDim = Color(0x8CFFD60A);
   static const Color chartNeonDimGlow = Color(0x40FFD60A);
   static const Color chartAxis = Color(0x40FFFFFF);
+  // Relleno de área bajo la línea ondeada: sutil arriba y transparente en la base.
+  static const Color chartNeonArea = Color(0x38FFD60A);
+  static const Color chartNeonAreaFade = Color(0x00FFD60A);
   // Insignias de motorización y chips de la tarjeta de modelo.
   static const Color engineElectric = Color(0xFF16A34A);
   static const Color enginePluginHybrid = Color(0xFF0D9488);

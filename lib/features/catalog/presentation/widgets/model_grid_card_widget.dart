@@ -18,6 +18,7 @@ class ModelGridCardWidget extends StatelessWidget {
     this.onTap,
     this.animateEntry = true,
     this.showBrandLabel = false,
+    this.footerAction,
   });
 
   final ModelGroupEntity group;
@@ -36,6 +37,9 @@ class ModelGridCardWidget extends StatelessWidget {
   /// Muestra la marca en mayúsculas sobre el nombre (resultados de búsqueda).
   final bool showBrandLabel;
 
+  /// Acción opcional al pie, a la derecha; la capa app la provee (selector de Comparar).
+  final Widget? footerAction;
+
   @override
   Widget build(BuildContext context) {
     final name = group.name;
@@ -44,6 +48,7 @@ class ModelGridCardWidget extends StatelessWidget {
       PhotoRequest(brand: brand, model: name, year: year),
     );
     final scaler = MediaQuery.textScalerOf(context);
+    final action = footerAction;
     final card = BlocSelector<SummariesCubit, SummariesState, String?>(
       selector: (state) => state.consumptionLabelFor(summaryKey),
       builder: (context, consumption) => Semantics(
@@ -113,6 +118,17 @@ class ModelGridCardWidget extends StatelessWidget {
                           year: year,
                         ),
                       ),
+                      if (action != null) ...[
+                        const SizedBox(height: ModelGridConfig.actionTopGap),
+                        SizedBox(
+                          height: ModelGridConfig.actionRowHeight,
+                          width: double.infinity,
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: action,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

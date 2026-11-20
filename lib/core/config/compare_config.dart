@@ -96,28 +96,61 @@ class CompareConfig {
   // Selector de vehículo como hoja inferior sobre Comparar.
   static const double pickerSheetHeightFraction = 0.92;
 
+  // Botón "Comparar" de las tarjetas del selector: píldora compacta.
+  static const double pickerButtonHeight = 28.0;
+  static const double pickerButtonHorizontalPadding = 10.0;
+  static const double pickerButtonIconSize = 16.0;
+  static const double pickerButtonIconGap = 2.0;
+  static const double pickerButtonBorderWidth = 1.0;
+  static const double pickerButtonMaxTextScale = 1.15;
+
+  // Aviso de modo comparar: cuánto se queda, cómo entra y cómo se pliega.
+  static const int pickerHintVisibleMilliseconds = 6000;
+  static const int pickerHintEnterMilliseconds = 260;
+  static const int pickerHintCollapseMilliseconds = 220;
+  static const double pickerHintSlideOffset = 0.25;
+  static const double pickerHintCloseSize = 28.0;
+  static const double pickerHintCloseIconSize = 16.0;
+
   // Botón flotante de la gráfica: igual huella que los de Buscar.
   static const double chartButtonSize = 52.0;
   static const double chartButtonIconSize = 26.0;
-
-  // Hoja oscura de la gráfica neón.
+  // Hoja oscura de la gráfica neón vertical.
   static const double chartSheetMaxHeightFraction = 0.8;
-  static const double chartRowGap = 22.0;
-  static const double chartLabelBarGap = 8.0;
-  static const double chartBarHeight = 14.0;
   static const double chartAxisWidth = 1.0;
   static const double chartSegmentHeight = 36.0;
   static const double chartSegmentGap = 8.0;
   static const double chartSegmentHorizontalPadding = 14.0;
-  static const double chartValueGap = 12.0;
+
+  // Área de dibujo: espacio para el valor arriba, alto de las columnas y etiquetas.
+  static const double chartTopInset = 10.0;
+  static const double chartPlotHeight = 200.0;
+  static const double chartValueGap = 8.0;
+  static const double chartLabelTopGap = 12.0;
+  static const int chartLabelMaxLines = 2;
+  static const double chartLabelHorizontalInset = 4.0;
+
+  // Columnas: ancho máximo, parte del hueco que ocupan y esquinas.
+  static const double chartColumnMaxWidth = 52.0;
+  static const double chartColumnWidthFraction = 0.46;
+  static const double chartColumnRadius = 16.0;
+
+  // Línea ondeada: grosor, tensión de la curva (1 = Catmull-Rom) y nodos.
+  static const double chartLineWidth = 2.5;
+  static const double chartCurveTension = 1.0;
+  static const double chartNodeRadius = 5.5;
+  static const double chartNodeCoreRadius = 2.0;
+  static const double chartNodeGlowSigma = 6.0;
 
   // Halo neón: dos capas de desenfoque, la ancha y la cercana.
   static const double chartGlowOuterSigma = 14.0;
   static const double chartGlowInnerSigma = 5.0;
   static const double chartGlowSpread = 2.0;
 
-  // Crecimiento de las barras al abrir y al cambiar de métrica.
-  static const int chartGrowMilliseconds = 520;
+  // Animación: las columnas crecen en el primer tramo y la línea se dibuja después.
+  static const int chartGrowMilliseconds = 900;
+  static const double chartColumnsEndFraction = 0.65;
+  static const double chartLineStartFraction = 0.3;
 
   // Pastilla del mejor valor.
   static const double bestPillHorizontalPadding = 8.0;

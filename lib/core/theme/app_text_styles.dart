@@ -205,6 +205,13 @@ class AppTextStyles {
     height: 1.0,
     color: AppColors.ink,
   );
+  // Botón "Comparar" de las tarjetas del selector.
+  static final TextStyle comparePickerButton = GoogleFonts.inter(
+    fontWeight: FontWeight.w600,
+    fontSize: 12,
+    height: 1.0,
+    color: AppColors.ink,
+  );
   // Gráfica sobre tinta: etiqueta del vehículo y valor.
   static final TextStyle compareChartLabel = GoogleFonts.inter(
     fontWeight: FontWeight.w600,

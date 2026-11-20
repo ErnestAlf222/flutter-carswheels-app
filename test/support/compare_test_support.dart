@@ -159,3 +159,22 @@ CompareTableCubit buildCompareTableCubit({
   vehicleSource: vehicles,
   safetySource: safety ?? FakeCompareSafetySource(),
 );
+
+/// Etiquetador de versiones de prueba: nombre legible por clave guardada.
+class FakeCompareVersionLabeler implements CompareVersionLabeler {
+  FakeCompareVersionLabeler([Map<String, String>? labels])
+    : labels = labels ?? {};
+
+  final Map<String, String> labels;
+
+  /// Claves cuya resolución lanza, como si no hubiera catálogo.
+  final Set<String> failing = {};
+
+  @override
+  Future<String?> labelOf(CompareSlotEntity slot) async {
+    final key = slot.versionKey;
+    if (key == null) return null;
+    if (failing.contains(key)) throw StateError('sin catálogo');
+    return labels[key];
+  }
+}

@@ -123,6 +123,9 @@ class _AppState extends State<App> {
         RepositoryProvider<SearchCubitFactory>.value(
           value: SearchCubitFactory(_dependencies.createIsolatedSearchCubit),
         ),
+        RepositoryProvider<CompareVersionLabeler>.value(
+          value: _dependencies.compareVersionLabeler,
+        ),
         RepositoryProvider<CompareVersionsSource>.value(
           value: _dependencies.compareVersionsSource,
         ),

@@ -56,10 +56,6 @@ class _CatalogRepository implements CatalogRepository {
 class _Flow {
   _Flow({int initialVehicles = 0, this.initialLocation = RoutesConfig.home}) {
     store = InMemoryCompareSelection();
-    compare = buildCompareCubit(
-      selection: store,
-      noticeDuration: const Duration(seconds: 30),
-    );
     tabSearch = SearchHarness();
     pickerSearch = SearchHarness();
     initial = [
@@ -78,12 +74,18 @@ class _Flow {
   late final GoRouter router;
   final String initialLocation;
   final ScrollOffsetStore tabScroll = ScrollOffsetStore();
+  final FakeCompareVersionLabeler versionLabeler = FakeCompareVersionLabeler();
 
   Future<void> pump(WidgetTester tester) async {
     tester.view.physicalSize = const Size(800, 2400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await store.write('us', initial);
+    // El cubit nace con lo guardado ya escrito.
+    compare = buildCompareCubit(
+      selection: store,
+      noticeDuration: const Duration(seconds: 30),
+    );
     final load = _MockLoad();
     when(() => load(any()))
         .thenAnswer((_) => Completer<GroupDetailsEntity>().future);
@@ -162,6 +164,9 @@ class _Flow {
               },
             ),
           ),
+          RepositoryProvider<CompareVersionLabeler>.value(
+            value: versionLabeler,
+          ),
           RepositoryProvider<CompareVersionsSource>.value(
             value: FakeCompareVersionsSource(),
           ),
@@ -222,9 +227,24 @@ Finder get _pickerTitle => find.descendant(
   matching: find.text(AppTexts.comparePickerTitle),
 );
 
-Finder get _pickerClose => find.descendant(
-  of: find.byType(SearchPage),
-  matching: find.byIcon(Symbols.close),
+// El primer cierre del selector es el del encabezado (el aviso trae el suyo).
+Finder get _pickerClose => find
+    .descendant(
+      of: find.byType(SearchPage),
+      matching: find.byIcon(Symbols.close),
+    )
+    .first;
+
+Finder get _pickerButtons => find.byType(ComparePickerButtonWidget);
+
+Finder get _addLabel => find.descendant(
+  of: _pickerButtons,
+  matching: find.text(AppTexts.comparePickerAddLabel),
+);
+
+Finder get _addedLabel => find.descendant(
+  of: _pickerButtons,
+  matching: find.text(AppTexts.comparePickerAddedLabel),
 );
 
 Finder get _fullSheetTitle => find.text(AppTexts.compareFullSheetTitle);
@@ -264,8 +284,8 @@ void main() {
     expect(flow.pickerSearch.cubit.state.query, 'civic');
     expect(flow.tabSearch.cubit.state.query, 'toy');
 
-    // Tocar un resultado lo agrega y cierra la hoja, sin abrir Detalle.
-    await tester.tap(find.text('Civic').first);
+    // El botón "Comparar" lo agrega y cierra la hoja, sin abrir Detalle.
+    await tester.tap(_addLabel.first);
     await flow.settle(tester);
     expect(_pickerTitle, findsNothing);
     expect(flow.router.state.uri.path, RoutesConfig.compare);
@@ -292,32 +312,121 @@ void main() {
     );
   });
 
-  testWidgets('el selector avisa si el vehículo ya está, sin duplicar', (
-    tester,
-  ) async {
-    final flow = _Flow(
-      initialVehicles: 1,
-      initialLocation: RoutesConfig.compare,
+  group('selector: modo comparar', () {
+    Future<_Flow> openPicker(
+      WidgetTester tester, {
+      int initialVehicles = 1,
+      String query = 'toy',
+    }) async {
+      final flow = _Flow(
+        initialVehicles: initialVehicles,
+        initialLocation: RoutesConfig.compare,
+      );
+      await flow.pump(tester);
+      await tester.tap(find.byType(CompareEmptySlotWidget).first);
+      await flow.settle(tester);
+      await flow.type(tester, query);
+      await flow.settle(tester);
+      return flow;
+    }
+
+    testWidgets('el botón aparece solo en el selector, no en Buscar', (
+      tester,
+    ) async {
+      final flow = _Flow(initialLocation: RoutesConfig.search);
+      await flow.pump(tester);
+      await flow.type(tester, 'toy');
+      await flow.settle(tester);
+      expect(find.byType(ModelGridCardWidget), findsWidgets);
+      expect(_pickerButtons, findsNothing);
+      expect(_addLabel, findsNothing);
+
+      flow.router.go(RoutesConfig.compare);
+      await flow.settle(tester);
+      await tester.tap(find.text(AppTexts.compareAddVehicleLabel));
+      await flow.settle(tester);
+      await flow.type(tester, 'toy');
+      await flow.settle(tester);
+      expect(_pickerButtons, findsWidgets);
+    });
+
+    testWidgets(
+      'con el vehículo ya agregado muestra la pastilla y no hace nada',
+      (tester) async {
+        final flow = await openPicker(tester);
+        // Camry ya está: pastilla neutra; Corolla y RAV4 siguen con botón.
+        expect(_addedLabel, findsOneWidget);
+        expect(_addLabel, findsWidgets);
+        await tester.tap(_addedLabel);
+        await flow.settle(tester);
+        expect(_pickerTitle, findsOneWidget);
+        expect(flow.router.state.uri.path, RoutesConfig.compare);
+        expect(await flow.store.read('us'), hasLength(1));
+      },
     );
-    await flow.pump(tester);
-    // 'Camry' ya está: se elige otra vez desde el selector.
-    await tester.tap(find.byType(CompareEmptySlotWidget).first);
-    await flow.settle(tester);
-    await flow.type(tester, 'camry');
-    await flow.settle(tester);
-    await tester.tap(find.text('Camry').first);
-    await flow.settle(tester);
-    // La hoja sigue abierta y el aviso aparece dentro de ella.
-    expect(_pickerTitle, findsOneWidget);
-    expect(await flow.store.read('us'), hasLength(1));
-    expect(
-      find.descendant(
-        of: find.byType(BottomSheet),
-        matching: find.text(AppTexts.compareAlreadyAddedNotice),
-      ),
-      findsOneWidget,
+
+    testWidgets('el botón no propaga el toque a la tarjeta', (tester) async {
+      final flow = await openPicker(tester, initialVehicles: 0);
+      await tester.tap(_addLabel.first);
+      await flow.settle(tester);
+      // Se cerró la hoja y no se abrió Detalle.
+      expect(flow.router.state.uri.path, RoutesConfig.compare);
+      expect(_pickerTitle, findsNothing);
+      expect(await flow.store.read('us'), hasLength(1));
+      flow.compare.dismissNotice();
+    });
+
+    testWidgets(
+      'tocar la tarjeta abre Detalle sin agregar y vuelve a la hoja',
+      (tester) async {
+        final flow = await openPicker(tester, initialVehicles: 0);
+        await tester.tap(find.byType(ModelGridCardWidget).first);
+        await flow.settle(tester);
+        expect(flow.router.state.uri.path, RoutesConfig.detail);
+        expect(await flow.store.read('us'), isEmpty);
+
+        // Atrás: la hoja sigue con el texto de búsqueda y sus resultados.
+        flow.router.pop();
+        await flow.settle(tester);
+        expect(flow.router.state.uri.path, RoutesConfig.compare);
+        expect(_pickerTitle, findsOneWidget);
+        expect(flow.pickerSearch.cubit.state.query, 'toy');
+        expect(find.byType(ModelGridCardWidget), findsWidgets);
+        expect(find.widgetWithText(TextField, 'toy'), findsOneWidget);
+      },
     );
-    flow.compare.dismissNotice();
+
+    testWidgets('Comparar con otro desde ese Detalle no deja hojas huérfanas', (
+      tester,
+    ) async {
+      final flow = await openPicker(tester, initialVehicles: 0);
+      await tester.tap(find.byType(ModelGridCardWidget).first);
+      await flow.settle(tester);
+      await tester.tap(find.text(AppTexts.compareWithOtherLabel));
+      await flow.settle(tester);
+      expect(await flow.store.read('us'), hasLength(1));
+      expect(flow.router.state.uri.path, RoutesConfig.compare);
+      // Ni la hoja del selector ni Detalle quedan abiertos.
+      expect(_pickerTitle, findsNothing);
+      expect(find.byType(BottomSheet), findsNothing);
+      expect(find.byType(DetailPage), findsNothing);
+      // Otro intento abre una sola hoja nueva.
+      await tester.tap(find.byType(CompareEmptySlotWidget).first);
+      await flow.settle(tester);
+      expect(find.byType(BottomSheet), findsOneWidget);
+    });
+
+    testWidgets('las tarjetas con y sin botón miden lo mismo', (tester) async {
+      final flow = await openPicker(tester);
+      final heights = {
+        for (final card in tester.widgetList(find.byType(ModelGridCardWidget)))
+          tester.getSize(find.byWidget(card)).height,
+      };
+      expect(_addedLabel, findsOneWidget);
+      expect(_addLabel, findsWidgets);
+      expect(heights, hasLength(1));
+      expect(flow.router.state.uri.path, RoutesConfig.compare);
+    });
   });
 
   group('Detalle → Comparar', () {

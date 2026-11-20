@@ -159,7 +159,7 @@ class _Segment extends StatelessWidget {
   }
 }
 
-/// La gráfica de una métrica; las barras crecen al abrir y al cambiar de métrica.
+/// La gráfica de una métrica; columnas y línea se animan al abrir y al cambiar de métrica.
 class CompareChartWidget extends StatelessWidget {
   const CompareChartWidget({
     super.key,
@@ -184,7 +184,7 @@ class CompareChartWidget extends StatelessWidget {
       curve: AppCurves.chartGrowCurve,
       builder: (context, progress, _) => SizedBox(
         width: double.infinity,
-        height: CompareChartPainter.totalHeight(metric.bars.length, scaler),
+        height: CompareChartPainter.totalHeight(scaler),
         child: CustomPaint(
           painter: CompareChartPainter(
             metric: metric,

@@ -5,6 +5,7 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/compare/domain/domain.dart';
 import 'package:cars_wheels_app/features/compare/presentation/cubits/cubits.dart';
 import 'package:cars_wheels_app/features/compare/presentation/widgets/compare_grid_row_widget.dart';
+import 'package:cars_wheels_app/features/compare/presentation/widgets/compare_version_label_widget.dart';
 import 'package:cars_wheels_app/features/compare/presentation/widgets/compare_version_pill_widget.dart';
 import 'package:cars_wheels_app/features/compare/presentation/widgets/compare_version_sheet_widget.dart';
 
@@ -14,12 +15,16 @@ class CompareVersionPillsRowWidget extends StatelessWidget {
     super.key,
     required this.selection,
     required this.versionsSource,
+    required this.versionLabeler,
   });
 
   final CompareSelectionEntity selection;
 
   /// Versiones de cada modelo; las resuelve la capa app.
   final CompareVersionsSource versionsSource;
+
+  /// Nombre legible de la versión guardada; lo resuelve la capa app.
+  final CompareVersionLabeler versionLabeler;
 
   @override
   Widget build(BuildContext context) {
@@ -32,10 +37,10 @@ class CompareVersionPillsRowWidget extends StatelessWidget {
             cellBuilder: (index) {
               if (index >= selection.length) return const SizedBox.shrink();
               final slot = selection.slots[index];
-              final label = _labelOf(slot, table.of(slot));
-              return CompareVersionPillWidget(
+              final column = table.of(slot);
+              Widget pill(String label) => CompareVersionPillWidget(
                 label: label,
-                isLoading: _isLoading(slot, table.of(slot)),
+                isLoading: _isLoading(slot, column),
                 semanticLabel: AppTexts.compareVersionPillSemanticLabel(
                   slot.modelName,
                   label,
@@ -48,6 +53,14 @@ class CompareVersionPillsRowWidget extends StatelessWidget {
                       context.read<CompareCubit>().changeVersion(slot, key),
                 ),
               );
+              final known = _knownLabelOf(slot, column);
+              if (known != null) return pill(known);
+              // Sin etiqueta en la columna, se pide a la capa app en vez de mostrar la clave.
+              return CompareVersionLabelBuilder(
+                slot: slot,
+                labeler: versionLabeler,
+                builder: (_, label) => pill(label),
+              );
             },
           ),
         ),
@@ -59,12 +72,10 @@ class CompareVersionPillsRowWidget extends StatelessWidget {
   bool _isLoading(CompareSlotEntity slot, CompareColumnState column) =>
       slot.versionKey != null && column is CompareColumnLoading;
 
-  // Sin versión elegida es la predeterminada; con una, su nombre legible.
-  String _labelOf(CompareSlotEntity slot, CompareColumnState column) {
-    final key = slot.versionKey;
-    if (key == null) return AppTexts.compareVersionDefaultLabel;
-    return column is CompareColumnLoaded
-        ? column.detail.versionLabel ?? key
-        : key;
+  // Etiqueta ya a la mano: predeterminada, la de la columna o "—" mientras carga.
+  String? _knownLabelOf(CompareSlotEntity slot, CompareColumnState column) {
+    if (slot.versionKey == null) return AppTexts.compareVersionDefaultLabel;
+    if (column is CompareColumnLoading) return AppTexts.missingValueLabel;
+    return column is CompareColumnLoaded ? column.detail.versionLabel : null;
   }
 }

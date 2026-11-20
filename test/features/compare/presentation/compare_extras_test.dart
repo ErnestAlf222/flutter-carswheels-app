@@ -92,25 +92,28 @@ Future<_Page> _pump(
   );
   addTearDown(table.close);
   await tester.pumpWidget(
-    RepositoryProvider<CompareVersionsSource>.value(
-      value: versions,
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider<CompareCubit>.value(value: cubit),
-          BlocProvider<CompareTableCubit>.value(value: table),
-        ],
-        child: MaterialApp(
-          builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(context).copyWith(
-              disableAnimations: disableAnimations,
-              textScaler: TextScaler.linear(textScale),
+    RepositoryProvider<CompareVersionLabeler>.value(
+      value: FakeCompareVersionLabeler(),
+      child: RepositoryProvider<CompareVersionsSource>.value(
+        value: versions,
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider<CompareCubit>.value(value: cubit),
+            BlocProvider<CompareTableCubit>.value(value: table),
+          ],
+          child: MaterialApp(
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                disableAnimations: disableAnimations,
+                textScaler: TextScaler.linear(textScale),
+              ),
+              child: child!,
             ),
-            child: child!,
-          ),
-          home: ComparePage(
-            selectorBuilder: (_) => const SizedBox(),
-            visuals: _visuals,
-            onOpenPicker: (_) async {},
+            home: ComparePage(
+              selectorBuilder: (_) => const SizedBox(),
+              visuals: _visuals,
+              onOpenPicker: (_) async {},
+            ),
           ),
         ),
       ),
@@ -152,7 +155,7 @@ List<Paint> _barPaints(CompareChartPainter painter, {required bool glow}) {
   final canvas = TestRecordingCanvas();
   painter.paint(
     canvas,
-    Size(300, CompareChartPainter.totalHeight(3, TextScaler.noScaling)),
+    Size(300, CompareChartPainter.totalHeight(TextScaler.noScaling)),
   );
   return [
     for (final call in canvas.invocations)
@@ -308,7 +311,7 @@ void main() {
       });
     });
 
-    testWidgets('con menor-es-mejor la longitud sigue el valor', (
+    testWidgets('con menor-es-mejor el alto de la columna sigue el valor', (
       tester,
     ) async {
       await _pump(tester, initial: _slots(2));
@@ -316,32 +319,31 @@ void main() {
       await tester.tap(find.text(AppTexts.compareChartCo2));
       await tester.pump();
       final canvas = TestRecordingCanvas();
-      _painter(tester).paint(canvas, const Size(300, 200));
-      final widths = [
+      _painter(tester).paint(
+        canvas,
+        Size(300, CompareChartPainter.totalHeight(TextScaler.noScaling)),
+      );
+      final heights = [
         for (final call in canvas.invocations)
           if (call.invocation.memberName == #drawRRect &&
               (call.invocation.positionalArguments[1] as Paint).maskFilter ==
                   null)
-            (call.invocation.positionalArguments[0] as RRect).width,
+            (call.invocation.positionalArguments[0] as RRect).height,
       ];
-      // 151 g/km es la barra más larga; 120 g/km, la mejor, es más corta.
-      expect(widths, hasLength(2));
-      expect(widths[0], greaterThan(widths[1]));
-      expect(widths[0] / widths[1], closeTo(151 / 120, 0.001));
+      // 151 g/km es la columna más alta; 120 g/km, la mejor, es más baja.
+      expect(heights, hasLength(2));
+      expect(heights[0], greaterThan(heights[1]));
+      expect(heights[0] / heights[1], closeTo(151 / 120, 0.001));
       expect(_painter(tester).metric.bars[1].isBest, isTrue);
     });
 
-    testWidgets('sin animaciones las barras aparecen completas', (
-      tester,
-    ) async {
+    testWidgets('sin animaciones la gráfica aparece completa', (tester) async {
       await _pump(tester, initial: _slots(2));
       await _openChart(tester);
       expect(_painter(tester).progress, 1.0);
     });
 
-    testWidgets('con animaciones crecen desde cero hasta completas', (
-      tester,
-    ) async {
+    testWidgets('con animaciones se dibuja de cero a completa', (tester) async {
       await _pump(tester, initial: _slots(2), disableAnimations: false);
       await _openChart(tester);
       // Con la hoja ya abierta, las barras van a medio crecer.

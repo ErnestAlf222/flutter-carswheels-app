@@ -125,25 +125,28 @@ Future<_Page> _pump(
   );
   addTearDown(table.close);
   await tester.pumpWidget(
-    RepositoryProvider<CompareVersionsSource>.value(
-      value: versions,
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider<CompareCubit>.value(value: cubit),
-          BlocProvider<CompareTableCubit>.value(value: table),
-        ],
-        child: MaterialApp(
-          builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(context).copyWith(
-              disableAnimations: true,
-              textScaler: TextScaler.linear(textScale),
+    RepositoryProvider<CompareVersionLabeler>.value(
+      value: FakeCompareVersionLabeler(),
+      child: RepositoryProvider<CompareVersionsSource>.value(
+        value: versions,
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider<CompareCubit>.value(value: cubit),
+            BlocProvider<CompareTableCubit>.value(value: table),
+          ],
+          child: MaterialApp(
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                disableAnimations: true,
+                textScaler: TextScaler.linear(textScale),
+              ),
+              child: child!,
             ),
-            child: child!,
-          ),
-          home: ComparePage(
-            selectorBuilder: (_) => const SizedBox(),
-            visuals: _visuals,
-            onOpenPicker: (_) async {},
+            home: ComparePage(
+              selectorBuilder: (_) => const SizedBox(),
+              visuals: _visuals,
+              onOpenPicker: (_) async {},
+            ),
           ),
         ),
       ),
@@ -553,18 +556,21 @@ void main() {
     final table = buildCompareTableCubit(compare: cubit, vehicles: vehicles);
     addTearDown(table.close);
     await tester.pumpWidget(
-      RepositoryProvider<CompareVersionsSource>.value(
-        value: FakeCompareVersionsSource(),
-        child: MultiBlocProvider(
-          providers: [
-            BlocProvider<CompareCubit>.value(value: cubit),
-            BlocProvider<CompareTableCubit>.value(value: table),
-          ],
-          child: MaterialApp(
-            home: ComparePage(
-              selectorBuilder: (_) => const SizedBox(),
-              visuals: _visuals,
-              onOpenPicker: (_) async {},
+      RepositoryProvider<CompareVersionLabeler>.value(
+        value: FakeCompareVersionLabeler(),
+        child: RepositoryProvider<CompareVersionsSource>.value(
+          value: FakeCompareVersionsSource(),
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider<CompareCubit>.value(value: cubit),
+              BlocProvider<CompareTableCubit>.value(value: table),
+            ],
+            child: MaterialApp(
+              home: ComparePage(
+                selectorBuilder: (_) => const SizedBox(),
+                visuals: _visuals,
+                onOpenPicker: (_) async {},
+              ),
             ),
           ),
         ),

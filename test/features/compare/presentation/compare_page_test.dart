@@ -96,6 +96,9 @@ Widget _providers({
     RepositoryProvider<CompareVersionsSource>.value(
       value: versions ?? FakeCompareVersionsSource(),
     ),
+    RepositoryProvider<CompareVersionLabeler>.value(
+      value: FakeCompareVersionLabeler(),
+    ),
   ],
   child: MultiBlocProvider(
     providers: [

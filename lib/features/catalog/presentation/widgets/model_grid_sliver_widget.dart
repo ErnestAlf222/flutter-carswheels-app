@@ -9,12 +9,16 @@ class ModelGridSliver extends StatelessWidget {
     super.key,
     required this.delegate,
     this.showBrandLabel = false,
+    this.reserveActionRow = false,
   });
 
   final SliverChildDelegate delegate;
 
   /// Reserva el alto de la etiqueta de marca de la tarjeta.
   final bool showBrandLabel;
+
+  /// Reserva el alto de la fila de acción que las tarjetas pueden llevar al pie.
+  final bool reserveActionRow;
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +35,7 @@ class ModelGridSliver extends StatelessWidget {
               width,
               scaler,
               showBrandLabel: showBrandLabel,
+              reserveActionRow: reserveActionRow,
             ),
           ),
           delegate: delegate,

@@ -6,15 +6,14 @@ import 'package:cars_wheels_app/app/compare/compare_navigation.dart';
 import 'package:cars_wheels_app/app/compare/compare_picker_sheet.dart';
 import 'package:cars_wheels_app/app/compare/compare_route_args.dart';
 import 'package:cars_wheels_app/app/compare/compare_slot_visuals_builder.dart';
-import 'package:cars_wheels_app/app/market_catalog/market_search_detail_args_builder.dart';
 import 'package:cars_wheels_app/app/market_catalog/search_market_year_selector.dart';
+import 'package:cars_wheels_app/app/search_results/search_result_detail_opener.dart';
 import 'package:cars_wheels_app/app/search_results/search_results_grid.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/compare/compare.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/favorites/favorites.dart';
-import 'package:cars_wheels_app/features/market/market.dart';
 import 'package:cars_wheels_app/features/navigation/navigation.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/search/search.dart';
@@ -37,21 +36,6 @@ CustomTransitionPage<void> _flowPage(GoRouterState state, Widget child) =>
       transitionDuration: AppPageTransition.duration,
       transitionsBuilder: AppPageTransition.flowRouteTransition,
     );
-
-/// Abre Detalle desde un resultado de búsqueda, por la ruta de flujo.
-Future<void> openSearchResultInDetail(
-  BuildContext context,
-  SearchResultEntity result,
-) async {
-  final router = GoRouter.of(context);
-  final builder = MarketSearchDetailArgsBuilder(
-    getModelGroups: context.read<GetModelGroupsUseCase>(),
-    currentMarket: () => context.read<MarketCubit>().market,
-  );
-  final args = await builder.build(result);
-  if (args == null || !context.mounted) return;
-  await router.push<void>(RoutesConfig.detail, extra: args);
-}
 
 /// Cambia a la sección de búsqueda con el teclado enfocado.
 void openSearchFromHome(BuildContext context) {

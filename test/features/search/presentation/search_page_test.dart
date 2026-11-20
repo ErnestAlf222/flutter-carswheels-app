@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cars_wheels_app/app/app.dart';
 import 'package:cars_wheels_app/app/search_results/search_card_cubits_factory.dart';
+import 'package:cars_wheels_app/app/search_results/search_result_detail_opener.dart';
 import 'package:cars_wheels_app/app/search_results/search_results_grid.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';

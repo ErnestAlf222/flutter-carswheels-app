@@ -8,17 +8,33 @@ import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/search/search.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 
+/// Acción opcional al pie de la tarjeta de un resultado; nula si no aplica.
+typedef SearchResultActionBuilder = Widget? Function(
+  BuildContext context,
+  SearchResultEntity result,
+);
+
 /// Cuadrícula de resultados con la tarjeta de modelo del catálogo (composición).
 Widget buildSearchResultsGrid(
   BuildContext context,
   List<SearchResultEntity> results,
   String resetKey,
   ValueChanged<SearchResultEntity> onOpen,
-) {
+) => buildSearchResultsGridWithAction(context, results, resetKey, onOpen);
+
+/// La misma cuadrícula con una acción al pie de cada tarjeta (selector de Comparar).
+Widget buildSearchResultsGridWithAction(
+  BuildContext context,
+  List<SearchResultEntity> results,
+  String resetKey,
+  ValueChanged<SearchResultEntity> onOpen, {
+  SearchResultActionBuilder? actionBuilder,
+}) {
   return _SearchCardsScope(
     resetKey: resetKey,
     child: ModelGridSliver(
       showBrandLabel: true,
+      reserveActionRow: actionBuilder != null,
       delegate: SliverChildBuilderDelegate((context, index) {
         final result = results[index];
         return _SearchResultCard(
@@ -27,6 +43,7 @@ Widget buildSearchResultsGrid(
           result: result,
           index: index,
           onTap: () => onOpen(result),
+          action: actionBuilder?.call(context, result),
         );
       }, childCount: results.length),
     ),
@@ -99,11 +116,13 @@ class _SearchResultCard extends StatefulWidget {
     required this.result,
     required this.index,
     required this.onTap,
+    this.action,
   });
 
   final SearchResultEntity result;
   final int index;
   final VoidCallback onTap;
+  final Widget? action;
 
   @override
   State<_SearchResultCard> createState() => _SearchResultCardState();
@@ -155,6 +174,7 @@ class _SearchResultCardState extends State<_SearchResultCard> {
       onTap: widget.onTap,
       animateEntry: widget.index < SearchConfig.animatedResultCount,
       showBrandLabel: true,
+      footerAction: widget.action,
     );
   }
 }

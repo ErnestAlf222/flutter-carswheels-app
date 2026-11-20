@@ -25,6 +25,9 @@ class ModelGridConfig {
   // km/l que llena la barra por completo; más allá se queda al 100 %.
   static const double efficiencyBarMaxKmPerLiter = 20.0;
   static const int efficiencyBarFillMilliseconds = 600;
+  // Fila opcional de acción al pie de la tarjeta (selector de Comparar).
+  static const double actionTopGap = 6.0;
+  static const double actionRowHeight = 32.0;
   // Espacio extra bajo la última fila, además de la barra flotante.
   static const double listBottomGap = 16.0;
   // Esqueleto de la cuadrícula; par para llenar las dos columnas.

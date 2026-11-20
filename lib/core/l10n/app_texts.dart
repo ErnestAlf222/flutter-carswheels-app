@@ -423,6 +423,13 @@ class AppTexts {
       isBest ? '$row, $vehicle: $value, mejor valor' : '$row, $vehicle: $value';
   static const String comparePickerTitle = 'Agregar vehículo';
   static const String comparePickerCloseSemanticLabel = 'Cerrar el selector';
+  static const String comparePickerAddLabel = 'Comparar';
+  static const String comparePickerAddedLabel = 'En la comparación';
+  static String comparePickerAddSemanticLabel(String name) =>
+      'Agregar $name a la comparación';
+  static const String comparePickerHint =
+      'Modo comparar: toca "Comparar" en el auto que quieras agregar. Tocar la tarjeta abre su detalle.';
+  static const String comparePickerHintDismissSemanticLabel = 'Cerrar el aviso';
   static const String closeLabel = 'Cerrar';
 
   // Comparador lleno (hoja sobre Detalle).
@@ -467,8 +474,8 @@ class AppTexts {
   static const String compareChartAnnualCost = 'Costo anual';
   static const String compareChartSafety = 'NHTSA';
   static String compareChartKmPerLiterValue(String figure) => '$figure km/l';
-  static const String compareChartHintHigher = 'Gana la barra más larga';
-  static const String compareChartHintLower = 'Gana la barra más corta';
+  static const String compareChartHintHigher = 'Gana la columna más alta';
+  static const String compareChartHintLower = 'Gana la columna más baja';
   static String compareChartMetricSemanticLabel(String label) =>
       'Métrica: $label';
   static String compareChartBarSemanticLabel(
