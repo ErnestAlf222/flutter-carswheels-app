@@ -54,8 +54,10 @@ class _ComparePageState extends State<ComparePage> {
       backgroundColor: Colors.transparent,
       body: CustomScrollView(
         slivers: [
+          const StatusBarBandSliver(),
           SliverToBoxAdapter(
             child: HeroHeaderWidget(
+              includeTopInset: false,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: UiConfig.pageHorizontalPadding,
@@ -223,7 +225,8 @@ class _TableSlivers extends StatelessWidget {
           pinned: true,
           delegate: CompareTableBandDelegate(
             slots: slots,
-            topInset: MediaQuery.paddingOf(context).top,
+            // La banda fija de la barra de estado ya cubre el área segura.
+            topInset: 0,
             textScaler: MediaQuery.textScalerOf(context),
           ),
         ),

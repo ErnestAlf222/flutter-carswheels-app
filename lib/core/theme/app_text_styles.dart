@@ -14,8 +14,8 @@ class AppTextStyles {
     color: AppColors.ink,
   );
   static final TextStyle sectionTitle = GoogleFonts.outfit(
-    fontWeight: FontWeight.w700,
-    fontSize: 26,
+    fontWeight: FontWeight.w600,
+    fontSize: 25,
     letterSpacing: -0.5,
     color: AppColors.ink,
   );

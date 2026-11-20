@@ -281,39 +281,28 @@ void main() {
   );
 
   blocTest<CatalogCubit, CatalogState>(
-    'showPreviousBrands en la primera marca pasa a la última',
+    'showBrandsFrom mueve el inicio de la ventana y da la vuelta',
     build: () => _cubit(_FakeCatalogRepository(years: [2026])),
     act: (cubit) async {
       await cubit.loadBrands();
-      cubit.showPreviousBrands();
-      cubit.showNextBrands();
+      cubit.showBrandsFrom(1);
+      // Sin cambio: no emite.
+      cubit.showBrandsFrom(1);
+      // Pasada la última marca vuelve a la primera.
+      cubit.showBrandsFrom(2);
+      cubit.showBrandsFrom(-1);
     },
     skip: 2,
     expect: () => [
       isA<CatalogLoaded>().having((s) => s.windowStart, 'windowStart', 1),
       isA<CatalogLoaded>().having((s) => s.windowStart, 'windowStart', 0),
-    ],
-  );
-
-  blocTest<CatalogCubit, CatalogState>(
-    'showNextBrands en la última marca pasa a la primera',
-    build: () => _cubit(_FakeCatalogRepository(years: [2026])),
-    act: (cubit) async {
-      await cubit.loadBrands();
-      cubit.showNextBrands();
-      cubit.showNextBrands();
-    },
-    skip: 2,
-    expect: () => [
       isA<CatalogLoaded>().having((s) => s.windowStart, 'windowStart', 1),
-      isA<CatalogLoaded>().having((s) => s.windowStart, 'windowStart', 0),
     ],
   );
 
   test('la ventana no se mueve si aún no hay marcas cargadas', () async {
     final cubit = _cubit(_FakeCatalogRepository(years: [2026]));
-    cubit.showNextBrands();
-    cubit.showPreviousBrands();
+    cubit.showBrandsFrom(1);
     cubit.selectBrand(0);
     expect(cubit.state, const CatalogInitial());
     await cubit.close();

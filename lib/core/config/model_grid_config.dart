@@ -4,8 +4,8 @@ class ModelGridConfig {
 
   // Cuadrícula.
   static const int columns = 2;
-  static const double crossAxisSpacing = 14.0;
-  static const double mainAxisSpacing = 14.0;
+  static const double crossAxisSpacing = 18.0;
+  static const double mainAxisSpacing = 18.0;
   // Proporción de la foto (ancho / alto); el alto de la celda sale del contenido.
   static const double photoAspectRatio = 1.3;
   // Relleno de la zona de texto.

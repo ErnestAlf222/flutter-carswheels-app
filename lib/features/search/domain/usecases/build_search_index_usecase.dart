@@ -87,6 +87,8 @@ class BuildSearchIndexUseCase {
     try {
       final entries = <SearchEntryEntity>[];
       final failed = <String>[];
+      final emptyConfirmed = <String>[...?retryFrom?.status.emptyBrands];
+      final streaks = <String, int>{...?retryFrom?.emptyStreaks};
       final List<String> pending;
       if (retryFrom == null) {
         final brands = await source.fetchBrands(scope);
@@ -107,12 +109,14 @@ class BuildSearchIndexUseCase {
           completedBrands: alreadyDone + finished.length,
           totalBrands: total,
           failedBrands: List.unmodifiable(failed),
+          emptyBrands: List.unmodifiable(emptyConfirmed),
         );
         store.save(
           scope.key,
           SearchIndexRecord(
             index: SearchIndex.build(entries, sortStrategy),
             status: status,
+            emptyStreaks: Map.of(streaks),
           ),
         );
         controller.add(status);
@@ -126,20 +130,31 @@ class BuildSearchIndexUseCase {
           try {
             final groups = await source.fetchGroups(scope, brand);
             if (run.cancelled) return;
-            // Una marca del menú sin ningún grupo es una respuesta incompleta.
             if (groups.isEmpty) {
-              throw StateError(SearchConfig.emptyBrandMessage);
+              // Vacía sin error: se confirma solo si se repite; mientras tanto pendiente.
+              final streak = (streaks[brand] ?? 0) + 1;
+              if (streak >= SearchConfig.emptyBrandConfirmations) {
+                streaks.remove(brand);
+                emptyConfirmed.add(brand);
+              } else {
+                streaks[brand] = streak;
+                failed.add(brand);
+              }
+            } else {
+              streaks.remove(brand);
+              entries.addAll([
+                for (final group in groups)
+                  SearchEntryEntity(
+                    brand: brand,
+                    groupName: group.name,
+                    variantNames: group.variantNames,
+                  ),
+              ]);
             }
-            entries.addAll([
-              for (final group in groups)
-                SearchEntryEntity(
-                  brand: brand,
-                  groupName: group.name,
-                  variantNames: group.variantNames,
-                ),
-            ]);
           } on Object {
             if (run.cancelled) return;
+            // Un error corta la racha de vacíos: no hay respuesta consistente.
+            streaks.remove(brand);
             failed.add(brand);
           }
           finished.add(brand);
@@ -153,16 +168,21 @@ class BuildSearchIndexUseCase {
       await Future.wait(List.generate(workerCount, (_) => worker()));
       if (run.cancelled) return;
       final finalStatus = failed.isEmpty && finished.length == pending.length
-          ? SearchIndexStatusEntity.ready(totalBrands: total)
+          ? SearchIndexStatusEntity.ready(
+              totalBrands: total,
+              emptyBrands: List.unmodifiable(emptyConfirmed),
+            )
           : SearchIndexStatusEntity.partial(
               totalBrands: total,
               failedBrands: List.unmodifiable(failed),
+              emptyBrands: List.unmodifiable(emptyConfirmed),
             );
       store.save(
         scope.key,
         SearchIndexRecord(
           index: SearchIndex.build(entries, sortStrategy),
           status: finalStatus,
+          emptyStreaks: Map.of(streaks),
         ),
       );
       controller.add(finalStatus);

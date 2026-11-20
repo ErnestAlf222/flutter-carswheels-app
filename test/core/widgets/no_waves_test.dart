@@ -56,6 +56,5 @@ void main() {
         bottom: Radius.circular(HeaderConfig.bottomRadius),
       ),
     );
-    expect(find.byType(ClipRRect), findsOneWidget);
   });
 }

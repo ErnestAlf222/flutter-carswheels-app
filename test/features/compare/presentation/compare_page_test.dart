@@ -76,6 +76,7 @@ Future<_Harness> _pumpPage(
   List<CompareSlotEntity> initial = const [],
   double textScale = 1.0,
   Size size = const Size(360, 800),
+  double topInset = 0,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -116,6 +117,7 @@ Future<_Harness> _pumpPage(
           data: MediaQuery.of(context).copyWith(
             disableAnimations: true,
             textScaler: TextScaler.linear(textScale),
+            padding: EdgeInsets.only(top: topInset),
           ),
           child: child!,
         ),
@@ -215,6 +217,42 @@ void main() {
     expect(find.byType(AccentButton), findsNothing);
     expect(find.text(AppTexts.compareClearLabel), findsOneWidget);
   });
+
+  testWidgets(
+    'la banda fija de la barra de estado va primero y la tabla no la repite',
+    (tester) async {
+      await _pumpPage(tester, initial: _slots(2), topInset: 44);
+      expect(find.byType(StatusBarBandSliver), findsOneWidget);
+      expect(
+        tester
+            .getSize(
+              find.descendant(
+                of: find.byType(StatusBarBandSliver),
+                matching: find.byType(ColoredBox),
+              ),
+            )
+            .height,
+        44,
+      );
+      final band = find.descendant(
+        of: find.byType(StatusBarBandSliver),
+        matching: find.byType(ColoredBox),
+      );
+      expect(tester.getTopLeft(band).dy, 0);
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
+      await tester.pumpAndSettle();
+      expect(tester.getTopLeft(band).dy, 0);
+      // La banda de columnas se fija justo debajo de la de la barra de estado.
+      final columns = find.byWidgetPredicate(
+        (widget) =>
+            widget is DecoratedBox &&
+            widget.decoration is BoxDecoration &&
+            (widget.decoration as BoxDecoration).border is Border &&
+            (widget.decoration as BoxDecoration).color == AppColors.background,
+      );
+      expect(columns, findsWidgets);
+    },
+  );
 
   testWidgets('con 3: sin espacios libres ni botón', (tester) async {
     await _pumpPage(tester, initial: _slots(3));

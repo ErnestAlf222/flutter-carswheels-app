@@ -4,10 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/market/domain/entities/market_entity.dart';
 import 'package:cars_wheels_app/features/market/presentation/cubits/cubits.dart';
+import 'package:cars_wheels_app/features/market/presentation/widgets/market_selector_tone.dart';
 
-/// Segmento de banderas: dos insignias siempre visibles y un disco tenue que se desliza.
+/// Segmento de banderas: dos insignias a color y un aro fino que se desliza.
 class MarketSwitchWidget extends StatelessWidget {
-  const MarketSwitchWidget({super.key});
+  const MarketSwitchWidget({super.key, this.tone = MarketSelectorTone.onDark});
+
+  final MarketSelectorTone tone;
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +22,7 @@ class MarketSwitchWidget extends StatelessWidget {
         : const Duration(
             milliseconds: AnimationConfig.marketSwitchMilliseconds,
           );
+    final colors = MarketSelectorColors.of(tone);
     return BlocSelector<MarketCubit, MarketState, Market>(
       selector: (state) => state.market,
       builder: (context, active) {
@@ -32,26 +36,21 @@ class MarketSwitchWidget extends StatelessWidget {
           child: Stack(
             children: [
               AnimatedPositioned(
-                key: const ValueKey('market-switch-disc'),
+                key: const ValueKey('market-switch-ring'),
                 duration: duration,
                 curve: Curves.easeOut,
                 left:
                     stride * activeIndex +
-                    (slot - MarketConfig.flagDiscSize) / 2,
-                top: (slot - MarketConfig.flagDiscSize) / 2,
+                    (slot - MarketConfig.flagRingSize) / 2,
+                top: (slot - MarketConfig.flagRingSize) / 2,
                 child: Container(
-                  width: MarketConfig.flagDiscSize,
-                  height: MarketConfig.flagDiscSize,
+                  width: MarketConfig.flagRingSize,
+                  height: MarketConfig.flagRingSize,
                   decoration: BoxDecoration(
-                    color: AppColors.onDark.withValues(
-                      alpha: MarketConfig.flagDiscOpacity,
-                    ),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppColors.onDark.withValues(
-                        alpha: MarketConfig.flagDiscRingOpacity,
-                      ),
-                      width: MarketConfig.flagDiscRingWidth,
+                      color: colors.ring,
+                      width: MarketConfig.flagRingWidth,
                     ),
                   ),
                 ),
@@ -64,6 +63,7 @@ class MarketSwitchWidget extends StatelessWidget {
                       market: market,
                       active: market == active,
                       duration: duration,
+                      borderColor: colors.flagBorder,
                       onTap: () => context.read<MarketCubit>().select(market),
                     ),
                   ],
@@ -83,12 +83,14 @@ class _FlagSlot extends StatelessWidget {
     required this.market,
     required this.active,
     required this.duration,
+    required this.borderColor,
     required this.onTap,
   });
 
   final Market market;
   final bool active;
   final Duration duration;
+  final Color borderColor;
   final VoidCallback onTap;
 
   @override
@@ -117,7 +119,7 @@ class _FlagSlot extends StatelessWidget {
             child: AnimatedOpacity(
               opacity: active ? 1.0 : MarketConfig.inactiveFlagOpacity,
               duration: duration,
-              child: _FlagBadge(flag: market.flag),
+              child: _FlagBadge(flag: market.flag, borderColor: borderColor),
             ),
           ),
         ),
@@ -128,9 +130,10 @@ class _FlagSlot extends StatelessWidget {
 
 /// Bandera recortada en círculo con un borde finísimo, como una insignia.
 class _FlagBadge extends StatelessWidget {
-  const _FlagBadge({required this.flag});
+  const _FlagBadge({required this.flag, required this.borderColor});
 
   final String flag;
+  final Color borderColor;
 
   @override
   Widget build(BuildContext context) {
@@ -141,9 +144,7 @@ class _FlagBadge extends StatelessWidget {
       foregroundDecoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: AppColors.onDark.withValues(
-            alpha: MarketConfig.flagBadgeBorderOpacity,
-          ),
+          color: borderColor,
           width: MarketConfig.flagBadgeBorderWidth,
         ),
       ),

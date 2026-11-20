@@ -26,8 +26,8 @@ class SearchConfig {
   static const int indexRetryBackoffFactor = 2;
   static const int indexRetryMaxAttempts = 4;
 
-  // Mensaje técnico cuando una marca del menú llega sin grupos.
-  static const String emptyBrandMessage = 'La marca llegó sin grupos';
+  // Respuestas exitosas vacías seguidas que confirman una marca sin modelos.
+  static const int emptyBrandConfirmations = 2;
 
   // Otros años: tope de resultados cuyos rasgos se analizan para los filtros.
   static const int otherYearsAnalysisMaxResults = maxOtherYearsResults;
@@ -85,6 +85,8 @@ class SearchConfig {
   static const double headerTitleRowHeight = MarketConfig.selectorHeight;
   // Botón de volver del modo selección, en el encabezado.
   static const double headerBackButtonSize = 44.0;
+  // Relleno blanco tenue del botón de volver sobre la banda tinta.
+  static const double headerBackButtonFillOpacity = 0.14;
   static const double pinnedBandPadding =
       12.0; // Arriba y abajo del campo en la banda fija.
   static const double fieldHeight = 56.0;

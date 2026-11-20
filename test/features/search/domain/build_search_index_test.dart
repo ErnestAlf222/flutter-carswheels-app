@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../../support/search_test_support.dart';
 
 void main() {
+  _emptyBrandTests();
   late FakeSearchCatalogSource source;
   late SearchIndexStore store;
   late BuildSearchIndexUseCase build;
@@ -182,4 +183,98 @@ class _BrandlessSource implements SearchCatalogSource {
     SearchScopeEntity scope,
     String brand,
   ) async => const [];
+}
+
+void _emptyBrandTests() {
+  late FakeSearchCatalogSource source;
+  late SearchIndexStore store;
+  late BuildSearchIndexUseCase build;
+
+  setUp(() {
+    source = FakeSearchCatalogSource({
+      for (final i in List.generate(4, (i) => i)) 'Marca$i': ['Modelo$i'],
+    });
+    store = SearchIndexStore();
+    build = BuildSearchIndexUseCase(
+      source: source,
+      store: store,
+      sortStrategy: postingSort,
+    );
+  });
+
+  group('marca vacía', () {
+    test(
+      'una respuesta vacía aislada queda pendiente, no confirmada',
+      () async {
+        source.emptyBrands.add('Marca1');
+        final last = (await build(usScope).toList()).last;
+        expect(last.phase, SearchIndexPhase.partial);
+        expect(last.failedBrands, ['Marca1']);
+        expect(last.emptyBrands, isEmpty);
+      },
+    );
+
+    test(
+      'vacía de forma consistente: se confirma y el índice queda listo',
+      () async {
+        source.emptyBrands.add('Marca1');
+        await build(usScope).drain<void>();
+        final retry = (await build(
+          usScope,
+          retryFailedOnly: true,
+        ).toList()).last;
+        expect(retry.phase, SearchIndexPhase.ready);
+        expect(retry.failedBrands, isEmpty);
+        expect(retry.emptyBrands, ['Marca1']);
+        expect(retry.indexedBrands, retry.totalBrands);
+        expect(store.recordOf(usScope.key)!.isConsistent, isTrue);
+        // Ya listo: otra construcción no pide nada.
+        source.groupRequests.clear();
+        await build(usScope, retryFailedOnly: true).drain<void>();
+        expect(source.groupRequests, isEmpty);
+      },
+    );
+
+    test('un error entre dos vacías reinicia la cuenta', () async {
+      source.emptyBrands.add('Marca1');
+      await build(usScope).drain<void>();
+      source.failingBrands.add('Marca1');
+      final failed = (await build(
+        usScope,
+        retryFailedOnly: true,
+      ).toList()).last;
+      expect(failed.phase, SearchIndexPhase.partial);
+      expect(failed.emptyBrands, isEmpty);
+      source.failingBrands.clear();
+      final again = (await build(usScope, retryFailedOnly: true).toList()).last;
+      expect(again.phase, SearchIndexPhase.partial);
+      final last = (await build(usScope, retryFailedOnly: true).toList()).last;
+      expect(last.phase, SearchIndexPhase.ready);
+    });
+
+    test('una marca con error sigue parcial y se reintenta', () async {
+      source.failingBrands.add('Marca2');
+      for (int round = 0; round < 3; round++) {
+        final last = (await build(
+          usScope,
+          retryFailedOnly: true,
+        ).toList()).last;
+        expect(last.phase, SearchIndexPhase.partial);
+        expect(last.failedBrands, ['Marca2']);
+        expect(last.emptyBrands, isEmpty);
+      }
+      expect(source.groupRequests.where((b) => b == 'Marca2'), hasLength(3));
+    });
+
+    test('falla primero y luego responde con modelos: converge', () async {
+      source.failuresLeft['Marca2'] = 1;
+      final first = (await build(usScope).toList()).last;
+      expect(first.phase, SearchIndexPhase.partial);
+      final last = (await build(usScope, retryFailedOnly: true).toList()).last;
+      expect(last.phase, SearchIndexPhase.ready);
+      expect(last.emptyBrands, isEmpty);
+      final record = store.recordOf(usScope.key)!;
+      expect(record.index.match(['modelo2']), hasLength(1));
+    });
+  });
 }

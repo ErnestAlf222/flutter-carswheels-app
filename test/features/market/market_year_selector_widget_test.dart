@@ -10,7 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../support/market_test_support.dart';
 
 const _years = [2026, 2025, 2024];
-final _disc = find.byKey(const ValueKey('market-switch-disc'));
+final _disc = find.byKey(const ValueKey('market-switch-ring'));
 
 Widget _host(
   MarketCubit cubit, {
@@ -62,7 +62,7 @@ void main() {
     ]);
   });
 
-  testWidgets('el disco está tras la bandera activa y la otra se atenúa', (
+  testWidgets('el aro rodea la bandera activa y la otra se atenúa', (
     tester,
   ) async {
     final cubit = buildMarketCubit();
@@ -92,7 +92,7 @@ void main() {
     );
   });
 
-  testWidgets('el disco activo es blanco tenue con aro y sin amarillo', (
+  testWidgets('el aro activo es blanco fino, sin relleno y sin amarillo', (
     tester,
   ) async {
     final cubit = buildMarketCubit();
@@ -103,17 +103,14 @@ void main() {
       find.descendant(of: _disc, matching: find.byType(Container)),
     );
     final decoration = disc.decoration! as BoxDecoration;
-    expect(
-      decoration.color,
-      AppColors.onDark.withValues(alpha: MarketConfig.flagDiscOpacity),
-    );
-    expect(decoration.color, isNot(AppColors.accent));
+    // Solo aro: nada de disco relleno.
+    expect(decoration.color, isNull);
+    expect(decoration.shape, BoxShape.circle);
     final ring = decoration.border! as Border;
-    expect(
-      ring.top.color,
-      AppColors.onDark.withValues(alpha: MarketConfig.flagDiscRingOpacity),
-    );
-    expect(ring.top.width, MarketConfig.flagDiscRingWidth);
+    expect(ring.top.color, AppColors.onDark);
+    expect(ring.top.color, isNot(AppColors.accent));
+    expect(ring.top.width, MarketConfig.flagRingWidth);
+    expect(tester.getSize(_disc).width, MarketConfig.flagRingSize);
   });
 
   testWidgets('las banderas son insignias circulares con área táctil de 44', (

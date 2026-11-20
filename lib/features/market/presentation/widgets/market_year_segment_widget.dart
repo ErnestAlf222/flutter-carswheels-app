@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/market/presentation/widgets/market_selector_tone.dart';
 
 /// Segmento del año dentro de la píldora unida; abre el panel de años.
 class MarketYearSegmentWidget extends StatefulWidget {
@@ -10,6 +11,7 @@ class MarketYearSegmentWidget extends StatefulWidget {
     required this.years,
     required this.year,
     required this.onYearSelected,
+    this.tone = MarketSelectorTone.onDark,
   });
 
   /// Años del mercado activo, del más reciente al más antiguo.
@@ -19,6 +21,9 @@ class MarketYearSegmentWidget extends StatefulWidget {
   final int year;
 
   final ValueChanged<int> onYearSelected;
+
+  /// Fondo donde se coloca: define el color del año y del chevron.
+  final MarketSelectorTone tone;
 
   @override
   State<MarketYearSegmentWidget> createState() =>
@@ -74,6 +79,7 @@ class _MarketYearSegmentWidgetState extends State<MarketYearSegmentWidget> {
           open: _open,
           duration: _duration(context),
           onTap: _toggle,
+          color: MarketSelectorColors.of(widget.tone).foreground,
         ),
       ),
     );
@@ -119,12 +125,14 @@ class _YearZone extends StatelessWidget {
     required this.open,
     required this.duration,
     required this.onTap,
+    required this.color,
   });
 
   final int year;
   final ValueNotifier<bool> open;
   final Duration duration;
   final VoidCallback onTap;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -152,9 +160,7 @@ class _YearZone extends StatelessWidget {
               children: [
                 Text(
                   year.toString(),
-                  style: AppTextStyles.bodyStrong.copyWith(
-                    color: AppColors.onDark,
-                  ),
+                  style: AppTextStyles.bodyStrong.copyWith(color: color),
                 ),
                 ValueListenableBuilder<bool>(
                   valueListenable: open,
@@ -163,10 +169,10 @@ class _YearZone extends StatelessWidget {
                     duration: duration,
                     child: child,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Symbols.keyboard_arrow_down,
                     size: MarketConfig.chevronSize,
-                    color: AppColors.onDark,
+                    color: color,
                   ),
                 ),
               ],

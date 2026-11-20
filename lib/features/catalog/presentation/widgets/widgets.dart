@@ -1,5 +1,6 @@
 // Widgets del catálogo
 export 'brand_carousel_widget.dart';
+export 'brand_compact_bar_widget.dart';
 export 'brand_header_delegate.dart';
 export 'brand_tile_widget.dart';
 export 'home_entry_sync_widget.dart';

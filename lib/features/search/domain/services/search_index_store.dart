@@ -3,10 +3,17 @@ import 'package:cars_wheels_app/features/search/domain/services/search_index.dar
 
 /// Índice de un mercado y año con su estado.
 class SearchIndexRecord {
-  const SearchIndexRecord({required this.index, required this.status});
+  const SearchIndexRecord({
+    required this.index,
+    required this.status,
+    this.emptyStreaks = const {},
+  });
 
   final SearchIndex index;
   final SearchIndexStatusEntity status;
+
+  /// Vacíos seguidos por marca sin confirmar; un error o un éxito reinicia la cuenta.
+  final Map<String, int> emptyStreaks;
 
   /// Un índice listo exige todas las marcas indexadas y sin fallidas; uno parcial
   /// exige las fallidas. Cualquier otra combinación es una caché inválida.

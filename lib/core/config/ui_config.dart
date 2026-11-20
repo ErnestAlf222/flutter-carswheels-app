@@ -49,9 +49,12 @@ class UiConfig {
   static const double summarySkeletonShortBarWidth = 36.0;
   static const double powertrainBadgeIconSize = 14.0;
   // Alturas provisionales del encabezado fijo; se ajustan viendo la pantalla.
-  static const double headerExpandedHeight = 188.0;
+  static const double headerExpandedHeight = 224.0;
   static const double headerCompactHeight = 72.0;
   static const double headerCompactLogoSize = 40.0;
+  // Tope del logo de la barra compacta: cabe ancho (BYD) sin desbordar.
+  static const double headerCompactLogoMaxWidth = 96.0;
+  static const double headerCompactLogoMaxHeight = headerCompactLogoSize;
   // Medidas de la maqueta de Detalle.
   // Foto grande de Detalle.
   static const double detailCircleButtonSize = 48.0;

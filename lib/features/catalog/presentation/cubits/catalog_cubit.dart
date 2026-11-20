@@ -168,16 +168,13 @@ class CatalogCubit extends Cubit<CatalogState> {
     emit(current.copyWith(selectedIndex: index));
   }
 
-  void showPreviousBrands() => _moveWindow(-1);
-
-  void showNextBrands() => _moveWindow(1);
-
-  // Mueve la ventana de uno en uno, de forma circular.
-  void _moveWindow(int step) {
+  /// Mueve la ventana de marcas para que empiece en [start]; da la vuelta.
+  void showBrandsFrom(int start) {
     final current = state;
     if (current is! CatalogLoaded || current.brands.isEmpty) return;
-    final count = current.brands.length;
-    emit(current.copyWith(windowStart: (current.windowStart + step) % count));
+    final wrapped = CircularIndex.wrap(start, current.brands.length);
+    if (wrapped == current.windowStart) return;
+    emit(current.copyWith(windowStart: wrapped));
   }
 
   // Completa el tiempo mínimo de loader pendiente.

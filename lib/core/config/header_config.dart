@@ -6,10 +6,7 @@ class HeaderConfig {
   static const double bottomRadius = 32.0;
   // Relleno interno: arriba se suma al área segura.
   static const double contentTopPadding = 16.0;
-  static const double contentBottomPadding = 24.0;
-  // Resplandor neutro: diámetro y desplazamiento fuera del borde.
-  static const double glowSize = 280.0;
-  static const double glowOffset = -100.0;
+  static const double contentBottomPadding = 32.0;
   // Superposición oscura de la foto de Detalle: opacidad arriba y abajo.
   static const double photoOverlayTopOpacity = 0.0;
   static const double photoOverlayBottomOpacity = 0.85;

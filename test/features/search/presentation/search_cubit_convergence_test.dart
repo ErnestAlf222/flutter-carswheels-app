@@ -66,23 +66,44 @@ void main() {
     },
   );
 
-  test(
-    'una marca que llega sin grupos deja el índice parcial, nunca listo',
-    () {
-      fakeAsync((async) {
-        final harness = SearchHarness(groupsByBrand: _catalog);
-        harness.source.emptyBrands.add('Ferrari');
-        harness.cubit.ensureIndex();
-        _settle(async, const Duration(milliseconds: 100));
-        final record = harness.store.recordOf(usScope.key)!;
-        expect(record.status.phase, SearchIndexPhase.partial);
-        expect(record.status.failedBrands, ['Ferrari']);
-        expect(record.isConsistent, isTrue);
-        unawaited(harness.cubit.close());
-        _settle(async);
-      });
-    },
-  );
+  test('una marca vacía repetida se confirma, el índice queda listo y afirma sin resultados', () {
+    fakeAsync((async) {
+      final harness = SearchHarness(groupsByBrand: _catalog);
+      harness.source.emptyBrands.add('Ferrari');
+      harness.cubit.ensureIndex();
+      _settle(async, const Duration(milliseconds: 100));
+      // La primera respuesta vacía aún no es consistente: queda pendiente.
+      SearchIndexRecord record = harness.store.recordOf(usScope.key)!;
+      expect(record.status.phase, SearchIndexPhase.partial);
+      expect(record.status.failedBrands, ['Ferrari']);
+      expect(record.isConsistent, isTrue);
+      // El reintento automático repite la respuesta vacía y la confirma.
+      _settle(
+        async,
+        const Duration(
+          milliseconds: SearchConfig.indexRetryBaseDelayMilliseconds,
+        ),
+      );
+      record = harness.store.recordOf(usScope.key)!;
+      expect(record.status.phase, SearchIndexPhase.ready);
+      expect(record.status.failedBrands, isEmpty);
+      expect(record.status.emptyBrands, ['Ferrari']);
+      expect(record.isConsistent, isTrue);
+      expect(harness.cubit.state.isPartial, isFalse);
+      // Sin más reintentos: la marca vacía no se vuelve a pedir.
+      _settle(async, const Duration(minutes: 10));
+      expect(
+        harness.source.groupRequests.where((b) => b == 'Ferrari').length,
+        SearchConfig.emptyBrandConfirmations,
+      );
+      harness.cubit.onQueryChanged('ferrari modelo');
+      _settle(async, const Duration(milliseconds: 600));
+      expect(harness.cubit.state.results, isEmpty);
+      expect(harness.cubit.state.isPartial, isFalse);
+      unawaited(harness.cubit.close());
+      _settle(async);
+    });
+  });
 
   test('con una marca que nunca responde bien reintenta con retroceso y se detiene', () {
     fakeAsync((async) {

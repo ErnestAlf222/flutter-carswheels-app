@@ -154,51 +154,209 @@ void main() {
       expect(find.text('Marca1'), findsOneWidget);
     });
 
-    testWidgets('al mover la ventana no hay entrada por tile y el fundido '
-        'muestra los nombres nuevos', (tester) async {
-      final events = StreamController<CatalogState>.broadcast();
-      addTearDown(events.close);
-      CatalogLoaded window(int start) => CatalogLoaded(
+    testWidgets(
+      'al cambiar la ventana desde fuera la lista se desplaza a ella',
+      (tester) async {
+        final events = StreamController<CatalogState>.broadcast();
+        addTearDown(events.close);
+        CatalogLoaded window(int start) => CatalogLoaded(
+          year: 2026,
+          availableYears: const [2026],
+          brands: _brands(10),
+          windowStart: start,
+        );
+        whenListen(catalogCubit, events.stream, initialState: window(0));
+        await tester.pumpWidget(carousel());
+        await tester.pumpAndSettle();
+        // La entrada es una sola, de la fila completa.
+        expect(find.byType(AnimatedEntryWidget), findsOneWidget);
+        expect(find.text('Marca0'), findsOneWidget);
+        expect(find.text('Marca4'), findsNothing);
+
+        events.add(window(1));
+        await tester.pumpAndSettle();
+        expect(find.byType(AnimatedEntryWidget), findsOneWidget);
+        expect(find.text('Marca4'), findsOneWidget);
+        expect(find.text('Marca0'), findsNothing);
+      },
+    );
+
+    group('con el dedo y las flechas', () {
+      CatalogLoaded loaded({int start = 0, int selected = 0}) => CatalogLoaded(
         year: 2026,
         availableYears: const [2026],
         brands: _brands(10),
         windowStart: start,
+        selectedIndex: selected,
       );
-      whenListen(catalogCubit, events.stream, initialState: window(0));
-      await tester.pumpWidget(carousel());
-      await tester.pumpAndSettle();
-      // La entrada es una sola, de la fila completa.
-      expect(find.byType(AnimatedEntryWidget), findsOneWidget);
-      expect(find.text('Marca0'), findsOneWidget);
-      expect(find.text('Marca4'), findsNothing);
 
-      events.add(window(1));
-      await tester.pump();
-      await tester.pump(
-        const Duration(milliseconds: CarouselConfig.shiftFadeMilliseconds),
-      );
-      await tester.pumpAndSettle();
-      expect(find.byType(AnimatedEntryWidget), findsOneWidget);
-      expect(find.text('Marca4'), findsOneWidget);
-      expect(find.text('Marca0'), findsNothing);
-    });
+      double offset(WidgetTester tester) => tester
+          .state<ScrollableState>(find.byType(Scrollable))
+          .position
+          .pixels;
 
-    testWidgets('las flechas llaman al cubit', (tester) async {
-      stubCatalog(
-        CatalogLoaded(
-          year: 2026,
-          availableYears: const [2026],
-          brands: _brands(10),
-        ),
+      setUp(() {
+        when(() => catalogCubit.showBrandsFrom(any())).thenReturn(null);
+        when(() => catalogCubit.selectBrand(any())).thenReturn(null);
+      });
+
+      testWidgets('arrastrar cambia el desplazamiento y avisa la ventana', (
+        tester,
+      ) async {
+        stubCatalog(loaded());
+        await tester.pumpWidget(carousel());
+        await tester.pumpAndSettle();
+        final before = offset(tester);
+        await tester.drag(
+          find.byType(BrandTileWidget).first,
+          const Offset(-200, 0),
+        );
+        await tester.pumpAndSettle();
+        expect(offset(tester), greaterThan(before));
+        // Arrastrar a la izquierda muestra marcas posteriores.
+        expect(find.text('Marca0'), findsNothing);
+        final started =
+            verify(() => catalogCubit.showBrandsFrom(captureAny()))
+                    .captured
+                    .single
+                as int;
+        expect(started, greaterThan(0));
+      });
+
+      testWidgets('arrastrar a la derecha vuelve y da la vuelta al inicio', (
+        tester,
+      ) async {
+        stubCatalog(loaded());
+        await tester.pumpWidget(carousel());
+        await tester.pumpAndSettle();
+        final before = offset(tester);
+        await tester.drag(
+          find.byType(BrandTileWidget).first,
+          const Offset(200, 0),
+        );
+        await tester.pumpAndSettle();
+        expect(offset(tester), lessThan(before));
+        // Circular: antes de Marca0 viene la última.
+        expect(find.text('Marca9'), findsOneWidget);
+      });
+
+      testWidgets('la física es de rebote suave y no queda bloqueada', (
+        tester,
+      ) async {
+        stubCatalog(loaded());
+        await tester.pumpWidget(carousel());
+        await tester.pumpAndSettle();
+        final scrollable = tester.widget<Scrollable>(find.byType(Scrollable));
+        expect(scrollable.axisDirection, AxisDirection.right);
+        expect(scrollable.physics, isA<BouncingScrollPhysics>());
+        expect(
+          scrollable.physics!.parent,
+          isA<AlwaysScrollableScrollPhysics>(),
+        );
+      });
+
+      testWidgets('las flechas desplazan una página de marcas', (tester) async {
+        stubCatalog(loaded());
+        await tester.pumpWidget(carousel());
+        await tester.pumpAndSettle();
+        final before = offset(tester);
+        final width = tester.getSize(find.byType(ListView)).width;
+        await tester.tap(find.bySemanticsLabel(AppTexts.nextBrandsLabel));
+        await tester.pumpAndSettle();
+        expect(offset(tester) - before, closeTo(width, 1));
+        expect(find.text('Marca4'), findsOneWidget);
+        expect(find.text('Marca0'), findsNothing);
+        verify(() => catalogCubit.showBrandsFrom(4)).called(1);
+        await tester.tap(find.bySemanticsLabel(AppTexts.previousBrandsLabel));
+        await tester.pumpAndSettle();
+        expect(offset(tester), closeTo(before, 1));
+        expect(find.text('Marca0'), findsOneWidget);
+      });
+
+      testWidgets('con disableAnimations la flecha salta sin animar', (
+        tester,
+      ) async {
+        stubCatalog(loaded());
+        await tester.pumpWidget(
+          MediaQuery(
+            data: const MediaQueryData(disableAnimations: true),
+            child: carousel(),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final before = offset(tester);
+        await tester.tap(find.bySemanticsLabel(AppTexts.nextBrandsLabel));
+        await tester.pump();
+        expect(offset(tester), greaterThan(before));
+        expect(find.text('Marca4'), findsOneWidget);
+      });
+
+      testWidgets(
+        'tocar una marca la selecciona y la seleccionada se resalta',
+        (tester) async {
+          stubCatalog(loaded(selected: 1));
+          await tester.pumpWidget(carousel());
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Marca2'));
+          verify(() => catalogCubit.selectBrand(2)).called(1);
+          final selected = tester.widget<Text>(find.text('Marca1'));
+          expect(selected.style!.fontWeight, FontWeight.w700);
+          final other = tester.widget<Text>(find.text('Marca2'));
+          expect(other.style!.fontWeight, isNot(FontWeight.w700));
+        },
       );
-      when(() => catalogCubit.showPreviousBrands()).thenReturn(null);
-      when(() => catalogCubit.showNextBrands()).thenReturn(null);
-      await tester.pumpWidget(carousel());
-      await tester.pumpAndSettle();
-      await tester.tap(find.bySemanticsLabel(AppTexts.previousBrandsLabel));
-      await tester.tap(find.bySemanticsLabel(AppTexts.nextBrandsLabel));
-      verify(() => catalogCubit.showPreviousBrands()).called(1);
-      verify(() => catalogCubit.showNextBrands()).called(1);
+
+      testWidgets('la lista no deja pasar lo horizontal al menú flotante', (
+        tester,
+      ) async {
+        stubCatalog(loaded());
+        final seen = <Axis>[];
+        await tester.pumpWidget(
+          NotificationListener<ScrollNotification>(
+            onNotification: (notification) {
+              seen.add(notification.metrics.axis);
+              return false;
+            },
+            child: carousel(),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.drag(
+          find.byType(BrandTileWidget).first,
+          const Offset(-100, 0),
+        );
+        await tester.pumpAndSettle();
+        expect(seen, isNot(contains(Axis.horizontal)));
+      });
+
+      testWidgets('no choca con el scroll vertical de la página', (
+        tester,
+      ) async {
+        stubCatalog(loaded());
+        final page = ScrollController();
+        addTearDown(page.dispose);
+        await tester.pumpWidget(
+          _host(
+            catalogCubit: catalogCubit,
+            logosCubit: logosCubit,
+            child: CustomScrollView(
+              controller: page,
+              slivers: const [
+                SliverToBoxAdapter(child: BrandCarouselWidget()),
+                SliverToBoxAdapter(child: SizedBox(height: 2000)),
+              ],
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.drag(
+          find.byType(BrandTileWidget).first,
+          const Offset(0, -150),
+        );
+        await tester.pumpAndSettle();
+        expect(page.offset, greaterThan(0));
+        verifyNever(() => catalogCubit.showBrandsFrom(any()));
+      });
     });
 
     testWidgets('la flecha tiene área tocable de 48 y círculo de 32', (

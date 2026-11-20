@@ -249,6 +249,7 @@ class _HomeContentState extends State<_HomeContent>
           CustomScrollView(
             controller: scrollController,
             slivers: [
+              const StatusBarBandSliver(),
               SliverToBoxAdapter(
                 child: _HomeHeader(
                   state: loaded,
@@ -316,6 +317,7 @@ class _HomeContentState extends State<_HomeContent>
             brandName: state.brands[state.selectedIndex].name,
             isRefreshing: state.isRefreshing,
             snapDuration: snapDuration,
+            // La cabecera flotante no respeta el solape: reserva su área segura y la banda tinta queda encima.
             topInset: MediaQuery.paddingOf(context).top,
             onYearSelected: cubit.selectYear,
             vsync: this,
@@ -349,7 +351,7 @@ class _HomeContentState extends State<_HomeContent>
       SliverPadding(
         padding: const EdgeInsets.fromLTRB(
           UiConfig.pageHorizontalPadding,
-          AppSpacing.m,
+          CatalogConfig.modelsSectionTopGap,
           UiConfig.pageHorizontalPadding,
           0,
         ),
@@ -395,11 +397,10 @@ class _HomeHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final onTap = onSearchTap;
-    final topInset = MediaQuery.paddingOf(context).top;
     final hasBar = onTap != null;
     final header = HeroHeaderWidget(
       padding: EdgeInsets.only(
-        top: topInset + HeaderConfig.contentTopPadding,
+        top: HeaderConfig.contentTopPadding,
         bottom: hasBar
             ? HeaderConfig.contentBottomPadding + HeaderConfig.searchBarOverlap
             : HeaderConfig.contentBottomPadding,

@@ -10,6 +10,7 @@ class AppColors {
   static const Color mutedText = Color(0xFF5F6673);
   static const Color mutedOnDark = Color(0xB3FFFFFF);
   static const Color onDark = Color(0xFFFFFFFF);
+  static const Color transparent = Color(0x00000000);
   // Amarillo: relleno con tinta encima, o texto e ícono solo sobre oscuro.
   static const Color accent = Color(0xFFFFD60A);
   static const Color accentPressed = Color(0xFFF2C800);

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
@@ -69,7 +70,7 @@ class SearchHeaderDelegate extends SliverPersistentHeaderDelegate {
         ? 1 - math.min(shrinkOffset / SearchConfig.headerTitleRowHeight, 1.0)
         : 1.0;
     // El sliver da solo un tope de alto: se fija el alto exacto del encabezado.
-    return SizedBox(
+    final header = SizedBox(
       height: extent,
       child: Stack(
         children: [
@@ -145,6 +146,11 @@ class SearchHeaderDelegate extends SliverPersistentHeaderDelegate {
         ],
       ),
     );
+    // Íconos claros de la barra de estado sobre la banda tinta.
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: AppTheme.lightStatusBar,
+      child: header,
+    );
   }
 
   // onSubmitted se omite: llega como cierre nuevo en cada build y hace lo mismo.
@@ -181,7 +187,7 @@ class _BackButton extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: AppColors.onDark.withValues(
-              alpha: MarketConfig.flagDiscOpacity,
+              alpha: SearchConfig.headerBackButtonFillOpacity,
             ),
           ),
           child: const Icon(

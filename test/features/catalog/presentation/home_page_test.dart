@@ -144,13 +144,17 @@ void main() {
     required CatalogState catalog,
     ModelsState models = const ModelsInitial(),
     void Function(BuildContext)? onSearchTap,
+    double topInset = 0,
   }) async {
     whenListen(catalogCubit, catalogEvents.stream, initialState: catalog);
     whenListen(modelsCubit, modelsEvents.stream, initialState: models);
     await tester.pumpWidget(
       MaterialApp(
         builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(context).copyWith(disableAnimations: true),
+          data: MediaQuery.of(context).copyWith(
+            disableAnimations: true,
+            padding: EdgeInsets.only(top: topInset),
+          ),
           child: child!,
         ),
         home: RepositoryProvider<ScrollOffsetStore>.value(
@@ -188,6 +192,30 @@ void main() {
     expect(find.byType(ModelGridCardWidget), findsNWidgets(3));
     expect(find.text('3 modelos'), findsOneWidget);
   });
+
+  testWidgets(
+    'la banda fija cubre la barra de estado y el encabezado no suma el área segura',
+    (tester) async {
+      await pumpHome(
+        tester,
+        catalog: _loaded(),
+        models: _models(12, 12),
+        topInset: 44,
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(StatusBarBandSliver), findsOneWidget);
+      final band = find.descendant(
+        of: find.byType(StatusBarBandSliver),
+        matching: find.byType(ColoredBox),
+      );
+      expect(tester.getSize(band).height, 44);
+      // El wordmark queda a la misma altura que antes: área segura + relleno.
+      expect(tester.getTopLeft(find.byType(HeroHeaderWidget)).dy, 44);
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -600));
+      await tester.pumpAndSettle();
+      expect(tester.getTopLeft(band).dy, 0);
+    },
+  );
 
   group('al entrar a Inicio la lista se alinea con el catálogo', () {
     testWidgets('con la lista vacía (mercado cambiado fuera) la carga', (

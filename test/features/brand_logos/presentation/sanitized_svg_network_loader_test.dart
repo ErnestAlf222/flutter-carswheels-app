@@ -37,12 +37,13 @@ void main() {
     expect(text, contains('style="fill:#fff"'));
   });
 
-  test(
-    'conserva url y cabeceras, y la llave de caché es el propio cargador',
-    () {
-      const loader = _OfflineLoader('<svg/>');
-      expect(loader.headers, same(LogosConfig.requestHeaders));
-      expect(loader.cacheKey(null).keyData, loader);
-    },
-  );
+  test('conserva url y cabeceras, y la llave de caché sale de ellas', () {
+    const loader = _OfflineLoader('<svg/>');
+    expect(loader.headers, same(LogosConfig.requestHeaders));
+    // flutter_svg 2.5 compara la llave por url y cabeceras, no por el objeto.
+    final key = loader.cacheKey(null);
+    expect(key, const _OfflineLoader('<svg/>').cacheKey(null));
+    const other = SanitizedSvgNetworkLoader('https://otra.url/vw.svg');
+    expect(key, isNot(other.cacheKey(null)));
+  });
 }

@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/brand_logos/brand_logos.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/widgets/brand_carousel_widget.dart';
+import 'package:cars_wheels_app/features/catalog/presentation/widgets/brand_compact_bar_widget.dart';
 import 'package:cars_wheels_app/features/market/market.dart';
 
 /// Encabezado fijo y flotante: se encoge de la fila de marcas a una barra.
@@ -107,14 +108,17 @@ class BrandHeaderDelegate extends SliverPersistentHeaderDelegate {
       years: availableYears,
       year: year,
       onYearSelected: onYearSelected,
+      tone: MarketSelectorTone.onLight,
     );
   }
 
   Widget _expandedContent() {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xl,
-        vertical: AppSpacing.m,
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xl,
+        CatalogConfig.brandsHeaderTopPadding,
+        AppSpacing.xl,
+        AppSpacing.m,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -136,23 +140,13 @@ class BrandHeaderDelegate extends SliverPersistentHeaderDelegate {
         UiConfig.pageHorizontalPadding,
         0,
       ),
-      child: Row(
-        children: [
-          BrandLogoWidget(
-            brandName: brandName,
-            size: UiConfig.headerCompactLogoSize,
-          ),
-          const SizedBox(width: AppSpacing.m),
-          Expanded(
-            child: Text(
-              brandName,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.cardTitle,
-            ),
-          ),
-          _yearSelector(),
-        ],
+      child: BrandCompactBarWidget(
+        brandName: brandName,
+        logo: BrandLogoWidget(
+          brandName: brandName,
+          size: UiConfig.headerCompactLogoSize,
+        ),
+        selector: _yearSelector(),
       ),
     );
   }
