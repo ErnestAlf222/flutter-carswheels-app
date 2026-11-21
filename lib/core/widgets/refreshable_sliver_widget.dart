@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import 'package:cars_wheels_app/core/config/config.dart';
+import 'package:cars_wheels_app/core/theme/theme.dart';
 
 /// Atenúa un sliver y bloquea los toques mientras se actualiza.
 class RefreshableSliverWidget extends StatelessWidget {
@@ -17,7 +18,7 @@ class RefreshableSliverWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final duration = MediaQuery.of(context).disableAnimations
         ? Duration.zero
-        : const Duration(milliseconds: AnimationConfig.dimDurationMilliseconds);
+        : AppMotion.fast;
     return SliverIgnorePointer(
       ignoring: isRefreshing,
       sliver: SliverAnimatedOpacity(

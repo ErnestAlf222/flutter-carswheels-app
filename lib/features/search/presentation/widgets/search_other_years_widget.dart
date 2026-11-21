@@ -155,9 +155,10 @@ class SearchOtherYearsWidget extends StatelessWidget {
       ..sort((a, b) {
         final ia = yearOrder.indexOf(a);
         final ib = yearOrder.indexOf(b);
-        return (ia < 0 ? yearOrder.length : ia).compareTo(
+        final byOrder = (ia < 0 ? yearOrder.length : ia).compareTo(
           ib < 0 ? yearOrder.length : ib,
         );
+        return byOrder != 0 ? byOrder : b.compareTo(a);
       });
     return [for (final y in years) _YearGroupData(y, byYear[y]!)];
   }

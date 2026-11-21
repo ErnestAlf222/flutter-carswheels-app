@@ -16,4 +16,10 @@ class TextNormalizer {
         .join();
     return unaccented.replaceAll(_separators, '');
   }
+
+  /// Orden por nombre normalizado; si empatan, por el texto original (orden total).
+  static int compare(String a, String b) {
+    final byName = normalize(a).compareTo(normalize(b));
+    return byName != 0 ? byName : a.compareTo(b);
+  }
 }

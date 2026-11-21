@@ -75,6 +75,18 @@ class AppTexts {
       ? marketMexicoLabel
       : marketUnitedStatesLabel;
 
+  // Código corto de la opción del selector y su etiqueta accesible.
+  static const String marketUnitedStatesCodeLabel = 'EE. UU.';
+  static const String marketMexicoCodeLabel = 'MX';
+  static String marketCodeLabelOf(String code) =>
+      code == MarketConfig.mexicoCode
+      ? marketMexicoCodeLabel
+      : marketUnitedStatesCodeLabel;
+  static String marketOptionSemanticLabel(
+    String code, {
+    required bool selected,
+  }) => 'Mercado, ${marketLabelOf(code)}${selected ? ' seleccionado' : ''}';
+
   /// Atribución obligatoria (CC BY 4.0); Detalle de México y créditos la reutilizan.
   static const String conueeAttribution =
       'Fuente: CONUEE, Catálogo de rendimiento de combustible en vehículos '
@@ -232,7 +244,14 @@ class AppTexts {
       'Foto $position de $total';
 
   static String photoCreditLabel(String author, String license) =>
-      'Foto: $author · $license';
+      license.trim().isEmpty ? 'Foto: $author' : 'Foto: $author · $license';
+  static const String photoCreditSemanticHint = 'Copia el enlace de la fuente';
+  static const String photoSourceCopiedMessage = 'Enlace de la fuente copiado';
+
+  // Ficha técnica flotante de Detalle.
+  static const String specSheetTitle = 'Ficha técnica';
+  static const String specSheetOpenLabel = 'Abrir la ficha técnica';
+  static const String specSheetCloseLabel = 'Cerrar la ficha técnica';
 
   /// Consumo con un decimal, por ejemplo '14.6'.
   static String kmPerLiterFigure(double value) =>

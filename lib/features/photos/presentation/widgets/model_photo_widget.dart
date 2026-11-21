@@ -123,11 +123,7 @@ class _PhotoContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
-    final fade = media.disableAnimations
-        ? Duration.zero
-        : const Duration(
-            milliseconds: AnimationConfig.fadeDurationMilliseconds,
-          );
+    final fade = media.disableAnimations ? Duration.zero : AppMotion.medium;
     // Con el archivo local no hace falta la red; si falla, se usa la URL.
     return LocalFirstImageWidget(
       localPath: localPath,

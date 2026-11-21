@@ -11,7 +11,9 @@ class MarketSelectorColors {
     required this.fill,
     required this.border,
     required this.foreground,
-    required this.ring,
+    required this.pill,
+    required this.activeText,
+    required this.inactiveText,
     required this.flagBorder,
     required this.divider,
   });
@@ -23,8 +25,10 @@ class MarketSelectorColors {
   /// Año y chevron.
   final Color foreground;
 
-  /// Aro fino de la bandera activa.
-  final Color ring;
+  /// Pastilla deslizante tras la opción activa y los textos de cada opción.
+  final Color pill;
+  final Color activeText;
+  final Color inactiveText;
   final Color flagBorder;
   final Color divider;
 
@@ -34,7 +38,11 @@ class MarketSelectorColors {
       alpha: MarketConfig.selectorBorderOnDarkOpacity,
     ),
     foreground: AppColors.onDark,
-    ring: AppColors.onDark,
+    pill: AppColors.surface,
+    activeText: AppColors.ink,
+    inactiveText: AppColors.onDark.withValues(
+      alpha: MarketConfig.inactiveCodeOnDarkOpacity,
+    ),
     flagBorder: AppColors.onDark.withValues(
       alpha: MarketConfig.flagBadgeBorderOpacity,
     ),
@@ -45,7 +53,9 @@ class MarketSelectorColors {
     fill: AppColors.surface,
     border: AppColors.outline,
     foreground: AppColors.ink,
-    ring: AppColors.ink,
+    pill: AppColors.ink,
+    activeText: AppColors.onDark,
+    inactiveText: AppColors.mutedText,
     flagBorder: AppColors.outline,
     divider: AppColors.outline,
   );

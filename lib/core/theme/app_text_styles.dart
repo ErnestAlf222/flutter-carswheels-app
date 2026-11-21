@@ -56,6 +56,18 @@ class AppTextStyles {
     fontSize: 12,
     color: AppColors.mutedText,
   );
+  // Nombre de la marca bajo su logo en el carrusel de Inicio.
+  static final TextStyle brandLabel = GoogleFonts.inter(
+    fontWeight: FontWeight.w500,
+    fontSize: 13,
+    color: AppColors.inkSoft,
+  );
+  // Código del mercado dentro del selector segmentado.
+  static final TextStyle marketCode = GoogleFonts.inter(
+    fontWeight: FontWeight.w700,
+    fontSize: 11,
+    letterSpacing: 0.2,
+  );
   static final TextStyle attributionNote = GoogleFonts.inter(
     fontWeight: FontWeight.w400,
     fontSize: 11,

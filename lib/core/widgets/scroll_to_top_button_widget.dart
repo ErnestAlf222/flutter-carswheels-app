@@ -79,7 +79,7 @@ class _ScrollToTopButtonState extends State<ScrollToTopButton>
       duration: const Duration(
         milliseconds: ScrollConfig.scrollToTopMilliseconds,
       ),
-      curve: ScrollConfig.scrollToTopCurve,
+      curve: AppMotion.change,
     );
   }
 

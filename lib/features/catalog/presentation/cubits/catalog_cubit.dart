@@ -48,7 +48,14 @@ class CatalogCubit extends Cubit<CatalogState> {
       final brands = await getBrands(year);
       if (!silent) await _waitMinimumLoading(loadingTimer);
       if (_isStale(token)) return;
-      emit(CatalogLoaded(year: year, brands: brands, availableYears: years));
+      emit(
+        CatalogLoaded(
+          year: year,
+          brands: brands,
+          availableYears: years,
+          windowStart: BrandCarouselFocus.windowStartFor(0, brands.length),
+        ),
+      );
     } on AppFailure catch (failure) {
       if (silent) return;
       await _waitMinimumLoading(loadingTimer);
@@ -72,7 +79,6 @@ class CatalogCubit extends Cubit<CatalogState> {
     }
     final token = Object();
     _latestLoad[_loadKey] = token;
-    final loadingTimer = Stopwatch()..start();
     emit(current.reloading());
     try {
       final years = await getAvailableYears();
@@ -81,7 +87,6 @@ class CatalogCubit extends Cubit<CatalogState> {
           ? preferred
           : years.first;
       final brands = await getBrands(year);
-      await _waitMinimumLoading(loadingTimer);
       if (_isStale(token)) return;
       final keptIndex = _indexOfBrand(brands, current);
       emit(
@@ -90,15 +95,16 @@ class CatalogCubit extends Cubit<CatalogState> {
           brands: brands,
           availableYears: years,
           selectedIndex: keptIndex,
-          windowStart: keptIndex,
+          windowStart: BrandCarouselFocus.windowStartFor(
+            keptIndex,
+            brands.length,
+          ),
         ),
       );
     } on AppFailure catch (failure) {
-      await _waitMinimumLoading(loadingTimer);
       if (_isStale(token)) return;
       emit(CatalogError(failure));
     } catch (error) {
-      await _waitMinimumLoading(loadingTimer);
       if (_isStale(token)) return;
       emit(CatalogError(UnknownFailure(error.toString())));
     }
@@ -129,7 +135,10 @@ class CatalogCubit extends Cubit<CatalogState> {
           brands: brands,
           availableYears: current.availableYears,
           selectedIndex: keptIndex,
-          windowStart: keptIndex,
+          windowStart: BrandCarouselFocus.windowStartFor(
+            keptIndex,
+            brands.length,
+          ),
         ),
       );
     } on AppFailure catch (failure) {
@@ -180,7 +189,16 @@ class CatalogCubit extends Cubit<CatalogState> {
     final current = state;
     if (current is! CatalogLoaded || current.isReloading) return;
     if (index < 0 || index >= current.brands.length) return;
-    emit(current.copyWith(selectedIndex: index));
+    // La marca elegida pasa al centro del carrusel.
+    emit(
+      current.copyWith(
+        selectedIndex: index,
+        windowStart: BrandCarouselFocus.windowStartFor(
+          index,
+          current.brands.length,
+        ),
+      ),
+    );
   }
 
   /// Mueve la ventana de marcas para que empiece en [start]; da la vuelta.

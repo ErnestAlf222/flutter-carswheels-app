@@ -240,7 +240,7 @@ class _YearPanel extends StatelessWidget {
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: 1),
       duration: duration,
-      curve: Curves.easeOut,
+      curve: AppMotion.enter,
       child: panel,
       builder: (context, t, child) => Opacity(
         opacity: t,

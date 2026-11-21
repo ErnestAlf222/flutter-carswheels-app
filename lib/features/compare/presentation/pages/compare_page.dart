@@ -402,9 +402,7 @@ class _NoticeSlot extends StatelessWidget {
     // AnimatedSize no admite duración cero: sin animaciones se omite.
     if (MediaQuery.of(context).disableAnimations) return slot;
     return AnimatedSize(
-      duration: const Duration(
-        milliseconds: AnimationConfig.fadeDurationMilliseconds,
-      ),
+      duration: AppMotion.medium,
       alignment: Alignment.topCenter,
       child: slot,
     );

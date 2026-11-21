@@ -21,7 +21,6 @@ import 'package:cars_wheels_app/features/connectivity/connectivity.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/favorites/favorites.dart';
 import 'package:cars_wheels_app/features/market/market.dart';
-import 'package:cars_wheels_app/features/navigation/navigation.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/search/search.dart';
 import 'package:cars_wheels_app/features/safety/safety.dart';
@@ -120,6 +119,7 @@ class _AppState extends State<App> {
         _router.routeInformationProvider.value.uri.path == RoutesConfig.compare;
     showMarketChangedNotice(
       messenger,
+      overlay: _router.routerDelegate.navigatorKey.currentState?.overlay,
       market: market,
       year: year,
       onCompare: onCompare,
@@ -157,6 +157,13 @@ class _AppState extends State<App> {
         ),
         RepositoryProvider<DriveLabeler>.value(
           value: _dependencies.driveLabeler,
+        ),
+        RepositoryProvider<VehicleSpecSheetBuilder>.value(
+          value: VehicleSpecSheetBuilder(
+            transmissionLabeler: _dependencies.transmissionLabeler,
+            fuelTypeLabeler: _dependencies.fuelTypeLabeler,
+            driveLabeler: _dependencies.driveLabeler,
+          ),
         ),
         RepositoryProvider<VersionDescriptorBuilder>.value(
           value: _dependencies.versionDescriptorBuilder,
@@ -336,7 +343,6 @@ class _AppState extends State<App> {
               service: LogoPrecacheService(store: _dependencies.logoFileStore),
             ),
           ),
-          BlocProvider<SectionLoaderCubit>(create: (_) => SectionLoaderCubit()),
         ],
         child: Builder(
           builder: (context) => ConnectivityLifecycleHost(

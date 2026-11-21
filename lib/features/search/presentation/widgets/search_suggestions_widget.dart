@@ -28,7 +28,7 @@ class SearchSuggestionsWidget extends StatelessWidget {
           : const Duration(
               milliseconds: SearchConfig.didYouMeanEnterMilliseconds,
             ),
-      curve: Curves.easeOut,
+      curve: AppMotion.enter,
       builder: (context, value, child) => Opacity(opacity: value, child: child),
       child: Column(
         children: [

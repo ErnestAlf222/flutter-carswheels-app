@@ -103,6 +103,8 @@ class DetailPage extends StatelessWidget {
                     ),
                   ),
                 ),
+                // Encima de la barra: su veladura absorbería los toques de la burbuja.
+                Positioned.fill(child: _SpecBubbleHost(args: args)),
               ],
             ),
           ),
@@ -122,6 +124,37 @@ class DetailPage extends StatelessWidget {
     if (args.market != Market.mexico) {
       context.read<DetailSafetyCubit>().retryFailed(args);
     }
+  }
+}
+
+/// Burbuja de la ficha técnica con los datos de la versión elegida.
+class _SpecBubbleHost extends StatelessWidget {
+  const _SpecBubbleHost({required this.args});
+
+  final DetailArgsEntity args;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<DetailCubit, DetailState>(
+      builder: (context, state) {
+        if (state is! DetailLoaded) return const SizedBox.shrink();
+        final isMexico = args.market == Market.mexico;
+        final version = state.details.versions[state.selectedIndex];
+        final entries = context.read<VehicleSpecSheetBuilder>().build(
+          version.detail,
+          isMexico: isMexico,
+        );
+        final subtitle = isMexico
+            ? (version.label ?? version.variantName)
+            : context.read<VersionDescriptorBuilder>().describe(version.detail);
+        return DetailSpecBubbleWidget(
+          // La llave reinicia el panel al cambiar de versión.
+          key: ValueKey(state.selectedIndex),
+          entries: entries,
+          subtitle: subtitle.isEmpty ? version.variantName : subtitle,
+        );
+      },
+    );
   }
 }
 
@@ -164,6 +197,7 @@ class _DetailBody extends StatelessWidget {
               );
         return Column(
           children: [
+            const DetailPhotoCreditWidget(),
             _entry(
               0,
               DetailTitleRowWidget(
@@ -369,9 +403,7 @@ class _FadeSwitcher extends StatelessWidget {
   Widget build(BuildContext context) {
     final duration = MediaQuery.of(context).disableAnimations
         ? Duration.zero
-        : const Duration(
-            milliseconds: AnimationConfig.fadeDurationMilliseconds,
-          );
+        : AppMotion.medium;
     return AnimatedSwitcher(
       duration: duration,
       layoutBuilder: (current, previous) => Stack(

@@ -51,4 +51,14 @@ class AppColors {
   static const Color engineDiesel = Color(0xFFD97706);
   static const Color engineFuel = mutedText;
   static const Color engineBadgeBackground = Color(0xF2FFFFFF);
+  // Banderas de la celebración de mercado: solo franjas y campos, sin escudos.
+  static const Color flagMexicoGreen = Color(0xFF006847);
+  static const Color flagMexicoWhite = Color(0xFFFFFFFF);
+  static const Color flagMexicoRed = Color(0xFFCE1126);
+  static const Color flagUsRed = Color(0xFFB22234);
+  static const Color flagUsWhite = Color(0xFFFFFFFF);
+  static const Color flagUsBlue = Color(0xFF3C3B6E);
+  // Brillo y sombra de las crestas de la onda.
+  static const Color flagWaveLight = Color(0xFFFFFFFF);
+  static const Color flagWaveDark = Color(0xFF000000);
 }

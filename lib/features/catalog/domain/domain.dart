@@ -7,6 +7,7 @@ export 'datasources/catalog_datasource.dart';
 // Repositorios
 export 'repositories/catalog_repository.dart';
 // Servicios
+export 'services/brand_carousel_focus.dart';
 export 'services/model_grouper.dart';
 // Casos de uso
 export 'usecases/get_available_years_usecase.dart';

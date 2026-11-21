@@ -114,18 +114,23 @@ class BrandHeaderDelegate extends SliverPersistentHeaderDelegate {
 
   Widget _expandedContent() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.xl,
-        CatalogConfig.brandsHeaderTopPadding,
-        AppSpacing.xl,
-        AppSpacing.m,
+      padding: const EdgeInsets.only(
+        top: CatalogConfig.brandsHeaderTopPadding,
+        bottom: AppSpacing.m,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Sin selector: el del encabezado de Inicio sigue a la vista.
-          Text(AppTexts.brandsSectionTitle, style: AppTextStyles.sectionTitle),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            child: Text(
+              AppTexts.brandsSectionTitle,
+              style: AppTextStyles.sectionTitle,
+            ),
+          ),
           const SizedBox(height: AppSpacing.m),
+          // A todo el ancho: los logos se desvanecen en los bordes de la pantalla.
           const BrandCarouselWidget(),
         ],
       ),

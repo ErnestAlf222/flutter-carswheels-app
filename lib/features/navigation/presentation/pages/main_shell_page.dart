@@ -18,15 +18,6 @@ class MainShellPage extends StatefulWidget {
 }
 
 class _MainShellPageState extends State<MainShellPage> {
-  @override
-  void didUpdateWidget(MainShellPage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Solo un cambio de ubicación avisa; la carga inicial no pasa por aquí.
-    if (oldWidget.location != widget.location) {
-      context.read<SectionLoaderCubit>().onSectionChanged();
-    }
-  }
-
   // Rutas en el mismo orden que los botones del menú.
   static const List<String> _routes = [
     RoutesConfig.home,
@@ -73,12 +64,6 @@ class _MainShellPageState extends State<MainShellPage> {
                   return false;
                 },
                 child: widget.child,
-              ),
-              Positioned.fill(
-                child: BlocBuilder<SectionLoaderCubit, SectionLoaderState>(
-                  builder: (context, state) =>
-                      SectionLoaderOverlay(visible: state.visible),
-                ),
               ),
               Positioned(
                 left: 0,

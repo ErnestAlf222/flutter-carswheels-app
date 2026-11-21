@@ -1,7 +1,6 @@
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/navigation/navigation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const Key _pageKey = Key('shell-page');
@@ -11,13 +10,10 @@ Widget _shell({double keyboard = 0}) => MediaQuery(
     disableAnimations: true,
     viewInsets: EdgeInsets.only(bottom: keyboard),
   ),
-  child: MaterialApp(
-    home: BlocProvider(
-      create: (_) => SectionLoaderCubit(),
-      child: const MainShellPage(
-        location: RoutesConfig.home,
-        child: SizedBox.expand(key: _pageKey),
-      ),
+  child: const MaterialApp(
+    home: MainShellPage(
+      location: RoutesConfig.home,
+      child: SizedBox.expand(key: _pageKey),
     ),
   ),
 );
@@ -36,14 +32,14 @@ Stack _bodyStack(WidgetTester tester) => tester.widget<Stack>(
 );
 
 void main() {
-  testWidgets('orden de capas: página, aviso de carga y menú al final', (
+  testWidgets('orden de capas: página y menú al final, sin capa de carga', (
     tester,
   ) async {
     await tester.pumpWidget(_shell());
     final children = _bodyStack(tester).children;
-    expect(children, hasLength(3));
+    expect(children, hasLength(2));
     expect(children[0], isA<NotificationListener<ScrollUpdateNotification>>());
-    final nav = children[2] as Positioned;
+    final nav = children[1] as Positioned;
     expect(
       find.descendant(
         of: find.byWidget(nav),

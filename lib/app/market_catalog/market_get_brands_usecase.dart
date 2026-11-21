@@ -22,11 +22,8 @@ class MarketGetBrandsUseCase extends GetBrandsUseCase {
   Future<List<BrandEntity>> call(int year) async {
     if (currentMarket() != Market.mexico) return unitedStates(year);
     final brands = await getMxBrands(year);
-    return sortStrategy.sort(
-      [for (final brand in brands) BrandEntity(name: brand.name)],
-      (a, b) =>
-          TextNormalizer.normalize(a.name)
-              .compareTo(TextNormalizer.normalize(b.name)),
-    );
+    return sortStrategy.sort([
+      for (final brand in brands) BrandEntity(name: brand.name),
+    ], (a, b) => TextNormalizer.compare(a.name, b.name));
   }
 }

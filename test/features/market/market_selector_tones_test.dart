@@ -45,6 +45,18 @@ BoxDecoration _pill(WidgetTester tester) =>
             .decoration!
         as BoxDecoration;
 
+Color _pillColor(WidgetTester tester) =>
+    (tester
+                .widget<DecoratedBox>(
+                  find.descendant(
+                    of: find.byKey(const ValueKey('market-switch-pill')),
+                    matching: find.byType(DecoratedBox),
+                  ),
+                )
+                .decoration
+            as BoxDecoration)
+        .color!;
+
 void main() {
   setUpAll(() {
     GoogleFonts.config.allowRuntimeFetching = false;
@@ -84,18 +96,7 @@ void main() {
             .color,
         AppColors.onDark,
       );
-      final ring =
-          tester
-                  .widget<Container>(
-                    find.descendant(
-                      of: find.byKey(const ValueKey('market-switch-ring')),
-                      matching: find.byType(Container),
-                    ),
-                  )
-                  .decoration!
-              as BoxDecoration;
-      expect(ring.color, isNull);
-      expect((ring.border! as Border).top.color, AppColors.onDark);
+      expect(_pillColor(tester), AppColors.surface);
     },
   );
 
@@ -121,84 +122,111 @@ void main() {
           .color,
       AppColors.ink,
     );
-    final ring =
-        tester
-                .widget<Container>(
-                  find.descendant(
-                    of: find.byKey(const ValueKey('market-switch-ring')),
-                    matching: find.byType(Container),
-                  ),
-                )
-                .decoration!
-            as BoxDecoration;
-    expect((ring.border! as Border).top.color, AppColors.ink);
+    expect(_pillColor(tester), AppColors.ink);
   });
 
   for (final tone in MarketSelectorTone.values) {
-    testWidgets('$tone: dos banderas a color, la inactiva suave (≥ 0.7)', (
-      tester,
-    ) async {
-      final cubit = buildMarketCubit();
-      addTearDown(cubit.close);
-      await tester.pumpWidget(_host(cubit, tone: tone));
-      await tester.pump();
-      expect(MarketConfig.inactiveFlagOpacity, greaterThanOrEqualTo(0.7));
-      double opacityOf(Market market) => tester
-          .widget<AnimatedOpacity>(
+    testWidgets(
+      '$tone: dos opciones con bandera circular y código, área de 44',
+      (tester) async {
+        final cubit = buildMarketCubit();
+        addTearDown(cubit.close);
+        await tester.pumpWidget(_host(cubit, tone: tone));
+        await tester.pump();
+        expect(find.text(AppTexts.marketUnitedStatesCodeLabel), findsOneWidget);
+        expect(find.text(AppTexts.marketMexicoCodeLabel), findsOneWidget);
+        for (final market in Market.values) {
+          expect(
             find.ancestor(
               of: find.text(market.flag),
-              matching: find.byType(AnimatedOpacity),
+              matching: find.byType(ClipOval),
             ),
-          )
-          .opacity;
-      expect(opacityOf(Market.unitedStates), 1.0);
-      expect(opacityOf(Market.mexico), MarketConfig.inactiveFlagOpacity);
-      // Recortadas en círculo y con el área táctil de 44 intacta.
-      for (final market in Market.values) {
+            findsOneWidget,
+          );
+        }
         expect(
-          find.ancestor(
-            of: find.text(market.flag),
-            matching: find.byType(ClipOval),
-          ),
-          findsOneWidget,
+          tester.getSize(find.byType(MarketSwitchWidget)).height,
+          MarketConfig.flagTouchSize,
         );
-      }
-      expect(
-        tester.getSize(find.byType(MarketSwitchWidget)).height,
-        MarketConfig.flagTouchSize,
-      );
-    });
+        final colors = MarketSelectorColors.of(tone);
+        Color textColor(String text) => tester
+            .widget<AnimatedDefaultTextStyle>(
+              find
+                  .ancestor(
+                    of: find.text(text),
+                    matching: find.byType(AnimatedDefaultTextStyle),
+                  )
+                  .first,
+            )
+            .style
+            .color!;
+        // Activa y atenuada con los colores del tono.
+        expect(
+          textColor(AppTexts.marketUnitedStatesCodeLabel),
+          colors.activeText,
+        );
+        expect(textColor(AppTexts.marketMexicoCodeLabel), colors.inactiveText);
+      },
+    );
 
-    testWidgets('$tone: el aro se desliza y con disableAnimations salta', (
+    testWidgets('$tone: la pastilla se desliza y con disableAnimations salta', (
       tester,
     ) async {
       final cubit = buildMarketCubit();
       addTearDown(cubit.close);
       await tester.pumpWidget(_host(cubit, tone: tone));
       await tester.pump();
-      final ring = find.byKey(const ValueKey('market-switch-ring'));
-      final start = tester.getCenter(ring).dx;
+      final pill = find.byKey(const ValueKey('market-switch-pill'));
+      final start = tester.getCenter(pill).dx;
       await cubit.select(Market.mexico);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 10));
-      // A mitad del recorrido aún no llegó.
+      final mid = tester.getCenter(pill).dx;
       expect(
-        tester.getCenter(ring).dx,
+        mid,
         isNot(closeTo(tester.getCenter(find.text(Market.mexico.flag)).dx, 0.5)),
       );
       await tester.pumpAndSettle();
-      expect(tester.getCenter(ring).dx, lessThan(start));
-      // Sin animaciones: el aro llega en el mismo cuadro.
+      expect(tester.getCenter(pill).dx, lessThan(start));
       await tester.pumpWidget(
         _host(cubit, tone: tone, disableAnimations: true),
       );
       await tester.pump();
       await cubit.select(Market.unitedStates);
       await tester.pump();
+      expect(tester.getCenter(pill).dx, closeTo(start, 1));
+    });
+
+    testWidgets('$tone: Semantics dice qué mercado está seleccionado', (
+      tester,
+    ) async {
+      final cubit = buildMarketCubit();
+      addTearDown(cubit.close);
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(_host(cubit, tone: tone));
+      await tester.pump();
       expect(
-        tester.getCenter(ring).dx,
-        closeTo(tester.getCenter(find.text(Market.unitedStates.flag)).dx, 1),
+        find.bySemanticsLabel(
+          AppTexts.marketOptionSemanticLabel(
+            MarketConfig.unitedStatesCode,
+            selected: true,
+          ),
+        ),
+        findsOneWidget,
       );
+      expect(
+        find.bySemanticsLabel(
+          AppTexts.marketOptionSemanticLabel(
+            MarketConfig.mexicoCode,
+            selected: false,
+          ),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.text(AppTexts.marketMexicoCodeLabel));
+      await tester.pumpAndSettle();
+      expect(cubit.state.market, Market.mexico);
+      handle.dispose();
     });
   }
 }

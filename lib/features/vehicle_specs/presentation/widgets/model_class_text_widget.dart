@@ -27,9 +27,7 @@ class ModelClassTextWidget extends StatelessWidget {
       builder: (context, slot) {
         final duration = MediaQuery.of(context).disableAnimations
             ? Duration.zero
-            : const Duration(
-                milliseconds: AnimationConfig.fadeDurationMilliseconds,
-              );
+            : AppMotion.medium;
         return AnimatedSwitcher(
           duration: duration,
           layoutBuilder: (current, previous) => Stack(

@@ -33,7 +33,7 @@ class ModelGridCardWidget extends StatelessWidget {
   /// Al tocar la tarjeta; sin ella la tarjeta no responde.
   final VoidCallback? onTap;
 
-  /// Falso cuando la lista entra completa con su propio fundido.
+  /// Falso cuando la lista no usa la entrada en cascada (Favoritos).
   final bool animateEntry;
 
   /// Muestra la marca en mayúsculas sobre el nombre (resultados de búsqueda).
@@ -164,10 +164,7 @@ class ModelGridCardWidget extends StatelessWidget {
       ),
     );
     if (!animateEntry) return card;
-    return AnimatedEntryWidget(
-      index: index % CatalogConfig.defaultPageSize,
-      child: card,
-    );
+    return StaggeredEntryWidget(index: index, child: card);
   }
 }
 

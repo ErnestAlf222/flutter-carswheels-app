@@ -36,11 +36,6 @@ class InlineMessageWidget extends StatelessWidget {
       ],
     );
     if (MediaQuery.of(context).disableAnimations) return row;
-    return FadeIn(
-      duration: const Duration(
-        milliseconds: AnimationConfig.fadeDurationMilliseconds,
-      ),
-      child: row,
-    );
+    return FadeIn(duration: AppMotion.medium, child: row);
   }
 }

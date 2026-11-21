@@ -42,13 +42,17 @@ class MxModelGrouper {
             ),
           );
     }
-    final groups = [
-      for (final entry in membersByRoot.entries)
-        MxModelGroupEntity(
-          name: candidates[entry.key]!.join(' '),
-          versions: entry.value,
-        ),
-    ]..sort((a, b) => _key(_split(a.name)).compareTo(_key(_split(b.name))));
+    final groups =
+        [
+          for (final entry in membersByRoot.entries)
+            MxModelGroupEntity(
+              name: candidates[entry.key]!.join(' '),
+              versions: entry.value,
+            ),
+        ]..sort((a, b) {
+          final byKey = _key(_split(a.name)).compareTo(_key(_split(b.name)));
+          return byKey != 0 ? byKey : a.name.compareTo(b.name);
+        });
     return groups;
   }
 
@@ -83,10 +87,14 @@ class MxModelGrouper {
   static List<String>? _longestPrefix(List<String> words, List<String>? table) {
     if (table == null) return null;
     final wordsKey = _key(words);
-    final matches = [
-      for (final entry in table.map(_split))
-        if (_isWordPrefix(_key(entry), wordsKey)) entry,
-    ]..sort((a, b) => b.length.compareTo(a.length));
+    final matches =
+        [
+          for (final entry in table.map(_split))
+            if (_isWordPrefix(_key(entry), wordsKey)) entry,
+        ]..sort((a, b) {
+          final byLength = b.length.compareTo(a.length);
+          return byLength != 0 ? byLength : a.join(' ').compareTo(b.join(' '));
+        });
     return matches.isEmpty ? null : matches.first;
   }
 
@@ -96,10 +104,14 @@ class MxModelGrouper {
     Map<String, List<String>> candidates,
   ) {
     final wordsKey = _key(words);
-    final prefixes = [
-      for (final key in candidates.keys)
-        if (_isWordPrefix(key, wordsKey)) key,
-    ]..sort((a, b) => a.split(' ').length.compareTo(b.split(' ').length));
+    final prefixes =
+        [
+          for (final key in candidates.keys)
+            if (_isWordPrefix(key, wordsKey)) key,
+        ]..sort((a, b) {
+          final byWords = a.split(' ').length.compareTo(b.split(' ').length);
+          return byWords != 0 ? byWords : a.compareTo(b);
+        });
     return prefixes.first;
   }
 

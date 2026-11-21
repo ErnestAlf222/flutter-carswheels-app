@@ -84,7 +84,7 @@ class _ComparePickerHintWidgetState extends State<ComparePickerHintWidget> {
       duration: const Duration(
         milliseconds: CompareConfig.pickerHintCollapseMilliseconds,
       ),
-      curve: Curves.easeOut,
+      curve: AppMotion.enter,
       alignment: Alignment.topCenter,
       child: content,
     );
@@ -106,7 +106,7 @@ class _Enter extends StatelessWidget {
       duration: const Duration(
         milliseconds: CompareConfig.pickerHintEnterMilliseconds,
       ),
-      curve: Curves.easeOut,
+      curve: AppMotion.enter,
       child: child,
       builder: (context, value, child) => Opacity(
         opacity: value,

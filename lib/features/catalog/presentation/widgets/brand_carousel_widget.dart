@@ -1,15 +1,14 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/catalog/domain/domain.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/cubits/cubits.dart';
 import 'package:cars_wheels_app/features/catalog/presentation/widgets/brand_tile_widget.dart';
 
-/// Fila con flechas y una lista horizontal de marcas que se arrastra con el dedo.
+/// Carrusel de marcas a todo el ancho con flechas superpuestas y bordes difuminados.
 class BrandCarouselWidget extends StatelessWidget {
   const BrandCarouselWidget({super.key});
 
@@ -47,10 +46,14 @@ class _BrandCarouselBodyState extends State<_BrandCarouselBody> {
 
   int get _count => widget.state.brands.length;
 
-  int get _visible => math.min(CarouselConfig.visibleBrandCount, _count);
+  int get _visible => BrandCarouselFocus.visibleOf(_count);
 
   // Sin más marcas que las visibles no hay nada que recorrer ni dar la vuelta.
-  bool get _scrollable => _count > CarouselConfig.visibleBrandCount;
+  bool get _scrollable => BrandCarouselFocus.isScrollable(_count);
+
+  // Al abrir, la marca activa queda en el centro de la ventana.
+  int get _centeredStart =>
+      BrandCarouselFocus.windowStartFor(widget.state.selectedIndex, _count);
 
   double _offsetOf(int start) =>
       (_scrollable ? CircularIndex.initialPage(start, _count) : 0) * _extent;
@@ -70,15 +73,13 @@ class _BrandCarouselBodyState extends State<_BrandCarouselBody> {
     final reloaded =
         next.year != oldWidget.state.year ||
         next.brands.length != oldWidget.state.brands.length;
-    if (reloaded) {
-      // Otro año o mercado: la lista es nueva y arranca en su ventana.
+    final moved =
+        next.windowStart != oldWidget.state.windowStart &&
+        next.windowStart != _reportedStart;
+    if (reloaded || moved) {
+      // Otro mercado o una marca elegida: la activa vuelve al centro, animada.
       _reportedStart = next.windowStart;
-      controller.jumpTo(_offsetOf(next.windowStart));
-      return;
-    }
-    if (next.windowStart != oldWidget.state.windowStart &&
-        next.windowStart != _reportedStart) {
-      _scrollTo(_offsetOf(next.windowStart));
+      _centerOn(next.windowStart);
     }
   }
 
@@ -98,6 +99,20 @@ class _BrandCarouselBodyState extends State<_BrandCarouselBody> {
     }
   }
 
+  // Lleva la ventana a [start] por el camino más corto de la vuelta.
+  void _centerOn(int start) {
+    final controller = _controller;
+    if (controller == null || !controller.hasClients || _extent <= 0) return;
+    if (!_scrollable) return;
+    final current = (controller.offset / _extent).round();
+    final target = BrandCarouselFocus.nearestPosition(
+      current: current,
+      target: start,
+      count: _count,
+    );
+    _scrollTo(target * _extent);
+  }
+
   void _scrollTo(double offset) {
     final controller = _controller;
     if (controller == null || !controller.hasClients) return;
@@ -111,7 +126,7 @@ class _BrandCarouselBodyState extends State<_BrandCarouselBody> {
       duration: const Duration(
         milliseconds: CarouselConfig.pageScrollMilliseconds,
       ),
-      curve: Curves.easeOutCubic,
+      curve: AppMotion.enter,
     );
   }
 
@@ -136,81 +151,101 @@ class _BrandCarouselBodyState extends State<_BrandCarouselBody> {
   Widget build(BuildContext context) {
     final state = widget.state;
     final cubit = context.read<CatalogCubit>();
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _ArrowButton(
-          icon: Symbols.chevron_left,
-          label: AppTexts.previousBrandsLabel,
-          onPressed: () => _page(-1),
-        ),
-        Expanded(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              _syncExtent(constraints.maxWidth / _visible);
-              _reportedStart ??= state.windowStart;
-              final controller = _controller ??= ScrollController(
-                initialScrollOffset: _offsetOf(state.windowStart),
-              );
-              return NotificationListener<ScrollNotification>(
-                onNotification: (notification) {
-                  if (notification.metrics.axis != Axis.horizontal) {
-                    return false;
-                  }
-                  if (notification is ScrollEndNotification) {
-                    _report(notification.metrics.pixels);
-                  }
-                  // El menú flotante y la paginación solo atienden lo vertical.
-                  return true;
-                },
-                child: SizedBox(
-                  height: _rowHeight(context),
-                  child: ListView.builder(
-                    controller: controller,
-                    scrollDirection: Axis.horizontal,
-                    // Rebote suave, aunque quepan todas las marcas.
-                    physics: _scrollable
-                        ? const BouncingScrollPhysics(
-                            parent: AlwaysScrollableScrollPhysics(),
-                          )
-                        : const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: CarouselConfig.shadowRoom,
-                    ),
-                    // Solo las marcas a la vista.
-                    scrollCacheExtent: const ScrollCacheExtent.pixels(0),
-                    itemExtent: _extent,
-                    itemCount: _scrollable ? null : _count,
-                    itemBuilder: (context, position) {
-                      final index = CircularIndex.wrap(position, _count);
-                      return Center(
-                        child: BrandTileWidget(
-                          brandName: state.brands[index].name,
-                          selected: index == state.selectedIndex,
-                          onTap: () => cubit.selectBrand(index),
-                        ),
-                      );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        // Cuatro marcas completas y media más asomando; con pocas, repartidas.
+        _syncExtent(
+          _scrollable
+              ? width /
+                    (CarouselConfig.visibleBrandCount +
+                        CarouselConfig.peekFraction)
+              : width / _visible,
+        );
+        // La ventana guardada manda al abrir; si la activa no está al centro,
+        // el cubit la recentra y la lista se desplaza sola hasta ella.
+        _reportedStart ??= state.windowStart;
+        final created = _controller == null;
+        final controller = _controller ??= ScrollController(
+          initialScrollOffset: _offsetOf(state.windowStart),
+        );
+        if (created && state.windowStart != _centeredStart) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) cubit.showBrandsFrom(_centeredStart);
+          });
+        }
+        return SizedBox(
+          height: _rowHeight(context),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: _EdgeFade(
+                  width: width,
+                  child: NotificationListener<ScrollNotification>(
+                    onNotification: (notification) {
+                      if (notification.metrics.axis != Axis.horizontal) {
+                        return false;
+                      }
+                      if (notification is ScrollEndNotification) {
+                        _report(notification.metrics.pixels);
+                      }
+                      // El menú flotante y la paginación solo atienden lo vertical.
+                      return true;
                     },
+                    child: ListView.builder(
+                      controller: controller,
+                      scrollDirection: Axis.horizontal,
+                      // Física nativa de la plataforma; sin recorrido, no se desplaza.
+                      physics: _scrollable
+                          ? null
+                          : const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: CarouselConfig.shadowRoom,
+                      ),
+                      // Solo las marcas a la vista.
+                      scrollCacheExtent: const ScrollCacheExtent.pixels(0),
+                      itemExtent: _extent,
+                      itemCount: _scrollable ? null : _count,
+                      itemBuilder: (context, position) {
+                        final index = CircularIndex.wrap(position, _count);
+                        return Center(
+                          child: BrandTileWidget(
+                            brandName: state.brands[index].name,
+                            selected: index == state.selectedIndex,
+                            onTap: () => cubit.selectBrand(index),
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
-              );
-            },
+              ),
+              _ArrowButton(
+                alignment: Alignment.centerLeft,
+                icon: Symbols.chevron_left,
+                label: AppTexts.previousBrandsLabel,
+                visible: BrandCarouselFocus.hasMore(_count),
+                onPressed: () => _page(-1),
+              ),
+              _ArrowButton(
+                alignment: Alignment.centerRight,
+                icon: Symbols.chevron_right,
+                label: AppTexts.nextBrandsLabel,
+                visible: BrandCarouselFocus.hasMore(_count),
+                onPressed: () => _page(1),
+              ),
+            ],
           ),
-        ),
-        _ArrowButton(
-          icon: Symbols.chevron_right,
-          label: AppTexts.nextBrandsLabel,
-          onPressed: () => _page(1),
-        ),
-      ],
+        );
+      },
     );
   }
 
   // Alto de la marca: aro, tarjeta, hueco y una línea del nombre con la escala de texto.
   double _rowHeight(BuildContext context) {
-    final captionSize = AppTextStyles.caption.fontSize!;
+    final labelSize = AppTextStyles.brandLabel.fontSize!;
     final name =
-        MediaQuery.textScalerOf(context).scale(captionSize) *
+        MediaQuery.textScalerOf(context).scale(labelSize) *
         CarouselConfig.brandNameLineHeightFactor;
     return CarouselConfig.brandTileSize +
         AppSpacing.xs +
@@ -219,52 +254,102 @@ class _BrandCarouselBodyState extends State<_BrandCarouselBody> {
   }
 }
 
-/// Botón circular de flecha.
+/// Desvanece los logos hacia los bordes con un degradado de ancho fijo.
+class _EdgeFade extends StatelessWidget {
+  const _EdgeFade({required this.width, required this.child});
+
+  final double width;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final fraction = width <= 0
+        ? 0.0
+        : (CarouselConfig.edgeFadeWidth / width).clamp(0.0, 0.5);
+    return ShaderMask(
+      blendMode: BlendMode.dstIn,
+      shaderCallback: (bounds) => LinearGradient(
+        stops: [0, fraction, 1 - fraction, 1],
+        colors: const [
+          AppColors.transparent,
+          AppColors.ink,
+          AppColors.ink,
+          AppColors.transparent,
+        ],
+      ).createShader(bounds),
+      child: child,
+    );
+  }
+}
+
+/// Botón circular de flecha superpuesto; solo se ve si hay más marcas hacia allá.
 class _ArrowButton extends StatelessWidget {
   const _ArrowButton({
+    required this.alignment,
     required this.icon,
     required this.label,
+    required this.visible,
     required this.onPressed,
   });
 
+  final Alignment alignment;
   final IconData icon;
   final String label;
+  final bool visible;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: label,
-      excludeSemantics: true,
-      onTap: onPressed,
-      child: SizedBox(
-        width: CarouselConfig.arrowTouchTargetSize,
-        height: CarouselConfig.arrowTouchTargetSize,
-        child: Material(
-          type: MaterialType.transparency,
-          child: InkWell(
-            customBorder: const CircleBorder(),
+    final duration = MediaQuery.of(context).disableAnimations
+        ? Duration.zero
+        : AppMotion.fast;
+    // Centrada en la tarjeta de la marca, no en la fila con su nombre.
+    return Positioned(
+      left: alignment == Alignment.centerLeft
+          ? CarouselConfig.arrowEdgeInset
+          : null,
+      right: alignment == Alignment.centerRight
+          ? CarouselConfig.arrowEdgeInset
+          : null,
+      top:
+          CarouselConfig.shadowRoom +
+          (CarouselConfig.brandTileSize - CarouselConfig.arrowTouchTargetSize) /
+              2,
+      child: IgnorePointer(
+        ignoring: !visible,
+        child: AnimatedOpacity(
+          opacity: visible ? 1 : 0,
+          duration: duration,
+          curve: AppMotion.enter,
+          child: Semantics(
+            button: true,
+            label: label,
+            excludeSemantics: true,
             onTap: onPressed,
-            child: Center(
-              child: Container(
-                width: CarouselConfig.arrowButtonSize,
-                height: CarouselConfig.arrowButtonSize,
-                decoration: const BoxDecoration(
-                  color: AppColors.surface,
-                  shape: BoxShape.circle,
-                  border: Border.fromBorderSide(
-                    BorderSide(
-                      color: AppColors.outline,
-                      width: UiConfig.cardBorderWidth,
+            child: SizedBox(
+              width: CarouselConfig.arrowTouchTargetSize,
+              height: CarouselConfig.arrowTouchTargetSize,
+              child: Material(
+                type: MaterialType.transparency,
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: onPressed,
+                  child: Center(
+                    child: Container(
+                      width: CarouselConfig.arrowButtonSize,
+                      height: CarouselConfig.arrowButtonSize,
+                      decoration: const BoxDecoration(
+                        color: AppColors.surface,
+                        shape: BoxShape.circle,
+                        boxShadow: AppShadows.soft,
+                      ),
+                      child: Icon(
+                        icon,
+                        size: CarouselConfig.arrowIconSize,
+                        color: AppColors.ink,
+                      ),
                     ),
                   ),
-                  boxShadow: AppShadows.soft,
-                ),
-                child: Icon(
-                  icon,
-                  size: CarouselConfig.arrowIconSize,
-                  color: AppColors.ink,
                 ),
               ),
             ),

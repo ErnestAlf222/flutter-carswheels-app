@@ -122,13 +122,17 @@ class MxModelNameCleaner {
 
   // Sufijos de versión, los más largos primero, ya en minúsculas por palabras.
   static List<List<String>> _trailingTokens(String brandKey) {
-    final tokens = [
-      for (final token in [
-        ...MexicoModelConfig.variantTrailingTokens,
-        ...?MexicoModelConfig.brandVariantTrailingTokens[brandKey],
-      ])
-        _words(_fold(token)),
-    ]..sort((a, b) => b.length.compareTo(a.length));
+    final tokens =
+        [
+          for (final token in [
+            ...MexicoModelConfig.variantTrailingTokens,
+            ...?MexicoModelConfig.brandVariantTrailingTokens[brandKey],
+          ])
+            _words(_fold(token)),
+        ]..sort((a, b) {
+          final byLength = b.length.compareTo(a.length);
+          return byLength != 0 ? byLength : a.join(' ').compareTo(b.join(' '));
+        });
     return tokens;
   }
 

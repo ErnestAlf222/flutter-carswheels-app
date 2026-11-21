@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:cars_wheels_app/app/favorites/favorite_hearts.dart';
 import 'package:cars_wheels_app/app/search_results/search_card_cubits_factory.dart';
-import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/search/search.dart';
@@ -188,7 +187,6 @@ class _SearchResultCardState extends State<_SearchResultCard> {
       year: result.year,
       index: widget.index,
       onTap: widget.onTap,
-      animateEntry: widget.index < SearchConfig.animatedResultCount,
       showBrandLabel: true,
       footerAction: widget.action,
       leadingAction: widget.leading,

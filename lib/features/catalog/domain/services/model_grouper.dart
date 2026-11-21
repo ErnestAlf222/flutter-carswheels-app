@@ -36,9 +36,7 @@ class ModelGrouper {
     ];
     return sortStrategy.sort(
       groups,
-      (a, b) =>
-          TextNormalizer.normalize(a.name)
-              .compareTo(TextNormalizer.normalize(b.name)),
+      (a, b) => TextNormalizer.compare(a.name, b.name),
     );
   }
 
@@ -66,13 +64,17 @@ class ModelGrouper {
     final spaced = cleaned.isEmpty ? _split(name) : cleaned;
     if (spaced.isEmpty) return (words: [name], isProtected: false);
     final words = _cutAtClause(_removeInline(spaced));
-    final tokens = <List<String>>[
-      for (final token in [
-        ...ModelGroupingConfig.variantTrailingTokens,
-        ...?ModelGroupingConfig.brandVariantTrailingTokens[brandKey],
-      ])
-        _split(token.toLowerCase()),
-    ]..sort((a, b) => b.length.compareTo(a.length));
+    final tokens =
+        <List<String>>[
+          for (final token in [
+            ...ModelGroupingConfig.variantTrailingTokens,
+            ...?ModelGroupingConfig.brandVariantTrailingTokens[brandKey],
+          ])
+            _split(token.toLowerCase()),
+        ]..sort((a, b) {
+          final byLength = b.length.compareTo(a.length);
+          return byLength != 0 ? byLength : a.join(' ').compareTo(b.join(' '));
+        });
     final patterns = [
       for (final pattern
           in ModelGroupingConfig.brandVariantTrailingPatterns[brandKey] ??
@@ -146,10 +148,14 @@ class ModelGrouper {
     final bases = ModelGroupingConfig.absorbingModelBases[brandKey];
     if (bases == null) return null;
     final wordsKey = _key(words);
-    final matches = [
-      for (final base in bases.map(_split))
-        if (_isWordPrefix(_key(base), wordsKey)) base,
-    ]..sort((a, b) => b.length.compareTo(a.length));
+    final matches =
+        [
+          for (final base in bases.map(_split))
+            if (_isWordPrefix(_key(base), wordsKey)) base,
+        ]..sort((a, b) {
+          final byLength = b.length.compareTo(a.length);
+          return byLength != 0 ? byLength : a.join(' ').compareTo(b.join(' '));
+        });
     return matches.isEmpty ? null : matches.first;
   }
 
@@ -167,10 +173,14 @@ class ModelGrouper {
     final families = ModelGroupingConfig.protectedModelFamilies[brandKey];
     if (families == null) return null;
     final wordsKey = _key(words);
-    final matches = [
-      for (final family in families.map(_split))
-        if (_isWordPrefix(_key(family), wordsKey)) family,
-    ]..sort((a, b) => b.length.compareTo(a.length));
+    final matches =
+        [
+          for (final family in families.map(_split))
+            if (_isWordPrefix(_key(family), wordsKey)) family,
+        ]..sort((a, b) {
+          final byLength = b.length.compareTo(a.length);
+          return byLength != 0 ? byLength : a.join(' ').compareTo(b.join(' '));
+        });
     return matches.isEmpty ? null : matches.first;
   }
 
@@ -180,10 +190,14 @@ class ModelGrouper {
     Map<String, List<String>> candidates,
   ) {
     final wordsKey = _key(words);
-    final prefixes = [
-      for (final key in candidates.keys)
-        if (_isWordPrefix(key, wordsKey)) key,
-    ]..sort((a, b) => a.split(' ').length.compareTo(b.split(' ').length));
+    final prefixes =
+        [
+          for (final key in candidates.keys)
+            if (_isWordPrefix(key, wordsKey)) key,
+        ]..sort((a, b) {
+          final byWords = a.split(' ').length.compareTo(b.split(' ').length);
+          return byWords != 0 ? byWords : a.compareTo(b);
+        });
     return prefixes.first;
   }
 

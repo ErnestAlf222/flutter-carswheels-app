@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:ui' as ui;
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,8 +31,8 @@ class DetailPhotoCarouselWidget extends StatelessWidget {
       builder: (context, state) => Container(
         height: UiConfig.detailPhotoHeight,
         width: double.infinity,
-        // La tinta se ve en las fotos "contain" y en las de respaldo.
-        color: AppColors.ink,
+        // Fondo neutro de respaldo; las fotos completas llevan su propio difuminado.
+        color: AppColors.photoPlaceholder,
         child: state.photos.isNotEmpty
             ? _PhotoPages(state: state, brandName: brandName, heroTag: heroTag)
             : _EmptyOrLoading(isLoading: state.isLoading, brandName: brandName),
@@ -181,8 +184,11 @@ class _PhotoPagesState extends State<_PhotoPages> {
   }
 }
 
-/// Una foto: llena el recuadro o va completa sobre el degradado.
-class _PhotoPage extends StatelessWidget {
+/// Una foto: llena el recuadro o va completa sobre su propio fondo difuminado.
+///
+/// El modo sale del tamaño real de la imagen decodificada; mientras no se
+/// conoce, se usa la proporción de la miniatura.
+class _PhotoPage extends StatefulWidget {
   const _PhotoPage({
     required this.photo,
     required this.brandName,
@@ -194,18 +200,91 @@ class _PhotoPage extends StatelessWidget {
   final String? heroTag;
 
   @override
+  State<_PhotoPage> createState() => _PhotoPageState();
+}
+
+class _PhotoPageState extends State<_PhotoPage> {
+  // Recursos del framework: el flujo de la imagen y su oyente de tamaño.
+  ImageStream? _stream;
+  ImageStreamListener? _listener;
+  Size? _pixels;
+
+  ImageProvider get _provider {
+    final path = widget.photo.localPath;
+    return path == null
+        ? CachedNetworkImageProvider(
+            widget.photo.thumbnailUrl,
+            headers: PhotosConfig.requestHeaders,
+          )
+        : FileImage(File(path));
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _listen();
+  }
+
+  @override
+  void didUpdateWidget(_PhotoPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.photo != widget.photo) {
+      _pixels = null;
+      _listen();
+    }
+  }
+
+  // Mide la imagen decodificada con el mismo proveedor que la dibuja.
+  void _listen() {
+    _stopListening();
+    final stream = _provider.resolve(createLocalImageConfiguration(context));
+    final listener = ImageStreamListener((info, _) {
+      if (!mounted) return;
+      final size = Size(
+        info.image.width.toDouble(),
+        info.image.height.toDouble(),
+      );
+      if (size != _pixels) setState(() => _pixels = size);
+    }, onError: (_, _) {});
+    stream.addListener(listener);
+    _stream = stream;
+    _listener = listener;
+  }
+
+  void _stopListening() {
+    final listener = _listener;
+    if (listener != null) _stream?.removeListener(listener);
+    _stream = null;
+    _listener = null;
+  }
+
+  @override
+  void dispose() {
+    _stopListening();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final photo = widget.photo;
     final fade = MediaQuery.of(context).disableAnimations
         ? Duration.zero
-        : const Duration(
-            milliseconds: AnimationConfig.fadeDurationMilliseconds,
-          );
+        : AppMotion.medium;
     final smallUrl = const ThumbnailUrlBuilder().forUrl(
       photo.thumbnailUrl,
       PhotosConfig.listThumbnailWidthPixels,
     );
-    final mode = const PhotoFitResolver().resolve(photo.aspectRatio);
-    final fit = mode == PhotoFitMode.cover ? BoxFit.cover : BoxFit.contain;
+    const resolver = PhotoFitResolver();
+    final pixels = _pixels;
+    final widthPixels = pixels?.width.round();
+    final heightPixels = pixels?.height.round();
+    final mode = resolver.resolve(
+      photo.aspectRatio,
+      widthPixels: widthPixels,
+      heightPixels: heightPixels,
+    );
+    final isContain = mode == PhotoFitMode.contain;
+    final fit = isContain ? BoxFit.contain : BoxFit.cover;
     const loading = PhotoPlaceholderWidget(kind: PhotoPlaceholderKind.loading);
     final network = CachedNetworkImage(
       imageUrl: photo.thumbnailUrl,
@@ -225,7 +304,7 @@ class _PhotoPage extends StatelessWidget {
         errorWidget: (context, _, _) => loading,
       ),
       errorWidget: (context, _, _) =>
-          _EmptyOrLoading(isLoading: false, brandName: brandName),
+          _EmptyOrLoading(isLoading: false, brandName: widget.brandName),
     );
     // Abierto desde Favoritos, la foto guardada en el teléfono va antes que la red.
     final sharp = LocalFirstImageWidget(
@@ -233,7 +312,7 @@ class _PhotoPage extends StatelessWidget {
       fit: fit,
       networkBuilder: (context) => network,
     );
-    final tag = heroTag;
+    final tag = widget.heroTag;
     final image = tag == null
         ? sharp
         : Hero(
@@ -241,7 +320,48 @@ class _PhotoPage extends StatelessWidget {
             flightShuttleBuilder: PhotoHeroShuttle.builder,
             child: sharp,
           );
-    return image;
+    if (!isContain) return image;
+    // Foto completa: fondo con la misma foto desenfocada, sin oscurecer.
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        ClipRect(
+          child: ImageFiltered(
+            imageFilter: ui.ImageFilter.blur(
+              sigmaX: UiConfig.photoBackdropBlurSigma,
+              sigmaY: UiConfig.photoBackdropBlurSigma,
+              tileMode: TileMode.mirror,
+            ),
+            child: Image(
+              image: _provider,
+              fit: BoxFit.cover,
+              errorBuilder: (context, _, _) => const SizedBox.shrink(),
+            ),
+          ),
+        ),
+        if (resolver.isSmall(widthPixels, heightPixels) && pixels != null)
+          // Pequeña: no se amplía más allá de su tamaño natural escalado.
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final scale = resolver.displayScale(
+                boxWidth: constraints.maxWidth,
+                boxHeight: constraints.maxHeight,
+                widthPixels: widthPixels!,
+                heightPixels: heightPixels!,
+              );
+              return Center(
+                child: SizedBox(
+                  width: pixels.width * scale,
+                  height: pixels.height * scale,
+                  child: image,
+                ),
+              );
+            },
+          )
+        else
+          image,
+      ],
+    );
   }
 }
 
@@ -292,9 +412,7 @@ class _GalleryDots extends StatelessWidget {
   Widget build(BuildContext context) {
     final fade = MediaQuery.of(context).disableAnimations
         ? Duration.zero
-        : const Duration(
-            milliseconds: AnimationConfig.fadeDurationMilliseconds,
-          );
+        : AppMotion.medium;
     return Container(
       padding: const EdgeInsets.all(UiConfig.galleryDotsPadding),
       decoration: BoxDecoration(

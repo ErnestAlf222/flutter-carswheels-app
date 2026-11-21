@@ -155,7 +155,7 @@ class _Badge extends StatelessWidget {
           : const Duration(
               milliseconds: SearchConfig.filterBadgePopMilliseconds,
             ),
-      curve: Curves.easeOutBack,
+      curve: AppMotion.settle,
       builder: (context, scale, child) =>
           Transform.scale(scale: scale, child: child),
       child: Container(

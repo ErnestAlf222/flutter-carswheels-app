@@ -16,9 +16,7 @@ class GetBrandsUseCase {
     final brands = await repository.fetchBrands(year);
     return sortStrategy.sort(
       brands,
-      (a, b) =>
-          TextNormalizer.normalize(a.name)
-              .compareTo(TextNormalizer.normalize(b.name)),
+      (a, b) => TextNormalizer.compare(a.name, b.name),
     );
   }
 }

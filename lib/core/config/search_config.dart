@@ -78,9 +78,6 @@ class SearchConfig {
   // Espera tras la última tecla antes de buscar.
   static const int debounceMilliseconds = 300;
 
-  // Filas de resultados con animación de entrada escalonada.
-  static const int animatedResultCount = 8;
-
   // Encabezado compacto: alto de la fila del título; el campo sobresale la mitad de su alto.
   static const double headerTitleRowHeight = MarketConfig.selectorHeight;
   // Botón de volver del modo selección, en el encabezado.

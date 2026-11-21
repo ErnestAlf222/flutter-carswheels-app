@@ -70,10 +70,17 @@ class ModelsSectionWidget extends StatelessWidget {
             ),
           ),
         ),
-        _FadeIn(
-          key: ValueKey(_bodyKey(current)),
-          sliver: _body(context, current),
-        ),
+        // La rejilla cargada entra en cascada; el resto, con el fundido de la sección.
+        if (current is ModelsLoaded && current.groups.isNotEmpty)
+          KeyedSubtree(
+            key: ValueKey(_bodyKey(current)),
+            child: _body(context, current),
+          )
+        else
+          _FadeIn(
+            key: ValueKey(_bodyKey(current)),
+            sliver: _body(context, current),
+          ),
       ],
     );
   }
@@ -116,9 +123,7 @@ class _FadeIn extends StatelessWidget {
   Widget build(BuildContext context) {
     final duration = MediaQuery.of(context).disableAnimations
         ? Duration.zero
-        : const Duration(
-            milliseconds: AnimationConfig.fadeDurationMilliseconds,
-          );
+        : AppMotion.medium;
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: 1),
       duration: duration,
@@ -185,8 +190,6 @@ class _LoadedGrid extends StatelessWidget {
               onTap: onGroupTap == null
                   ? null
                   : () => onGroupTap!(state.groups[index]),
-              // La primera página entra con el fundido de la sección.
-              animateEntry: index >= CatalogConfig.defaultPageSize,
             ),
             childCount: state.visibleCount,
           ),

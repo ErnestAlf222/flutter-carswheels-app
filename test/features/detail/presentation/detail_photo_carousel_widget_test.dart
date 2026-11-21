@@ -115,26 +115,29 @@ void main() {
     expect(dots(), findsNothing);
   });
 
-  testWidgets('la foto va a todo el ancho, de config, sobre tinta y con la '
-      'superposición oscura', (tester) async {
-    await tester.pumpWidget(carousel(GalleryState(photos: [_photo(1)])));
-    final container = tester.widget<Container>(cardFinder());
-    expect(container.color, AppColors.ink);
-    expect(container.decoration, isNull);
-    final overlays = tester
-        .widgetList<DecoratedBox>(find.byType(DecoratedBox))
-        .where(
-          (box) =>
-              (box.decoration as BoxDecoration).gradient ==
-              AppGradients.photoOverlay,
-        );
-    expect(overlays, hasLength(1));
-    expect(
-      tester.getSize(cardFinder()),
-      const Size(300, UiConfig.detailPhotoHeight),
-    );
-    expect(UiConfig.detailPhotoHeight, closeTo(264 * 1.2, 0.01));
-  });
+  testWidgets(
+    'la foto va a todo el ancho, de config, sobre fondo neutro y con la '
+    'superposición suave',
+    (tester) async {
+      await tester.pumpWidget(carousel(GalleryState(photos: [_photo(1)])));
+      final container = tester.widget<Container>(cardFinder());
+      expect(container.color, AppColors.photoPlaceholder);
+      expect(container.decoration, isNull);
+      final overlays = tester
+          .widgetList<DecoratedBox>(find.byType(DecoratedBox))
+          .where(
+            (box) =>
+                (box.decoration as BoxDecoration).gradient ==
+                AppGradients.photoOverlay,
+          );
+      expect(overlays, hasLength(1));
+      expect(
+        tester.getSize(cardFinder()),
+        const Size(300, UiConfig.detailPhotoHeight),
+      );
+      expect(UiConfig.detailPhotoHeight, closeTo(264 * 1.2, 0.01));
+    },
+  );
 
   testWidgets('una foto: sin puntos, con Hero en la página 0 y sin crédito', (
     tester,
@@ -336,18 +339,19 @@ void main() {
     expect(large.alignment, Alignment.center);
   });
 
-  testWidgets('proporción 3.0: contain sobre el degradado, sin desenfoque', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      carousel(GalleryState(photos: [_photo(1, aspectRatio: 3.0)])),
-    );
-    expect(find.byType(ImageFiltered), findsNothing);
-    final large = tester
-        .widgetList<CachedNetworkImage>(find.byType(CachedNetworkImage))
-        .firstWhere((i) => i.imageUrl.contains('960px'));
-    expect(large.fit, BoxFit.contain);
-  });
+  testWidgets(
+    'proporción 3.0: contain completa sobre su propio fondo difuminado',
+    (tester) async {
+      await tester.pumpWidget(
+        carousel(GalleryState(photos: [_photo(1, aspectRatio: 3.0)])),
+      );
+      expect(find.byType(ImageFiltered), findsOneWidget);
+      final large = tester
+          .widgetList<CachedNetworkImage>(find.byType(CachedNetworkImage))
+          .firstWhere((i) => i.imageUrl.contains('960px'));
+      expect(large.fit, BoxFit.contain);
+    },
+  );
 
   testWidgets(
     'el cambio a la grande es un fundido, salvo con disableAnimations',

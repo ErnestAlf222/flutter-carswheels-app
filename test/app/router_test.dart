@@ -10,14 +10,12 @@ import 'package:cars_wheels_app/features/compare/compare.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/favorites/favorites.dart';
 import 'package:cars_wheels_app/features/market/market.dart';
-import 'package:cars_wheels_app/features/navigation/navigation.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/search/search.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mocktail/mocktail.dart';
@@ -93,6 +91,13 @@ Widget _app(GoRouter router) {
       ),
       RepositoryProvider<FuelTypeLabeler>.value(value: const FuelTypeLabeler()),
       RepositoryProvider<DriveLabeler>.value(value: const DriveLabeler()),
+      RepositoryProvider<VehicleSpecSheetBuilder>.value(
+        value: const VehicleSpecSheetBuilder(
+          transmissionLabeler: TransmissionLabeler(),
+          fuelTypeLabeler: FuelTypeLabeler(),
+          driveLabeler: DriveLabeler(),
+        ),
+      ),
       RepositoryProvider<VersionDescriptorBuilder>.value(
         value: const VersionDescriptorBuilder(
           transmissionLabeler: TransmissionLabeler(),
@@ -117,7 +122,6 @@ Widget _blocs(
       BlocProvider<BrandLogosCubit>.value(value: logos),
       BlocProvider<LogoPrecacheCubit>.value(value: precache),
       BlocProvider<MarketCubit>.value(value: buildMarketCubit()),
-      BlocProvider<SectionLoaderCubit>(create: (_) => SectionLoaderCubit()),
       // Sin modelos indexados: Buscar no arma sugerencias con fotos que cargan.
       BlocProvider<SearchCubit>.value(
         value: SearchHarness(groupsByBrand: const {}).cubit,
@@ -154,11 +158,6 @@ void main() {
     for (final entry in expected.entries) {
       router.go(entry.key);
       await tester.pump();
-      await tester.pump(
-        const Duration(
-          milliseconds: AnimationConfig.sectionLoaderVisibleMilliseconds,
-        ),
-      );
       await tester.pumpAndSettle();
       expect(entry.value, findsOneWidget);
     }
@@ -173,77 +172,27 @@ void main() {
     await tester.pump();
     router.go(RoutesConfig.search);
     await tester.pump();
-    await tester.pump(
-      const Duration(
-        milliseconds: AnimationConfig.sectionLoaderVisibleMilliseconds,
-      ),
-    );
     await tester.pumpAndSettle();
     expect(find.byType(SearchPage), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  group('aviso al cambiar de sección', () {
-    bool loaderVisible(WidgetTester tester) => find
-        .descendant(
-          of: find.byType(SectionLoaderOverlay),
-          matching: find.byType(AppLoader),
-        )
-        .evaluate()
-        .isNotEmpty;
-
-    testWidgets('al arrancar la app no aparece', (tester) async {
+  group('cambio de sección', () {
+    testWidgets('navegar no tapa el contenido con un loader', (tester) async {
       final router = buildAppRouter();
       addTearDown(router.dispose);
       await tester.pumpWidget(_app(router));
       await tester.pump();
-      expect(find.byType(SectionLoaderOverlay), findsOneWidget);
-      expect(loaderVisible(tester), isFalse);
-    });
-
-    testWidgets('al navegar aparece y luego desaparece', (tester) async {
-      final router = buildAppRouter();
-      addTearDown(router.dispose);
-      await tester.pumpWidget(_app(router));
-      await tester.pump();
+      final loadersBefore = find.byType(AppLoader).evaluate().length;
       router.go(RoutesConfig.search);
       await tester.pump();
-      await tester.pump();
-      expect(loaderVisible(tester), isTrue);
-      await tester.pump(
-        const Duration(
-          milliseconds: AnimationConfig.sectionLoaderVisibleMilliseconds,
-        ),
+      // Ninguna capa de carga nueva aparece por el solo cambio de pestaña.
+      expect(
+        find.byType(AppLoader).evaluate().length,
+        lessThanOrEqualTo(loadersBefore),
       );
       await tester.pumpAndSettle();
-      expect(loaderVisible(tester), isFalse);
-    });
-
-    testWidgets('la capa cubre el contenido y el menú sigue encima y tocable', (
-      tester,
-    ) async {
-      final router = buildAppRouter();
-      addTearDown(router.dispose);
-      await tester.pumpWidget(_app(router));
-      await tester.pump();
-      router.go(RoutesConfig.search);
-      await tester.pump();
-      await tester.pump();
-      final layer = find.descendant(
-        of: find.byType(SectionLoaderOverlay),
-        matching: find.byType(ColoredBox),
-      );
-      expect(tester.widget<ColoredBox>(layer).color, AppColors.background);
-      expect(
-        tester.getSize(layer),
-        tester.getSize(find.byType(Scaffold).first),
-      );
-      final nav = find.byType(FloatingNavBar);
-      expect(nav, findsOneWidget);
-      await tester.tap(find.byIcon(Symbols.home));
-      await tester.pump();
-      await tester.pump();
-      expect(router.state.uri.toString(), RoutesConfig.home);
+      expect(find.byType(SearchPage), findsOneWidget);
     });
   });
 
@@ -358,11 +307,6 @@ void main() {
       await tester.pump();
       router.go(RoutesConfig.detail);
       await tester.pump();
-      await tester.pump(
-        const Duration(
-          milliseconds: AnimationConfig.sectionLoaderVisibleMilliseconds,
-        ),
-      );
       await tester.pumpAndSettle();
       expect(find.byType(DetailPage), findsNothing);
       expect(router.state.uri.path, RoutesConfig.home);
@@ -388,11 +332,6 @@ void main() {
       await tester.pump();
       router.go(RoutesConfig.search);
       await tester.pump();
-      await tester.pump(
-        const Duration(
-          milliseconds: AnimationConfig.sectionLoaderVisibleMilliseconds,
-        ),
-      );
       await tester.pumpAndSettle();
     }
 

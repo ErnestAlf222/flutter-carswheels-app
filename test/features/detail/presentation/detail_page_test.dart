@@ -132,6 +132,13 @@ void main() {
             value: const FuelTypeLabeler(),
           ),
           RepositoryProvider<DriveLabeler>.value(value: const DriveLabeler()),
+          RepositoryProvider<VehicleSpecSheetBuilder>.value(
+            value: const VehicleSpecSheetBuilder(
+              transmissionLabeler: TransmissionLabeler(),
+              fuelTypeLabeler: FuelTypeLabeler(),
+              driveLabeler: DriveLabeler(),
+            ),
+          ),
           RepositoryProvider<VersionDescriptorBuilder>.value(
             value: const VersionDescriptorBuilder(
               transmissionLabeler: TransmissionLabeler(),
@@ -328,6 +335,10 @@ void main() {
   });
 
   testWidgets('con una sola versión el selector no responde', (tester) async {
+    // Pantalla alta: el selector queda a la vista, no bajo la barra inferior.
+    tester.view.physicalSize = const Size(800, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     when(() => load(any())).thenAnswer((_) async => _details(count: 1));
     await pumpPage(tester);
     await tester.pumpAndSettle();
@@ -559,7 +570,8 @@ void main() {
         .map((image) => image.imageUrl);
     expect(urls, contains(testPhoto().thumbnailUrl));
     expect(find.byType(AppLoader), findsNothing);
-    expect(find.textContaining('Foto:'), findsNothing);
+    // El crédito de la foto va bajo el carrusel.
+    expect(find.textContaining('Foto:'), findsOneWidget);
   });
 
   testWidgets(
@@ -621,7 +633,7 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(find.byType(CachedNetworkImage), findsWidgets);
-    expect(find.textContaining('Foto:'), findsNothing);
+    expect(find.textContaining('Foto: Galería'), findsOneWidget);
     expect(find.byType(AppLoader), findsNothing);
   });
 }

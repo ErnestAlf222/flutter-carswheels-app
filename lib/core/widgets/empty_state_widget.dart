@@ -14,9 +14,7 @@ class EmptyStateWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: FadeIn(
-        duration: const Duration(
-          milliseconds: AnimationConfig.fadeDurationMilliseconds,
-        ),
+        duration: AppMotion.medium,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

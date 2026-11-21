@@ -20,10 +20,6 @@ class GetMxBrandsUseCase {
     return [
       for (final entry in counts.entries)
         MxBrandEntity(name: names[entry.key]!, vehicleCount: entry.value),
-    ]..sort(
-      (a, b) =>
-          TextNormalizer.normalize(a.name)
-              .compareTo(TextNormalizer.normalize(b.name)),
-    );
+    ]..sort((a, b) => TextNormalizer.compare(a.name, b.name));
   }
 }

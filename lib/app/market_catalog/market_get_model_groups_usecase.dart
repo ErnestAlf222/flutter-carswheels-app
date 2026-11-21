@@ -37,20 +37,15 @@ class MarketGetModelGroupsUseCase extends GetModelGroupsUseCase {
   ) async {
     if (market != Market.mexico) return unitedStates(year, brand);
     final groups = await getMxModelGroups(year, brand);
-    return grouper.sortStrategy.sort(
-      [
-        for (final group in groups)
-          ModelGroupEntity(
-            name: group.name,
-            variants: [
-              for (final version in group.versions)
-                ModelEntity(name: version.vehicle.rawModel),
-            ],
-          ),
-      ],
-      (a, b) =>
-          TextNormalizer.normalize(a.name)
-              .compareTo(TextNormalizer.normalize(b.name)),
-    );
+    return grouper.sortStrategy.sort([
+      for (final group in groups)
+        ModelGroupEntity(
+          name: group.name,
+          variants: [
+            for (final version in group.versions)
+              ModelEntity(name: version.vehicle.rawModel),
+          ],
+        ),
+    ], (a, b) => TextNormalizer.compare(a.name, b.name));
   }
 }

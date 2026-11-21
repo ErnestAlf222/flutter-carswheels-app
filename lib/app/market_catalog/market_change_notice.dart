@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:cars_wheels_app/app/market_catalog/market_change_celebration.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/market/market.dart';
 
@@ -9,21 +10,68 @@ import 'package:cars_wheels_app/features/market/market.dart';
 bool isUserMarketChange(MarketState previous, MarketState current) =>
     previous.isRestored && previous.market != current.market;
 
-/// Aviso breve al cambiar de mercado desde la píldora: bandera, qué cambió y qué se ve.
+// Celebraciones en curso: solo la última cuenta si se alterna varias veces seguidas.
+final List<OverlayEntry> _activeCelebrations = [];
+
+/// Aviso al cambiar de mercado desde la píldora: qué cambió y qué se ve.
 ///
-/// Es un SnackBar flotante de Material con estilo propio (tinta y amarillo, sin
-/// brillo), colocado sobre la barra de navegación flotante. En Comparar la línea
-/// secundaria dice que se ve la comparación de ese mercado.
+/// Con movimiento normal es una celebración (bandera ondeando) sobre el
+/// contenido, que no bloquea la recarga. Con `disableAnimations`, o sin capa
+/// donde dibujar, queda el SnackBar estático. En Comparar la línea secundaria
+/// dice que se ve la comparación de ese mercado.
 void showMarketChangedNotice(
   ScaffoldMessengerState messenger, {
   required Market market,
   required int year,
   required bool onCompare,
+  OverlayState? overlay,
 }) {
   final name = AppTexts.marketLabelOf(market.code);
-  final context = messenger.context;
-  final safeBottom = MediaQuery.paddingOf(context).bottom;
-  // Solo el último cambio cuenta si la persona alterna varias veces seguidas.
+  final title = AppTexts.marketChangedTitle(name);
+  final body = onCompare
+      ? AppTexts.marketChangedCompareBody(name)
+      : AppTexts.marketChangedBody(name, year);
+  _dismissCelebrations();
+  final reduced = MediaQuery.of(messenger.context).disableAnimations;
+  if (overlay == null || reduced) {
+    _showStaticNotice(messenger, flag: market.flag, title: title, body: body);
+    return;
+  }
+  late final OverlayEntry entry;
+  entry = OverlayEntry(
+    builder: (context) => MarketChangeCelebration(
+      market: market,
+      title: title,
+      body: body,
+      onDone: () {
+        // Ya retirada (terminó y se omitió a la vez): nada que hacer.
+        if (!entry.mounted) return;
+        _activeCelebrations.remove(entry);
+        entry.remove();
+        entry.dispose();
+      },
+    ),
+  );
+  _activeCelebrations.add(entry);
+  overlay.insert(entry);
+}
+
+void _dismissCelebrations() {
+  for (final entry in [..._activeCelebrations]) {
+    if (entry.mounted) entry.remove();
+    entry.dispose();
+  }
+  _activeCelebrations.clear();
+}
+
+// Versión estática: SnackBar flotante de tinta sobre la barra de navegación.
+void _showStaticNotice(
+  ScaffoldMessengerState messenger, {
+  required String flag,
+  required String title,
+  required String body,
+}) {
+  final safeBottom = MediaQuery.paddingOf(messenger.context).bottom;
   messenger
     ..removeCurrentSnackBar()
     ..showSnackBar(
@@ -44,13 +92,7 @@ void showMarketChangedNotice(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(MarketConfig.noticeRadius),
         ),
-        content: _MarketNoticeContent(
-          flag: market.flag,
-          title: AppTexts.marketChangedTitle(name),
-          body: onCompare
-              ? AppTexts.marketChangedCompareBody(name)
-              : AppTexts.marketChangedBody(name, year),
-        ),
+        content: _MarketNoticeContent(flag: flag, title: title, body: body),
       ),
     );
 }
@@ -82,7 +124,7 @@ class _MarketNoticeContent extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: AppColors.accent,
-                  width: MarketConfig.flagRingWidth,
+                  width: MarketConfig.noticeFlagRingWidth,
                 ),
               ),
               child: Padding(

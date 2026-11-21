@@ -205,21 +205,22 @@ void main() {
     verify(() => modelsCubit.retry()).called(1);
   });
 
-  testWidgets('otra marca entra con fundido de columna sin entrada por '
-      'tarjeta en la primera página', (tester) async {
-    await tester.pumpWidget(section(loaded(brand: 'Honda')));
-    await tester.pumpAndSettle();
-    expect(find.byType(AnimatedEntryWidget), findsNothing);
-    await tester.pumpWidget(section(loaded(brand: 'Audi')));
-    await tester.pump();
-    // La lista nueva entra con el fundido de la sección.
-    expect(find.byType(SliverOpacity), findsOneWidget);
-    expect(find.byType(AnimatedEntryWidget), findsNothing);
-    await tester.pumpAndSettle();
-    expect(find.byType(ModelGridCardWidget), findsNWidgets(3));
-  });
+  testWidgets(
+    'otra marca entra con la cascada de tarjetas, sin fundido de columna aparte',
+    (tester) async {
+      await tester.pumpWidget(section(loaded(brand: 'Honda')));
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(section(loaded(brand: 'Audi')));
+      await tester.pump();
+      // La lista cargada entra en cascada: sin fundido de columna aparte.
+      expect(find.byType(SliverOpacity), findsNothing);
+      expect(find.byType(StaggeredEntryWidget), findsWidgets);
+      await tester.pumpAndSettle();
+      expect(find.byType(ModelGridCardWidget), findsNWidgets(3));
+    },
+  );
 
-  testWidgets('las tarjetas añadidas por loadMore conservan su entrada', (
+  testWidgets('las tarjetas añadidas por loadMore usan la entrada en cascada', (
     tester,
   ) async {
     const page = CatalogConfig.defaultPageSize;
@@ -235,8 +236,8 @@ void main() {
     );
     await tester.pump();
     expect(
-      find.byType(AnimatedEntryWidget, skipOffstage: false),
-      findsNWidgets(3),
+      find.byType(StaggeredEntryWidget, skipOffstage: false),
+      findsWidgets,
     );
     await tester.pumpAndSettle();
   });

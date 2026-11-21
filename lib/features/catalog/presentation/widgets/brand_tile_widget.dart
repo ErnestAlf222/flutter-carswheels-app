@@ -57,16 +57,20 @@ class BrandTileWidget extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.xs),
-            Text(
-              brandName,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: selected
-                  ? AppTextStyles.caption.copyWith(
-                      color: AppColors.ink,
-                      fontWeight: FontWeight.w700,
-                    )
-                  : AppTextStyles.caption,
+            SizedBox(
+              width: CarouselConfig.brandLabelWidth,
+              child: Text(
+                brandName,
+                maxLines: 1,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: selected
+                    ? AppTextStyles.brandLabel.copyWith(
+                        color: AppColors.ink,
+                        fontWeight: FontWeight.w700,
+                      )
+                    : AppTextStyles.brandLabel,
+              ),
             ),
           ],
         ),

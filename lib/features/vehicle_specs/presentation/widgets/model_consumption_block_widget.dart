@@ -36,9 +36,7 @@ class ModelConsumptionBlockWidget extends StatelessWidget {
       builder: (context, slot) {
         final duration = MediaQuery.of(context).disableAnimations
             ? Duration.zero
-            : const Duration(
-                milliseconds: AnimationConfig.fadeDurationMilliseconds,
-              );
+            : AppMotion.medium;
         return AnimatedSwitcher(
           duration: duration,
           layoutBuilder: (current, previous) => Stack(
@@ -166,7 +164,7 @@ class _EfficiencyBar extends StatelessWidget {
           child: TweenAnimationBuilder<double>(
             tween: Tween<double>(begin: 0, end: fraction),
             duration: duration,
-            curve: Curves.easeOutCubic,
+            curve: AppMotion.enter,
             builder: (context, value, _) => Align(
               alignment: Alignment.centerLeft,
               child: FractionallySizedBox(

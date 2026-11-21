@@ -125,6 +125,13 @@ void main() {
             value: const FuelTypeLabeler(),
           ),
           RepositoryProvider<DriveLabeler>.value(value: const DriveLabeler()),
+          RepositoryProvider<VehicleSpecSheetBuilder>.value(
+            value: const VehicleSpecSheetBuilder(
+              transmissionLabeler: TransmissionLabeler(),
+              fuelTypeLabeler: FuelTypeLabeler(),
+              driveLabeler: DriveLabeler(),
+            ),
+          ),
           RepositoryProvider<VersionDescriptorBuilder>.value(
             value: const VersionDescriptorBuilder(
               transmissionLabeler: TransmissionLabeler(),

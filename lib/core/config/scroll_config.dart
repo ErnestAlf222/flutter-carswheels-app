@@ -24,7 +24,8 @@ class ScrollConfig {
   static const double topButtonShowThreshold = 400.0;
   static const int topButtonFadeMilliseconds = 200;
   static const int scrollToTopMilliseconds = 450;
-  static const Curve scrollToTopCurve = Curves.easeInOutCubic;
+  static const Curve scrollToTopCurve =
+      Curves.easeInOutCubic; // Mismo valor que AppMotion.change.
 
   // Una sección guarda su posición mientras el mercado y el año no cambien.
   static const String homeSectionKey = 'home';

@@ -323,7 +323,7 @@ class CompareChartWidget extends StatelessWidget {
       duration: still
           ? Duration.zero
           : const Duration(milliseconds: CompareConfig.chartGrowMilliseconds),
-      curve: AppCurves.chartGrowCurve,
+      curve: AppMotion.enter,
       builder: (context, progress, _) => SizedBox(
         width: double.infinity,
         height: CompareChartPainter.totalHeight(scaler),

@@ -77,7 +77,9 @@ class CommonsLogoSelector {
   int _compare(CommonsLogoCandidateEntity a, CommonsLogoCandidateEntity b) {
     final aSvg = a.mime == LogosConfig.commonsSvgMime ? 0 : 1;
     final bSvg = b.mime == LogosConfig.commonsSvgMime ? 0 : 1;
-    return aSvg != bSvg ? aSvg.compareTo(bSvg) : a.rank.compareTo(b.rank);
+    if (aSvg != bSvg) return aSvg.compareTo(bSvg);
+    final byRank = a.rank.compareTo(b.rank);
+    return byRank != 0 ? byRank : a.title.compareTo(b.title);
   }
 
   // Palabras en minúsculas; todo lo que no sea letra o número separa.

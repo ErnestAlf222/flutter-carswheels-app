@@ -11,7 +11,6 @@ import 'package:cars_wheels_app/features/compare/compare.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/favorites/favorites.dart';
 import 'package:cars_wheels_app/features/market/market.dart';
-import 'package:cars_wheels_app/features/navigation/navigation.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
 import 'package:cars_wheels_app/features/search/search.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/vehicle_specs.dart';
@@ -134,6 +133,13 @@ class _Flow {
             value: const FuelTypeLabeler(),
           ),
           RepositoryProvider<DriveLabeler>.value(value: const DriveLabeler()),
+          RepositoryProvider<VehicleSpecSheetBuilder>.value(
+            value: const VehicleSpecSheetBuilder(
+              transmissionLabeler: TransmissionLabeler(),
+              fuelTypeLabeler: FuelTypeLabeler(),
+              driveLabeler: DriveLabeler(),
+            ),
+          ),
           RepositoryProvider<VersionDescriptorBuilder>.value(
             value: const VersionDescriptorBuilder(
               transmissionLabeler: TransmissionLabeler(),
@@ -187,9 +193,6 @@ class _Flow {
             BlocProvider<LogoPrecacheCubit>.value(value: precache),
             BlocProvider<PhotosCubit>.value(value: photos),
             BlocProvider<MarketCubit>.value(value: buildMarketCubit()),
-            BlocProvider<SectionLoaderCubit>(
-              create: (_) => SectionLoaderCubit(),
-            ),
             BlocProvider<SearchCubit>.value(value: tabSearch.cubit),
             BlocProvider<CompareCubit>.value(value: compare),
             BlocProvider<FavoritesCubit>(create: (_) => buildFavoritesCubit()),

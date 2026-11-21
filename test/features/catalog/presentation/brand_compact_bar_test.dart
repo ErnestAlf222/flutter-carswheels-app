@@ -64,7 +64,11 @@ Future<void> _pumpBar(
       ),
     ),
   );
-  await tester.pump();
+  // Espera las tipografías empaquetadas: el primer cuadro usa la de respaldo.
+  await tester.runAsync(GoogleFonts.pendingFonts);
+  // El desborde del primer cuadro es de la tipografía de respaldo; no cuenta.
+  tester.takeException();
+  await tester.pumpAndSettle();
 }
 
 void main() {

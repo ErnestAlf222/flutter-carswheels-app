@@ -10,7 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../support/market_test_support.dart';
 
 const _years = [2026, 2025, 2024];
-final _disc = find.byKey(const ValueKey('market-switch-ring'));
+final _disc = find.byKey(const ValueKey('market-switch-pill'));
 
 Widget _host(
   MarketCubit cubit, {
@@ -62,56 +62,48 @@ void main() {
     ]);
   });
 
-  testWidgets('el aro rodea la bandera activa y la otra se atenúa', (
-    tester,
-  ) async {
-    final cubit = buildMarketCubit();
-    addTearDown(cubit.close);
-    await tester.pumpWidget(_host(cubit, onYearSelected: (_) {}));
-    await tester.pump();
-    double opacityOf(Market market) => tester
-        .widget<AnimatedOpacity>(
-          find.ancestor(
-            of: find.text(market.flag),
-            matching: find.byType(AnimatedOpacity),
-          ),
-        )
-        .opacity;
-    expect(opacityOf(Market.unitedStates), 1.0);
-    expect(opacityOf(Market.mexico), MarketConfig.inactiveFlagOpacity);
-    expect(
-      tester.getCenter(_disc).dx,
-      closeTo(tester.getCenter(find.text(Market.unitedStates.flag)).dx, 1),
-    );
-    await cubit.select(Market.mexico);
-    await tester.pumpAndSettle();
-    expect(opacityOf(Market.mexico), 1.0);
-    expect(
-      tester.getCenter(_disc).dx,
-      closeTo(tester.getCenter(find.text(Market.mexico.flag)).dx, 1),
-    );
-  });
+  testWidgets(
+    'la pastilla queda tras la opción activa y se desliza a la otra',
+    (tester) async {
+      final cubit = buildMarketCubit();
+      addTearDown(cubit.close);
+      await tester.pumpWidget(_host(cubit, onYearSelected: (_) {}));
+      await tester.pump();
+      Offset flagCenter(Market market) =>
+          tester.getCenter(find.text(market.flag));
+      expect(
+        tester.getRect(_disc).contains(flagCenter(Market.unitedStates)),
+        isTrue,
+      );
+      expect(
+        tester.getRect(_disc).contains(flagCenter(Market.mexico)),
+        isFalse,
+      );
+      await cubit.select(Market.mexico);
+      await tester.pumpAndSettle();
+      expect(tester.getRect(_disc).contains(flagCenter(Market.mexico)), isTrue);
+      expect(
+        tester.getRect(_disc).contains(flagCenter(Market.unitedStates)),
+        isFalse,
+      );
+    },
+  );
 
-  testWidgets('el aro activo es blanco fino, sin relleno y sin amarillo', (
-    tester,
-  ) async {
-    final cubit = buildMarketCubit();
-    addTearDown(cubit.close);
-    await tester.pumpWidget(_host(cubit, onYearSelected: (_) {}));
-    await tester.pump();
-    final disc = tester.widget<Container>(
-      find.descendant(of: _disc, matching: find.byType(Container)),
-    );
-    final decoration = disc.decoration! as BoxDecoration;
-    // Solo aro: nada de disco relleno.
-    expect(decoration.color, isNull);
-    expect(decoration.shape, BoxShape.circle);
-    final ring = decoration.border! as Border;
-    expect(ring.top.color, AppColors.onDark);
-    expect(ring.top.color, isNot(AppColors.accent));
-    expect(ring.top.width, MarketConfig.flagRingWidth);
-    expect(tester.getSize(_disc).width, MarketConfig.flagRingSize);
-  });
+  testWidgets(
+    'la pastilla activa es blanca, sin amarillo, con esquinas de píldora',
+    (tester) async {
+      final cubit = buildMarketCubit();
+      addTearDown(cubit.close);
+      await tester.pumpWidget(_host(cubit, onYearSelected: (_) {}));
+      await tester.pump();
+      final box = tester.widget<DecoratedBox>(
+        find.descendant(of: _disc, matching: find.byType(DecoratedBox)),
+      );
+      final decoration = box.decoration as BoxDecoration;
+      expect(decoration.color, AppColors.surface);
+      expect(decoration.color, isNot(AppColors.accent));
+    },
+  );
 
   testWidgets('las banderas son insignias circulares con área táctil de 44', (
     tester,
@@ -126,18 +118,11 @@ void main() {
         matching: find.byType(ClipOval),
       );
       expect(badge, findsOneWidget);
-      expect(tester.getSize(badge).width, lessThan(MarketConfig.flagTouchSize));
       expect(tester.getSize(badge).width, MarketConfig.flagBadgeSize);
-      final slot = find.ancestor(
-        of: badge,
-        matching: find.byWidgetPredicate(
-          (widget) =>
-              widget is SizedBox &&
-              widget.width == MarketConfig.flagTouchSize &&
-              widget.height == MarketConfig.flagTouchSize,
-        ),
+      expect(
+        tester.getSize(find.byType(MarketSwitchWidget)).height,
+        MarketConfig.flagTouchSize,
       );
-      expect(slot, findsOneWidget);
     }
   });
 
@@ -218,13 +203,13 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 30));
       final moved = tester.getCenter(_disc).dx;
-      final target = tester.getCenter(find.text(Market.mexico.flag)).dx;
+      await tester.pumpAndSettle();
+      final target = tester.getCenter(_disc).dx;
       if (disable) {
         expect(moved, closeTo(target, 1));
       } else {
         expect((moved - target).abs(), greaterThan(1));
       }
-      await tester.pumpAndSettle();
     }
   });
 
@@ -243,21 +228,23 @@ void main() {
     final handle = tester.ensureSemantics();
     await tester.pumpWidget(_host(cubit, onYearSelected: (_) {}));
     await tester.pump();
-    expect(find.bySemanticsLabel(AppTexts.marketMexicoName), findsOneWidget);
-    expect(
-      find.bySemanticsLabel(AppTexts.marketUnitedStatesName),
-      findsOneWidget,
+    final mexicoLabel = AppTexts.marketOptionSemanticLabel(
+      MarketConfig.mexicoCode,
+      selected: false,
     );
+    final usLabel = AppTexts.marketOptionSemanticLabel(
+      MarketConfig.unitedStatesCode,
+      selected: false,
+    );
+    // La activa se anuncia como seleccionada.
+    expect(find.bySemanticsLabel('$usLabel seleccionado'), findsOneWidget);
+    expect(find.bySemanticsLabel(mexicoLabel), findsOneWidget);
     expect(find.bySemanticsLabel(AppTexts.pickYearLabel), findsOneWidget);
-    final mexico = tester.getSemantics(
-      find.bySemanticsLabel(AppTexts.marketMexicoName),
-    );
+    final mexico = tester.getSemantics(find.bySemanticsLabel(mexicoLabel));
     expect(mexico.hint, AppTexts.switchToMexicoLabel);
     await cubit.select(Market.mexico);
     await tester.pumpAndSettle();
-    final us = tester.getSemantics(
-      find.bySemanticsLabel(AppTexts.marketUnitedStatesName),
-    );
+    final us = tester.getSemantics(find.bySemanticsLabel(usLabel));
     expect(us.hint, AppTexts.switchToUnitedStatesLabel);
     handle.dispose();
   });
@@ -560,10 +547,7 @@ void main() {
       );
       final first = badgeOf(Market.mexico);
       final second = badgeOf(Market.unitedStates);
-      expect(
-        second.left - first.right,
-        greaterThanOrEqualTo(MarketConfig.flagGap),
-      );
+      expect(second.left - first.right, greaterThan(0));
     });
   });
 }

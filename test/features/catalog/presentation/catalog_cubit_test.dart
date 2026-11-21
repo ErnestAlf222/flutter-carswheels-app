@@ -394,7 +394,8 @@ void main() {
             .having((s) => s.isRefreshing, 'isRefreshing', false)
             .having((s) => s.year, 'year', 2025)
             .having((s) => s.selectedIndex, 'selectedIndex', 1)
-            .having((s) => s.windowStart, 'windowStart', 1)
+            // Con pocas marcas caben todas: la ventana no se desplaza.
+            .having((s) => s.windowStart, 'windowStart', 0)
             .having((s) => s.failedYear, 'failedYear', isNull)
             .having((s) => s.refreshFailure, 'refreshFailure', isNull)
             .having((s) => s.availableYears, 'availableYears', [

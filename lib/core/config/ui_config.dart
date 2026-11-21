@@ -49,7 +49,7 @@ class UiConfig {
   static const double summarySkeletonShortBarWidth = 36.0;
   static const double powertrainBadgeIconSize = 14.0;
   // Alturas provisionales del encabezado fijo; se ajustan viendo la pantalla.
-  static const double headerExpandedHeight = 224.0;
+  static const double headerExpandedHeight = 240.0;
   static const double headerCompactHeight = 72.0;
   static const double headerCompactLogoSize = 40.0;
   // Tope del logo de la barra compacta: cabe ancho (BYD) sin desbordar.
@@ -122,6 +122,30 @@ class UiConfig {
   static const double detailInfoRowVerticalPadding = 10.0;
   static const double detailRecallsTopMargin = 10.0;
   static const double detailAttributionTopMargin = 16.0;
+  // Línea de crédito de la foto bajo el carrusel.
+  static const double detailCreditTopMargin = 8.0;
+  static const double detailCreditMinTouchHeight = 32.0;
+  // Burbuja de la ficha técnica y su panel desplegable.
+  static const double specBubbleSize = 52.0;
+  static const double specBubbleIconSize = 26.0;
+  static const double specBubbleRightMargin = 20.0;
+  static const double specBubbleGap = 12.0;
+  static const double specPanelMaxWidth = 340.0;
+  static const double specPanelRadius = 24.0;
+  static const double specPanelPadding = 16.0;
+  static const double specPanelMaxHeightFraction = 0.6;
+  static const double specPanelStartScale = 0.2;
+  static const double specCloseButtonSize = 44.0;
+  static const double specScrimOpacity = 0.18;
+  // Arrastre hacia abajo que cierra el panel: distancia y velocidad.
+  static const double specDragCloseDistance = 72.0;
+  static const double specDragCloseVelocity = 700.0;
+  // Fotos pequeñas o delgadas: umbrales de la imagen decodificada.
+  static const int photoSmallMinWidthPixels = 480;
+  static const int photoSmallMinHeightPixels = 300;
+  // Fondo difuminado y tope de ampliación (píxeles lógicos por píxel de la foto).
+  static const double photoBackdropBlurSigma = 28.0;
+  static const double photoMaxDisplayScale = 1.0;
 
   // Con menos cifras que esto la tarjeta de cifras de México no se muestra.
   static const int detailMinFigureCells = 2;

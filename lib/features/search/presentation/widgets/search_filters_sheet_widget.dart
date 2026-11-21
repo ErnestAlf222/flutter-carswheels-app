@@ -201,7 +201,10 @@ class _Content extends StatelessWidget {
     List<SearchResultEntity> all,
   ) {
     final brands = {for (final result in all) result.brand}.toList()
-      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+      ..sort((a, b) {
+        final byName = a.toLowerCase().compareTo(b.toLowerCase());
+        return byName != 0 ? byName : a.compareTo(b);
+      });
     if (brands.length < 2) return const [];
     final counts = cubit.filterService.brandCounts(
       all,

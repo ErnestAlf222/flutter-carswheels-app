@@ -111,7 +111,7 @@ void main() {
       child: const BrandCarouselWidget(),
     );
 
-    testWidgets('muestra 4 tiles aunque haya más marcas', (tester) async {
+    testWidgets('muestra 4 marcas completas y una asomando', (tester) async {
       stubCatalog(
         CatalogLoaded(
           year: 2026,
@@ -121,7 +121,54 @@ void main() {
       );
       await tester.pumpWidget(carousel());
       await tester.pumpAndSettle();
-      expect(find.byType(BrandTileWidget), findsNWidgets(4));
+      // Cuatro completas más la quinta asomando por el borde.
+      expect(find.byType(BrandTileWidget), findsNWidgets(5));
+      final width = tester.getSize(find.byType(ListView)).width;
+      final extent =
+          width /
+          (CarouselConfig.visibleBrandCount + CarouselConfig.peekFraction);
+      for (final index in Iterable<int>.generate(4)) {
+        final rect = tester.getRect(find.byType(BrandTileWidget).at(index));
+        expect(rect.right, lessThanOrEqualTo(width));
+        expect(rect.width, lessThanOrEqualTo(extent));
+      }
+    });
+
+    testWidgets(
+      'las flechas solo aparecen si hay más marcas que las visibles',
+      (tester) async {
+        stubCatalog(
+          CatalogLoaded(
+            year: 2026,
+            availableYears: const [2026],
+            brands: _brands(CarouselConfig.visibleBrandCount),
+          ),
+        );
+        await tester.pumpWidget(carousel());
+        await tester.pumpAndSettle();
+        final hidden = tester
+            .widgetList<AnimatedOpacity>(find.byType(AnimatedOpacity))
+            .where((widget) => widget.opacity == 0);
+        expect(hidden.length, 2);
+      },
+    );
+
+    testWidgets('con más marcas que las visibles las dos flechas se ven', (
+      tester,
+    ) async {
+      stubCatalog(
+        CatalogLoaded(
+          year: 2026,
+          availableYears: const [2026],
+          brands: _brands(10),
+        ),
+      );
+      await tester.pumpWidget(carousel());
+      await tester.pumpAndSettle();
+      final shown = tester
+          .widgetList<AnimatedOpacity>(find.byType(AnimatedOpacity))
+          .where((widget) => widget.opacity == 1);
+      expect(shown.length, greaterThanOrEqualTo(2));
     });
 
     testWidgets('con menos de 4 marcas muestra las que haya', (tester) async {
@@ -171,23 +218,24 @@ void main() {
         // La entrada es una sola, de la fila completa.
         expect(find.byType(AnimatedEntryWidget), findsOneWidget);
         expect(find.text('Marca0'), findsOneWidget);
-        expect(find.text('Marca4'), findsNothing);
+        expect(find.text('Marca5'), findsNothing);
 
         events.add(window(1));
         await tester.pumpAndSettle();
         expect(find.byType(AnimatedEntryWidget), findsOneWidget);
-        expect(find.text('Marca4'), findsOneWidget);
+        expect(find.text('Marca5'), findsOneWidget);
         expect(find.text('Marca0'), findsNothing);
       },
     );
 
     group('con el dedo y las flechas', () {
-      CatalogLoaded loaded({int start = 0, int selected = 0}) => CatalogLoaded(
+      // La activa va en el centro de la ventana, como la deja el cubit.
+      CatalogLoaded loaded({int start = 0, int? selected}) => CatalogLoaded(
         year: 2026,
         availableYears: const [2026],
         brands: _brands(10),
         windowStart: start,
-        selectedIndex: selected,
+        selectedIndex: selected ?? (start + 2) % 10,
       );
 
       double offset(WidgetTester tester) => tester
@@ -209,7 +257,7 @@ void main() {
         final before = offset(tester);
         await tester.drag(
           find.byType(BrandTileWidget).first,
-          const Offset(-200, 0),
+          const Offset(-400, 0),
         );
         await tester.pumpAndSettle();
         expect(offset(tester), greaterThan(before));
@@ -240,7 +288,7 @@ void main() {
         expect(find.text('Marca9'), findsOneWidget);
       });
 
-      testWidgets('la física es de rebote suave y no queda bloqueada', (
+      testWidgets('usa la física nativa de la plataforma y no queda bloqueada', (
         tester,
       ) async {
         stubCatalog(loaded());
@@ -248,11 +296,9 @@ void main() {
         await tester.pumpAndSettle();
         final scrollable = tester.widget<Scrollable>(find.byType(Scrollable));
         expect(scrollable.axisDirection, AxisDirection.right);
-        expect(scrollable.physics, isA<BouncingScrollPhysics>());
-        expect(
-          scrollable.physics!.parent,
-          isA<AlwaysScrollableScrollPhysics>(),
-        );
+        // Sin física forzada: iOS rebota y Android estira según su plataforma.
+        expect(scrollable.physics, isNull);
+        expect(offset(tester), isNotNull);
       });
 
       testWidgets('las flechas desplazan una página de marcas', (tester) async {
@@ -261,9 +307,13 @@ void main() {
         await tester.pumpAndSettle();
         final before = offset(tester);
         final width = tester.getSize(find.byType(ListView)).width;
+        final page =
+            width /
+            (CarouselConfig.visibleBrandCount + CarouselConfig.peekFraction) *
+            CarouselConfig.visibleBrandCount;
         await tester.tap(find.bySemanticsLabel(AppTexts.nextBrandsLabel));
         await tester.pumpAndSettle();
-        expect(offset(tester) - before, closeTo(width, 1));
+        expect(offset(tester) - before, closeTo(page, 1));
         expect(find.text('Marca4'), findsOneWidget);
         expect(find.text('Marca0'), findsNothing);
         verify(() => catalogCubit.showBrandsFrom(4)).called(1);
@@ -359,39 +409,40 @@ void main() {
       });
     });
 
-    testWidgets('la flecha tiene área tocable de 48 y círculo de 32', (
-      tester,
-    ) async {
-      stubCatalog(
-        CatalogLoaded(
-          year: 2026,
-          availableYears: const [2026],
-          brands: _brands(10),
-        ),
-      );
-      await tester.pumpWidget(carousel());
-      await tester.pumpAndSettle();
-      final touchTargets = find.byType(InkWell);
-      expect(touchTargets, findsNWidgets(2));
-      for (final element in touchTargets.evaluate()) {
-        expect(
-          tester.getSize(find.byWidget(element.widget)),
-          const Size.square(CarouselConfig.arrowTouchTargetSize),
+    testWidgets(
+      'la flecha tiene área tocable de 44 y círculo con sombra de 36',
+      (tester) async {
+        stubCatalog(
+          CatalogLoaded(
+            year: 2026,
+            availableYears: const [2026],
+            brands: _brands(10),
+          ),
         );
-      }
-      final circle = find.descendant(
-        of: touchTargets.first,
-        matching: find.byType(Container),
-      );
-      expect(
-        tester.getSize(circle),
-        const Size.square(CarouselConfig.arrowButtonSize),
-      );
-      final icon = tester.widget<Icon>(
-        find.descendant(of: touchTargets.first, matching: find.byType(Icon)),
-      );
-      expect(icon.size, CarouselConfig.arrowIconSize);
-    });
+        await tester.pumpWidget(carousel());
+        await tester.pumpAndSettle();
+        final touchTargets = find.byType(InkWell);
+        expect(touchTargets, findsNWidgets(2));
+        for (final element in touchTargets.evaluate()) {
+          expect(
+            tester.getSize(find.byWidget(element.widget)),
+            const Size.square(CarouselConfig.arrowTouchTargetSize),
+          );
+        }
+        final circle = find.descendant(
+          of: touchTargets.first,
+          matching: find.byType(Container),
+        );
+        expect(
+          tester.getSize(circle),
+          const Size.square(CarouselConfig.arrowButtonSize),
+        );
+        final icon = tester.widget<Icon>(
+          find.descendant(of: touchTargets.first, matching: find.byType(Icon)),
+        );
+        expect(icon.size, CarouselConfig.arrowIconSize);
+      },
+    );
 
     testWidgets('tocar un tile llama a selectBrand con su índice', (
       tester,

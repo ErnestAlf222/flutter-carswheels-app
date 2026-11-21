@@ -1,3 +1,4 @@
+import 'package:cars_wheels_app/app/market_catalog/market_change_celebration.dart';
 import 'package:cars_wheels_app/app/market_catalog/market_change_notice.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/market/market.dart';
@@ -8,22 +9,34 @@ import 'package:google_fonts/google_fonts.dart';
 import '../support/market_test_support.dart';
 
 // Pantalla con un botón que lanza el aviso, como lo hace la capa app.
-Widget _host({required bool onCompare, Market market = Market.mexico}) =>
-    MaterialApp(
-      home: Scaffold(
-        body: Builder(
-          builder: (context) => TextButton(
-            onPressed: () => showMarketChangedNotice(
-              ScaffoldMessenger.of(context),
-              market: market,
-              year: 2025,
-              onCompare: onCompare,
+Widget _host({
+  required bool onCompare,
+  Market market = Market.mexico,
+  bool reduced = true,
+}) => MediaQuery(
+  data: MediaQueryData(disableAnimations: reduced),
+  child: MaterialApp(
+    home: Scaffold(
+      body: Stack(
+        children: [
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showMarketChangedNotice(
+                ScaffoldMessenger.of(context),
+                overlay: Overlay.of(context),
+                market: market,
+                year: 2025,
+                onCompare: onCompare,
+              ),
+              child: const Text('cambiar'),
             ),
-            child: const Text('cambiar'),
           ),
-        ),
+          const Positioned(bottom: 0, right: 0, child: Text('debajo')),
+        ],
       ),
-    );
+    ),
+  ),
+);
 
 void main() {
   setUpAll(() {
@@ -136,6 +149,97 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.byType(SnackBar), findsOneWidget);
+    });
+  });
+
+  group('celebración de mercado', () {
+    testWidgets('con movimiento dibuja la celebración y no el SnackBar', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_host(onCompare: false, reduced: false));
+      await tester.tap(find.text('cambiar'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byType(MarketChangeCelebration), findsOneWidget);
+      expect(find.byType(SnackBar), findsNothing);
+      expect(find.text(AppTexts.marketChangedTitle('México')), findsOneWidget);
+      expect(
+        find.text(AppTexts.marketChangedBody('México', 2025)),
+        findsOneWidget,
+      );
+      await tester.pumpAndSettle();
+      // Termina sola dentro de la duración configurada.
+      expect(find.byType(MarketChangeCelebration), findsNothing);
+    });
+
+    testWidgets('dura hasta lo configurado y no antes', (tester) async {
+      await tester.pumpWidget(_host(onCompare: false, reduced: false));
+      await tester.tap(find.text('cambiar'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1000));
+      expect(find.byType(MarketChangeCelebration), findsOneWidget);
+      await tester.pump(AppMotion.celebration);
+      await tester.pumpAndSettle();
+      expect(find.byType(MarketChangeCelebration), findsNothing);
+    });
+
+    testWidgets('un toque en la tarjeta la omite', (tester) async {
+      await tester.pumpWidget(_host(onCompare: false, reduced: false));
+      await tester.tap(find.text('cambiar'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.text(AppTexts.marketChangedTitle('México')));
+      await tester.pump(AppMotion.fast);
+      await tester.pumpAndSettle();
+      expect(find.byType(MarketChangeCelebration), findsNothing);
+    });
+
+    testWidgets('no intercepta toques fuera de la tarjeta', (tester) async {
+      await tester.pumpWidget(_host(onCompare: false, reduced: false));
+      await tester.tap(find.text('cambiar'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      // El botón de abajo sigue recibiendo el toque mientras corre.
+      expect(find.text('debajo').hitTestable(), findsOneWidget);
+      expect(find.text('cambiar').hitTestable(), findsOneWidget);
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('en Comparar la segunda línea habla de la comparación', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(onCompare: true, market: Market.unitedStates, reduced: false),
+      );
+      await tester.tap(find.text('cambiar'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(
+        find.text(AppTexts.marketChangedCompareBody('EE. UU.')),
+        findsOneWidget,
+      );
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('un segundo cambio reemplaza a la celebración en curso', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_host(onCompare: false, reduced: false));
+      await tester.tap(find.text('cambiar'));
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.text('cambiar'));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(MarketChangeCelebration), findsOneWidget);
+      await tester.pumpAndSettle();
+    });
+
+    test('la bandera de México es tricolor sin escudo y la de EE. UU. tiene cantón', () {
+      // Solo colores de franjas y campo: ningún otro color de bandera en el tema.
+      expect(AppColors.flagMexicoGreen, isNot(AppColors.flagMexicoRed));
+      expect(
+        MarketConfig.usCantonStripes,
+        lessThan(MarketConfig.usStripeCount),
+      );
     });
   });
 }

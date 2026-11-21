@@ -17,6 +17,6 @@ export 'refreshable_sliver_widget.dart';
 export 'remembered_scroll_widget.dart';
 export 'scroll_offset_store.dart';
 export 'scroll_to_top_button_widget.dart';
-export 'section_loader_overlay_widget.dart';
 export 'skeleton_bar_widget.dart';
+export 'staggered_entry_widget.dart';
 export 'status_bar_band_widget.dart';

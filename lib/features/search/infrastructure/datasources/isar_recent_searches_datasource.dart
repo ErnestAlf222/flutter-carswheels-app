@@ -13,7 +13,10 @@ class IsarRecentSearchesDatasource implements RecentSearchesDatasource {
   @override
   Future<List<RecentSearchEntity>> readAll() async {
     final models = await isar.recentSearchModels.where().findAll();
-    models.sort((a, b) => b.searchedAtMillis.compareTo(a.searchedAtMillis));
+    models.sort((a, b) {
+      final byDate = b.searchedAtMillis.compareTo(a.searchedAtMillis);
+      return byDate != 0 ? byDate : a.key.compareTo(b.key);
+    });
     return [
       for (final model in models)
         RecentSearchEntity(

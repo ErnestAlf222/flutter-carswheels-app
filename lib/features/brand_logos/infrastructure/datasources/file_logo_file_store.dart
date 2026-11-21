@@ -91,7 +91,10 @@ class FileLogoFileStore implements LogoFileStore {
       files.add((entity, stat.size, stat.modified));
     }
     if (total <= maxTotalBytes) return;
-    files.sort((a, b) => a.$3.compareTo(b.$3));
+    files.sort((a, b) {
+      final byDate = a.$3.compareTo(b.$3);
+      return byDate != 0 ? byDate : a.$1.path.compareTo(b.$1.path);
+    });
     for (final (file, size, _) in files) {
       if (total <= maxTotalBytes) break;
       if (file.uri.pathSegments.last == keep) continue;
