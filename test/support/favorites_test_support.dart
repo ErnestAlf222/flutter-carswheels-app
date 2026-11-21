@@ -115,6 +115,7 @@ FavoritesCubit buildFavoritesCubit({
   Duration undoDuration = const Duration(seconds: 30),
   AttachFavoritePhotoUseCase? attachPhoto,
   DeleteFavoritePhotoUseCase? deletePhoto,
+  MeasureFavoritePhotoUseCase? measurePhoto,
 }) {
   final store = datasource ?? InMemoryFavoritesDatasource();
   final now = clock ?? DateTime.now;
@@ -128,6 +129,7 @@ FavoritesCubit buildFavoritesCubit({
     snapshotSource: snapshotSource ?? FakeFavoriteSnapshotSource(),
     attachPhoto: attachPhoto,
     deletePhoto: deletePhoto,
+    measurePhoto: measurePhoto,
     clock: now,
     messageDuration: messageDuration,
     undoDuration: undoDuration,

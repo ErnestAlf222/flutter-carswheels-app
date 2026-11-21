@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:cars_wheels_app/app/market_catalog/market_search_context_source.dart';
 import 'package:cars_wheels_app/app/market_catalog/search_market_year_selector.dart';
+import 'package:cars_wheels_app/app/compare/compare_picks.dart';
 import 'package:cars_wheels_app/app/compare/compare_slot_builder.dart';
 import 'package:cars_wheels_app/app/compare/compare_tap_flow.dart';
 import 'package:cars_wheels_app/app/search_results/search_cubit_factory.dart';
@@ -59,10 +60,14 @@ Widget buildComparePickerResultsGrid(
   results,
   resetKey,
   onOpen,
-  actionBuilder: _pickerAction,
+  actionBuilder: buildComparePickerAction,
 );
 
-Widget? _pickerAction(BuildContext context, SearchResultEntity result) {
+/// Botón "Comparar" de una tarjeta del selector (resultados y sugerencias).
+Widget? buildComparePickerAction(
+  BuildContext context,
+  SearchResultEntity result,
+) {
   final slot = CompareSlotBuilder.fromResult(result);
   if (slot == null) return null;
   final name = AppTexts.compareColumnHeaderLabel(slot.brand, slot.modelName);
@@ -150,12 +155,20 @@ class _ComparePickerSheetState extends State<_ComparePickerSheet> {
                       onOpenResult: openSearchResultInDetail,
                       resultsGridBuilder: buildComparePickerResultsGrid,
                       selectorBuilder: buildSearchMarketYearSelector,
-                      belowHeader:
-                          BlocSelector<SearchCubit, SearchState, String>(
-                            selector: (state) => state.query,
-                            builder: (context, query) =>
-                                ComparePickerHintWidget(query: query),
-                          ),
+                      picksBuilder: _buildPicks,
+                      picksCount: comparePicksRequestCount,
+                      picksFirst: true,
+                      bandStyle: const SearchBandStyle(
+                        color: AppColors.pickerBand,
+                        field: SearchFieldPalette(
+                          fill: AppColors.pickerBandField,
+                          border: AppColors.pickerBandFieldBorder,
+                          text: AppColors.onDark,
+                          hint: AppColors.mutedOnDark,
+                          icon: AppColors.onDark,
+                        ),
+                        counter: _PickerCounter(),
+                      ),
                     ),
                   ),
                   const _SheetNotice(),
@@ -165,6 +178,39 @@ class _ComparePickerSheetState extends State<_ComparePickerSheet> {
           ),
         ),
       ),
+    );
+  }
+}
+
+// Sugerencias del selector: cada tarjeta lleva su botón "Comparar".
+Widget _buildPicks(
+  BuildContext context,
+  List<SearchResultEntity> picks,
+  String resetKey,
+  ValueChanged<SearchResultEntity> onOpen,
+) => buildComparePickerPicks(
+  context,
+  picks,
+  resetKey,
+  onOpen,
+  buildComparePickerAction,
+);
+
+/// "Llevas 1 de 3": cuántos autos hay ya en la comparación.
+class _PickerCounter extends StatelessWidget {
+  const _PickerCounter();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CompareCubit, CompareState>(
+      builder: (context, state) {
+        final count = state is CompareLoaded ? state.selection.length : 0;
+        return Text(
+          AppTexts.comparePickerCountLabel(count, CompareConfig.maxSlots),
+          maxLines: 1,
+          style: AppTextStyles.onDarkCaption,
+        );
+      },
     );
   }
 }

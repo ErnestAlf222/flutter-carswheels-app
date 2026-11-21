@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/search/domain/entities/search_entry_entity.dart';
+import 'package:cars_wheels_app/features/search/domain/feed/feed.dart';
 import 'package:cars_wheels_app/features/search/domain/entities/search_index_status_entity.dart';
 import 'package:cars_wheels_app/features/search/domain/entities/search_response_entity.dart';
 import 'package:cars_wheels_app/features/search/domain/entities/search_result_entity.dart';
@@ -102,6 +103,40 @@ class SearchWithScopeUseCase {
           marketCode: scope.marketCode,
         ),
     ];
+  }
+
+  /// La siguiente página del feed del alcance: modelos del índice en orden
+  /// aleatorio determinista por [seed], sin los de [exclude] (sugerencias y ya
+  /// mostrados). Sin red: solo lo que el índice ya tiene.
+  SearchFeedPageEntity feedPage(
+    SearchScopeEntity scope, {
+    required int seed,
+    required Set<String> exclude,
+    required int pageSize,
+    SearchFeedPlanner planner = const SearchFeedPlanner(),
+  }) {
+    final record = store.recordOf(scope.key);
+    if (record == null) return SearchFeedPageEntity.empty;
+    final plan = planner.plan(
+      record.index.entries,
+      seed: seed,
+      exclude: exclude,
+      pageSize: pageSize,
+    );
+    return SearchFeedPageEntity(
+      results: [
+        for (final entry in plan.page)
+          SearchResultEntity(
+            brand: entry.brand,
+            groupName: entry.groupName,
+            variantNames: entry.variantNames,
+            year: scope.year,
+            marketCode: scope.marketCode,
+          ),
+      ],
+      remaining: plan.remaining,
+      isBuilding: record.status.phase == SearchIndexPhase.building,
+    );
   }
 
   // Marcas cuyo nombre coincide por prefijo: la exacta primero, luego el orden del índice.

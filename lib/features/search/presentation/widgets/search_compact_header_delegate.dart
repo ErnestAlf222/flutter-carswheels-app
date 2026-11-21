@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/search/presentation/widgets/search_band_style.dart';
 import 'package:cars_wheels_app/features/search/presentation/widgets/search_field_widget.dart';
 
 /// Encabezado compacto de la búsqueda dentro de una hoja: asa, título con
@@ -15,10 +16,15 @@ class SearchCompactHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.onChanged,
     required this.onSubmitted,
     required this.onClear,
+    this.fadingText = false,
     this.onClose,
+    this.style,
   });
 
   final String title;
+
+  /// Con valor, la banda cambia de identidad (color, campo y contador).
+  final SearchBandStyle? style;
 
   /// Con valor, muestra el botón de cerrar junto al título.
   final VoidCallback? onClose;
@@ -27,6 +33,9 @@ class SearchCompactHeaderDelegate extends SliverPersistentHeaderDelegate {
   final ValueChanged<String> onChanged;
   final ValueChanged<String> onSubmitted;
   final VoidCallback onClear;
+
+  /// El texto del campo se desvanece antes de vaciarse.
+  final bool fadingText;
 
   // Alto fijo: asa, título, campo y sus separaciones.
   static const double extent =
@@ -38,11 +47,18 @@ class SearchCompactHeaderDelegate extends SliverPersistentHeaderDelegate {
       SearchConfig.fieldHeight +
       SearchConfig.compactHeaderBottomPadding;
 
-  @override
-  double get maxExtent => extent;
+  // Con contador, la banda crece una línea.
+  double get _extent => style?.counter == null
+      ? extent
+      : extent +
+            SearchConfig.compactCounterRowHeight +
+            SearchConfig.compactHeaderGap / 2;
 
   @override
-  double get minExtent => extent;
+  double get maxExtent => _extent;
+
+  @override
+  double get minExtent => _extent;
 
   @override
   Widget build(
@@ -50,9 +66,11 @@ class SearchCompactHeaderDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
+    final counter = style?.counter;
     final band = SizedBox(
-      height: extent,
+      height: _extent,
       child: HeroHeaderWidget(
+        color: style?.color ?? AppColors.ink,
         padding: const EdgeInsets.only(
           top: SearchConfig.compactHeaderTopPadding,
           bottom: SearchConfig.compactHeaderBottomPadding,
@@ -94,17 +112,34 @@ class SearchCompactHeaderDelegate extends SliverPersistentHeaderDelegate {
                 ),
               ),
             ),
+            if (counter != null)
+              SizedBox(
+                height:
+                    SearchConfig.compactCounterRowHeight +
+                    SearchConfig.compactHeaderGap / 2,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: UiConfig.pageHorizontalPadding,
+                    ),
+                    child: FittedBox(fit: BoxFit.scaleDown, child: counter),
+                  ),
+                ),
+              ),
             const SizedBox(height: SearchConfig.compactHeaderGap),
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: UiConfig.pageHorizontalPadding,
               ),
               child: SearchFieldWidget(
+                palette: style?.field,
                 controller: controller,
                 focusNode: focusNode,
                 onChanged: onChanged,
                 onSubmitted: onSubmitted,
                 onClear: onClear,
+                fadingText: fadingText,
               ),
             ),
           ],
@@ -122,10 +157,12 @@ class SearchCompactHeaderDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(SearchCompactHeaderDelegate oldDelegate) =>
       title != oldDelegate.title ||
+      style != oldDelegate.style ||
       onClose != oldDelegate.onClose ||
       controller != oldDelegate.controller ||
       focusNode != oldDelegate.focusNode ||
       onChanged != oldDelegate.onChanged ||
+      fadingText != oldDelegate.fadingText ||
       onClear != oldDelegate.onClear;
 }
 

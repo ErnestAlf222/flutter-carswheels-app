@@ -429,6 +429,9 @@ class AppTexts {
       'Agrega al menos 2 vehículos (hasta 3) para comparar';
   static const String compareAddVehicleLabel = 'Agregar vehículo';
   static const String compareClearLabel = 'Limpiar';
+  static const String compareStartTitle = 'Para empezar';
+  static String compareOpenDetailSemanticLabel(String name) =>
+      'Ver detalle de $name';
   static const String compareEmptySlotSemanticLabel =
       'Espacio libre, toca para agregar un vehículo';
   static const String compareAlreadyAddedNotice = 'Ya está en la comparación';
@@ -473,7 +476,9 @@ class AppTexts {
     required bool isBest,
   }) =>
       isBest ? '$row, $vehicle: $value, mejor valor' : '$row, $vehicle: $value';
-  static const String comparePickerTitle = 'Agregar vehículo';
+  static const String comparePickerTitle = 'Elige un auto para comparar';
+  static String comparePickerCountLabel(int count, int max) =>
+      'Llevas $count de $max';
   static const String comparePickerCloseSemanticLabel = 'Cerrar el selector';
   static const String comparePickerAddLabel = 'Comparar';
   static const String comparePickerAddedLabel = 'En la comparación';
@@ -481,9 +486,6 @@ class AppTexts {
       '$name ya está en la comparación, toca para ver opciones';
   static String comparePickerAddSemanticLabel(String name) =>
       'Agregar $name a la comparación';
-  static const String comparePickerHint =
-      'Modo comparar: toca "Comparar" en el auto que quieras agregar. Tocar la tarjeta abre su detalle.';
-  static const String comparePickerHintDismissSemanticLabel = 'Cerrar el aviso';
   static const String closeLabel = 'Cerrar';
 
   static const String cancelLabel = 'Cancelar';
@@ -516,6 +518,53 @@ class AppTexts {
   static const String compareChartButtonSemanticLabel =
       'Ver la comparación visual';
   static const String compareChartTitle = 'Comparación visual';
+  // Veredicto de la gráfica: habla de eficiencia, no de qué conviene comprar.
+  static const String compareVerdictLead = 'El ';
+  static String compareVerdictNames(List<String> names) => names.length < 2
+      ? names.join()
+      : '${names.sublist(0, names.length - 1).join(', ')} y ${names.last}';
+  static String compareVerdictPercent(int percent) =>
+      percent < 1 ? 'menos de 1\u00A0%' : '$percent\u00A0%';
+  static String compareVerdictConsumptionTail(
+    String difference,
+    int? percent,
+    String other,
+  ) => percent == null
+      ? ' ahorra más combustible: $difference km\u2060/\u2060l más que el $other'
+      : ' ahorra más combustible: $difference km\u2060/\u2060l, '
+            '${compareVerdictPercent(percent)} más eficiente que el $other';
+  static String compareVerdictCo2Tail(
+    String difference,
+    int? percent,
+    String other,
+  ) => percent == null
+      ? ' emite menos: $difference g\u2060/\u2060km menos que el $other'
+      : ' emite menos: $difference g\u2060/\u2060km menos, '
+            '${compareVerdictPercent(percent)} menos que el $other';
+  static String compareVerdictCostTail(
+    String difference,
+    int? percent,
+    String other,
+  ) => percent == null
+      ? ' cuesta menos al año: $difference menos que el $other'
+      : ' cuesta menos al año: $difference menos, '
+            '${compareVerdictPercent(percent)} menos que el $other';
+  static String compareVerdictSafetyTail(
+    String winner,
+    String other,
+    String otherName,
+  ) => ' tiene mejor calificación: $winner frente a $other del $otherName';
+  static const String compareVerdictConsumptionTie = ' consumen igual';
+  static const String compareVerdictCo2Tie = ' emiten igual';
+  static const String compareVerdictCostTie = ' cuestan igual al año';
+  static const String compareVerdictSafetyTie = ' tienen la misma calificación';
+  static const String compareVerdictConsumptionMissing =
+      'Sin dato de consumo para ';
+  static const String compareVerdictCo2Missing = 'Sin dato de CO₂ para ';
+  static const String compareVerdictCostMissing =
+      'Sin dato de costo anual para ';
+  static const String compareVerdictSafetyMissing =
+      'Sin dato de calificación para ';
   static const String compareChartConsumption = 'Consumo';
   static const String compareChartCo2 = 'CO₂';
   static const String compareChartAnnualCost = 'Costo anual';
@@ -583,6 +632,8 @@ class AppTexts {
 
   // Sugerencias de Buscar con el campo vacío.
   static const String searchPicksTitle = 'Sugerencias para ti';
+  static const String searchFeedEndNote = 'Llegaste al final del catálogo';
+  static const String searchFeedLoadingSemanticLabel = 'Cargando más autos';
   static String searchPickSemanticLabel(String brand, String model) =>
       'Ver $brand $model';
 

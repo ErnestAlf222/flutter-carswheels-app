@@ -2,7 +2,9 @@
 export 'entities/favorite_entity.dart';
 export 'entities/favorite_identity.dart';
 export 'entities/favorite_photo_entity.dart';
+export 'entities/favorite_selection_block.dart';
 export 'entities/favorite_snapshot_entity.dart';
+export 'entities/favorite_sort_mode.dart';
 export 'entities/favorite_toggle_result.dart';
 export 'entities/stored_photo_file.dart';
 // Contratos
@@ -12,6 +14,9 @@ export 'datasources/favorites_datasource.dart';
 // Servicios
 export 'services/favorite_orphan_planner.dart';
 export 'services/favorite_photo_namer.dart';
+export 'services/favorite_photo_proportion.dart';
+export 'services/favorite_selection_policy.dart';
+export 'services/favorite_sorter.dart';
 // Casos de uso
 export 'usecases/attach_favorite_photo_usecase.dart';
 export 'usecases/clean_orphan_favorite_photos_usecase.dart';
@@ -19,6 +24,7 @@ export 'usecases/complete_favorite_snapshot_usecase.dart';
 export 'usecases/delete_favorite_photo_usecase.dart';
 export 'usecases/get_favorites_usecase.dart';
 export 'usecases/is_favorite_usecase.dart';
+export 'usecases/measure_favorite_photo_usecase.dart';
 export 'usecases/observe_favorites_usecase.dart';
 export 'usecases/remove_favorite_usecase.dart';
 export 'usecases/restore_favorite_usecase.dart';

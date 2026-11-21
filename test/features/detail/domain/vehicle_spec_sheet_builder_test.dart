@@ -127,6 +127,9 @@ void main() {
       displacementLiters: null,
       drive: null,
       fuelType: null,
+      vehicleClass: null,
+      combinedKmPerLiter: null,
+      annualFuelCostUsd: null,
     );
     expect(builder.build(empty, isMexico: false), isEmpty);
     expect(builder.build(empty, isMexico: true), isEmpty);

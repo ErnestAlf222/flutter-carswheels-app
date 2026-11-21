@@ -15,12 +15,14 @@ class CompareSlotsRowWidget extends StatelessWidget {
     required this.visuals,
     required this.onRemove,
     required this.onAdd,
+    required this.onOpen,
   });
 
   final CompareSelectionEntity selection;
   final CompareSlotVisuals visuals;
   final ValueChanged<CompareSlotEntity> onRemove;
   final VoidCallback onAdd;
+  final ValueChanged<CompareSlotEntity> onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +45,7 @@ class CompareSlotsRowWidget extends StatelessWidget {
                         slot: selection.slots[index],
                         visuals: visuals,
                         onRemove: () => onRemove(selection.slots[index]),
+                        onOpen: () => onOpen(selection.slots[index]),
                       )
                     : CompareEmptySlotWidget(onTap: onAdd),
               ),

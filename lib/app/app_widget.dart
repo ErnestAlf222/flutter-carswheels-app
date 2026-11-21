@@ -191,7 +191,11 @@ class _AppState extends State<App> {
             transmissionLabeler: _dependencies.transmissionLabeler,
             fuelTypeLabeler: _dependencies.fuelTypeLabeler,
             driveLabeler: _dependencies.driveLabeler,
+            vehicleClassTranslator: _dependencies.vehicleClassTranslator,
           ),
+        ),
+        RepositoryProvider<ObserveCompareSelectionUseCase>.value(
+          value: _dependencies.observeCompareSelectionUseCase,
         ),
         RepositoryProvider<VersionDescriptorBuilder>.value(
           value: _dependencies.versionDescriptorBuilder,
@@ -364,6 +368,7 @@ class _AppState extends State<App> {
               snapshotSource: _dependencies.favoriteSnapshotSource,
               attachPhoto: _dependencies.attachFavoritePhotoUseCase,
               deletePhoto: _dependencies.deleteFavoritePhotoUseCase,
+              measurePhoto: _dependencies.measureFavoritePhotoUseCase,
             ),
           ),
           BlocProvider<LogoPrecacheCubit>(

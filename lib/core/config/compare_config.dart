@@ -26,6 +26,9 @@ class CompareConfig {
   // Cuánto dura el mensaje breve de "ya está" o "lleno".
   static const int noticeDurationMilliseconds = 3500;
 
+  // Prefijo del héroe de foto al abrir Detalle desde una columna.
+  static const String detailHeroTagPrefix = 'compare';
+
   // Espacios de la fila: separación, alto mínimo, esquinas, borde y contenido.
   static const double slotGap = 8.0;
   static const double slotMinHeight = 188.0;
@@ -96,6 +99,10 @@ class CompareConfig {
   // Selector de vehículo como hoja inferior sobre Comparar.
   static const double pickerSheetHeightFraction = 0.92;
 
+  // Sugerencias al azar: cuántas se muestran (de las que el índice ya tiene).
+  static const int suggestionsCount = 6;
+  static const double startTopGap = 28.0;
+
   // Botón "Comparar" de las tarjetas del selector: píldora compacta.
   static const double pickerButtonHeight = 28.0;
   static const double pickerButtonHorizontalPadding = 10.0;
@@ -103,14 +110,6 @@ class CompareConfig {
   static const double pickerButtonIconGap = 2.0;
   static const double pickerButtonBorderWidth = 1.0;
   static const double pickerButtonMaxTextScale = 1.15;
-
-  // Aviso de modo comparar: cuánto se queda, cómo entra y cómo se pliega.
-  static const int pickerHintVisibleMilliseconds = 6000;
-  static const int pickerHintEnterMilliseconds = 260;
-  static const int pickerHintCollapseMilliseconds = 220;
-  static const double pickerHintSlideOffset = 0.25;
-  static const double pickerHintCloseSize = 28.0;
-  static const double pickerHintCloseIconSize = 16.0;
 
   // Botón flotante de la gráfica: igual huella que los de Buscar.
   static const double chartButtonSize = 52.0;
@@ -151,6 +150,16 @@ class CompareConfig {
   static const int chartGrowMilliseconds = 900;
   static const double chartColumnsEndFraction = 0.65;
   static const double chartLineStartFraction = 0.3;
+
+  // Tarjeta de veredicto de la gráfica.
+  static const double verdictCardRadius = 16.0;
+  static const double verdictCardPadding = 14.0;
+  static const double verdictMedalSize = 32.0;
+  static const double verdictMedalIconSize = 18.0;
+  static const double verdictIconGap = 12.0;
+  static const double verdictTopGap = 16.0;
+  static const double verdictSlideOffset = 0.2;
+  static const double verdictBorderWidth = 1.0;
 
   // Pastilla del mejor valor.
   static const double bestPillHorizontalPadding = 8.0;

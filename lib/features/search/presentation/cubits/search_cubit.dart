@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/search/domain/domain.dart';
+import 'package:cars_wheels_app/features/search/domain/feed/feed.dart';
 import 'package:cars_wheels_app/features/search/presentation/cubits/search_analysis_runner.dart';
 import 'package:cars_wheels_app/features/search/presentation/cubits/search_state.dart';
 
@@ -89,13 +90,34 @@ class SearchCubit extends Cubit<SearchState> {
   /// Salen del índice ya construido, sin red. Con la misma [seed] y el mismo
   /// alcance se conservan, aunque el índice siga creciendo; otro mercado, otro
   /// año u otra semilla las recalculan. Vacío mientras no haya datos.
-  List<SearchResultEntity> picksFor(int seed) {
+  List<SearchResultEntity> picksFor(
+    int seed, {
+    int count = SearchConfig.picksCount,
+  }) {
     final scope = state.scope;
     if (scope == null) return const [];
-    final key = '${scope.key} $seed';
+    final key = '${scope.key} $seed $count';
     if (key == _picksKey && _picks.isNotEmpty) return _picks;
     _picksKey = key;
-    return _picks = searchWithScope.picks(scope, seed: seed);
+    return _picks = searchWithScope.picks(scope, seed: seed, count: count);
+  }
+
+  /// Página del feed del alcance vigente; vacía sin alcance ni índice.
+  ///
+  /// [exclude] son las identidades ya mostradas (sugerencias y páginas previas).
+  SearchFeedPageEntity feedPage(
+    int seed, {
+    required Set<String> exclude,
+    int pageSize = SearchConfig.feedPageSize,
+  }) {
+    final scope = state.scope;
+    if (scope == null) return SearchFeedPageEntity.empty;
+    return searchWithScope.feedPage(
+      scope,
+      seed: seed,
+      exclude: exclude,
+      pageSize: pageSize,
+    );
   }
 
   /// Pide el índice del alcance vigente (al entrar a la pantalla de búsqueda).

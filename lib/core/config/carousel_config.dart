@@ -19,6 +19,8 @@ class CarouselConfig {
   // Ancho del degradado que desvanece los logos en los bordes.
   static const double edgeFadeWidth = 36.0;
   static const double selectedRingWidth = 2.0;
+  // Escala del logo de la marca activa (10 % más grande).
+  static const double selectedScale = 1.1;
   // Margen vertical de la lista para que no recorte la sombra de las tarjetas.
   static const double shadowRoom = 20.0;
   // Desplazamiento de las flechas: una página de marcas, con su duración.

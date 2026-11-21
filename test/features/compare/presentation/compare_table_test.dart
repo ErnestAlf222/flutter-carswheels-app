@@ -583,6 +583,8 @@ void main() {
     market.switchTo('mx');
     await _settle(tester);
     await _settle(tester);
+    // El valor viejo se desvanece antes de irse del árbol.
+    await tester.pump(AppMotion.slow);
     expect(find.text('18.0'), findsOneWidget);
     expect(_bestPillAround('18.0'), findsOneWidget);
     // Reglas de México: potencia sí; clase no.

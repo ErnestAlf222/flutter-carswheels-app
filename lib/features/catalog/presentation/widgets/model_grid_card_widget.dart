@@ -21,6 +21,7 @@ class ModelGridCardWidget extends StatelessWidget {
     this.footerAction,
     this.leadingAction,
     this.photoBadge,
+    this.photoAspectRatio = ModelGridConfig.photoAspectRatio,
   });
 
   final ModelGroupEntity group;
@@ -47,6 +48,9 @@ class ModelGridCardWidget extends StatelessWidget {
 
   /// Insignia opcional en la esquina inferior izquierda de la foto.
   final Widget? photoBadge;
+
+  /// Proporción (ancho / alto) de la foto; el mosaico de Favoritos la cambia por tarjeta.
+  final double photoAspectRatio;
 
   @override
   Widget build(BuildContext context) {
@@ -76,6 +80,7 @@ class ModelGridCardWidget extends StatelessWidget {
                     year: year,
                     heroTag: heroTag,
                     photoBadge: photoBadge,
+                    aspectRatio: photoAspectRatio,
                   ),
                   Expanded(
                     child: Padding(
@@ -177,6 +182,7 @@ class _PhotoArea extends StatelessWidget {
     required this.name,
     required this.year,
     required this.heroTag,
+    required this.aspectRatio,
     this.photoBadge,
   });
 
@@ -184,6 +190,7 @@ class _PhotoArea extends StatelessWidget {
   final String name;
   final int year;
   final String heroTag;
+  final double aspectRatio;
   final Widget? photoBadge;
 
   @override
@@ -192,7 +199,7 @@ class _PhotoArea extends StatelessWidget {
       top: Radius.circular(AppRadii.card),
     );
     return AspectRatio(
-      aspectRatio: ModelGridConfig.photoAspectRatio,
+      aspectRatio: aspectRatio,
       child: Stack(
         fit: StackFit.expand,
         children: [

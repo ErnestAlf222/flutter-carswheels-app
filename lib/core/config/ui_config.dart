@@ -126,6 +126,8 @@ class UiConfig {
   static const double detailCreditTopMargin = 8.0;
   static const double detailCreditMinTouchHeight = 32.0;
   // Burbuja de la ficha técnica y su panel desplegable.
+  static const double specRowIconSize = 20.0;
+  static const double specSectionTopGap = 12.0;
   static const double specBubbleSize = 52.0;
   static const double specBubbleIconSize = 26.0;
   static const double specBubbleRightMargin = 20.0;

@@ -13,6 +13,12 @@ import 'package:cars_wheels_app/features/compare/presentation/widgets/widgets.da
 /// Abre el selector de vehículo sobre Comparar; lo implementa la capa app.
 typedef ComparePickerOpener = Future<void> Function(BuildContext context);
 
+/// Abre el Detalle de un vehículo de la comparación; lo implementa la capa app.
+typedef CompareDetailOpener = Future<void> Function(
+  BuildContext context,
+  CompareSlotEntity slot,
+);
+
 /// Pantalla Comparar: encabezado, hasta 3 espacios y lo que sigue según cuántos haya.
 class ComparePage extends StatefulWidget {
   const ComparePage({
@@ -20,6 +26,8 @@ class ComparePage extends StatefulWidget {
     required this.selectorBuilder,
     required this.visuals,
     required this.onOpenPicker,
+    this.onOpenDetail,
+    this.startBuilder,
     this.openPickerOnEntry = false,
   });
 
@@ -32,6 +40,12 @@ class ComparePage extends StatefulWidget {
   /// Selector de vehículo como hoja inferior; lo implementa la capa app.
   final ComparePickerOpener onOpenPicker;
 
+  /// Detalle de un vehículo de la tabla, con su mercado y año; lo implementa la capa app.
+  final CompareDetailOpener? onOpenDetail;
+
+  /// "Para empezar": sugerencias con menos de dos autos; las arma la capa app.
+  final WidgetBuilder? startBuilder;
+
   /// Abre el selector al llegar (con un solo vehículo desde Detalle).
   final bool openPickerOnEntry;
 
@@ -40,6 +54,9 @@ class ComparePage extends StatefulWidget {
 }
 
 class _ComparePageState extends State<ComparePage> {
+  // Las columnas salen con fundido y colapso antes de mostrar el estado vacío.
+  bool _clearing = false;
+
   @override
   void initState() {
     super.initState();
@@ -54,6 +71,23 @@ class _ComparePageState extends State<ComparePage> {
     unawaited(widget.onOpenPicker(context));
   }
 
+  // Confirma; las columnas salen con su transición y recién entonces se vacía.
+  Future<void> _clear(CompareSelectionEntity selection) async {
+    final cubit = context.read<CompareCubit>();
+    final reduced = MediaQuery.of(context).disableAnimations;
+    final confirmed = await showCompareClearDialog(context, selection.length);
+    if (!confirmed || !mounted) return;
+    if (!reduced) {
+      setState(() => _clearing = true);
+      await Future<void>.delayed(AppMotion.medium);
+    }
+    await cubit.clear();
+    // Sin cambio guardado en la selección, no se queda a medio ocultar.
+    if (mounted && _clearing && cubit.state is! CompareLoaded) {
+      setState(() => _clearing = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final bottomPadding =
@@ -62,53 +96,68 @@ class _ComparePageState extends State<ComparePage> {
         ModelGridConfig.listBottomGap;
     // Se lee aquí: el Scaffold quita el teclado del MediaQuery de su cuerpo.
     final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              const StatusBarBandSliver(),
-              SliverToBoxAdapter(
-                child: HeroHeaderWidget(
-                  includeTopInset: false,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: UiConfig.pageHorizontalPadding,
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          // Con texto grande el título se encoge en vez de desbordar.
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              AppTexts.comparePageTitle,
-                              maxLines: 1,
-                              style: AppTextStyles.onDarkScreenTitle,
+    return BlocListener<CompareCubit, CompareState>(
+      // Ya vacía: el estado vacío entra con fundido.
+      listenWhen: (previous, current) =>
+          current is CompareLoaded && current.selection.isEmpty,
+      listener: (context, state) {
+        if (_clearing) setState(() => _clearing = false);
+      },
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Stack(
+          children: [
+            CustomScrollView(
+              slivers: [
+                const StatusBarBandSliver(),
+                SliverToBoxAdapter(
+                  child: HeroHeaderWidget(
+                    includeTopInset: false,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: UiConfig.pageHorizontalPadding,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            // Con texto grande el título se encoge en vez de desbordar.
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                AppTexts.comparePageTitle,
+                                maxLines: 1,
+                                style: AppTextStyles.onDarkScreenTitle,
+                              ),
                             ),
                           ),
-                        ),
-                        widget.selectorBuilder(context),
-                      ],
+                          widget.selectorBuilder(context),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const ConnectivityBandSliver(),
-              BlocBuilder<CompareCubit, CompareState>(
-                builder: (context, state) => _Body(
-                  state: state,
-                  visuals: widget.visuals,
-                  bottomPadding: bottomPadding,
-                  onAdd: _openPicker,
+                const ConnectivityBandSliver(),
+                BlocBuilder<CompareCubit, CompareState>(
+                  builder: (context, state) => _Body(
+                    state: state,
+                    visuals: widget.visuals,
+                    bottomPadding: bottomPadding,
+                    onAdd: _openPicker,
+                    startBuilder: widget.startBuilder,
+                    clearing: _clearing,
+                    onClear: _clear,
+                    onOpenDetail: (slot) {
+                      final opener = widget.onOpenDetail;
+                      if (opener != null) unawaited(opener(context, slot));
+                    },
+                  ),
                 ),
-              ),
-            ],
-          ),
-          _ChartButton(keyboardOpen: keyboardOpen),
-        ],
+              ],
+            ),
+            _ChartButton(keyboardOpen: keyboardOpen),
+          ],
+        ),
       ),
     );
   }
@@ -174,12 +223,22 @@ class _Body extends StatelessWidget {
     required this.visuals,
     required this.bottomPadding,
     required this.onAdd,
+    required this.onOpenDetail,
+    required this.startBuilder,
+    required this.clearing,
+    required this.onClear,
   });
 
   final CompareState state;
   final CompareSlotVisuals visuals;
   final double bottomPadding;
   final VoidCallback onAdd;
+  final ValueChanged<CompareSlotEntity> onOpenDetail;
+  final WidgetBuilder? startBuilder;
+
+  /// Las columnas están saliendo: se desvanecen y se pliegan.
+  final bool clearing;
+  final ValueChanged<CompareSelectionEntity> onClear;
 
   @override
   Widget build(BuildContext context) {
@@ -234,8 +293,7 @@ class _Body extends StatelessWidget {
                       const Spacer(),
                       if (!selection.isEmpty)
                         TextButton(
-                          onPressed: () =>
-                              unawaited(_confirmClear(context, selection)),
+                          onPressed: clearing ? null : () => onClear(selection),
                           style: TextButton.styleFrom(
                             foregroundColor: AppColors.ink,
                             minimumSize: const Size(
@@ -251,30 +309,41 @@ class _Body extends StatelessWidget {
                     ],
                   ),
                 ),
-                CompareSlotsRowWidget(
-                  selection: selection,
-                  visuals: visuals,
-                  onRemove: cubit.remove,
-                  onAdd: onAdd,
+                // Al limpiar, las columnas se desvanecen y se pliegan.
+                _ClearOut(
+                  clearing: clearing,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      CompareSlotsRowWidget(
+                        selection: selection,
+                        visuals: visuals,
+                        onRemove: cubit.remove,
+                        onAdd: onAdd,
+                        onOpen: onOpenDetail,
+                      ),
+                      if (selection.canCompare) ...[
+                        CompareVersionPillsRowWidget(
+                          selection: selection,
+                          versionsSource: context.read<CompareVersionsSource>(),
+                          versionLabeler: context.read<CompareVersionLabeler>(),
+                        ),
+                        const SizedBox(height: CompareConfig.tableTopGap),
+                        Text(
+                          AppTexts.compareTableTitle,
+                          style: AppTextStyles.sectionTitle,
+                        ),
+                        const SizedBox(height: CompareConfig.tableSupportGap),
+                        Text(
+                          AppTexts.compareTableSupport,
+                          style: AppTextStyles.caption,
+                        ),
+                        const SizedBox(height: CompareConfig.tableBandTopGap),
+                      ],
+                    ],
+                  ),
                 ),
-                if (selection.canCompare) ...[
-                  CompareVersionPillsRowWidget(
-                    selection: selection,
-                    versionsSource: context.read<CompareVersionsSource>(),
-                    versionLabeler: context.read<CompareVersionLabeler>(),
-                  ),
-                  const SizedBox(height: CompareConfig.tableTopGap),
-                  Text(
-                    AppTexts.compareTableTitle,
-                    style: AppTextStyles.sectionTitle,
-                  ),
-                  const SizedBox(height: CompareConfig.tableSupportGap),
-                  Text(
-                    AppTexts.compareTableSupport,
-                    style: AppTextStyles.caption,
-                  ),
-                  const SizedBox(height: CompareConfig.tableBandTopGap),
-                ] else ...[
+                if (!selection.canCompare) ...[
                   const SizedBox(height: CompareConfig.helpTopGap),
                   CompareHelpWidget(isEmpty: selection.isEmpty, onAdd: onAdd),
                 ],
@@ -283,21 +352,53 @@ class _Body extends StatelessWidget {
           ),
         ),
         if (selection.canCompare)
-          _TableSlivers(slots: selection.slots, bottomPadding: bottomPadding)
-        else
+          SliverAnimatedOpacity(
+            opacity: clearing ? 0 : 1,
+            duration: AppMotion.of(
+              AppMotion.medium,
+              reduced: MediaQuery.of(context).disableAnimations,
+            ),
+            curve: AppMotion.change,
+            sliver: _TableSlivers(
+              slots: selection.slots,
+              bottomPadding: bottomPadding,
+            ),
+          )
+        else ...[
+          if (startBuilder case final builder?)
+            SliverToBoxAdapter(child: builder(context)),
           SliverToBoxAdapter(child: SizedBox(height: bottomPadding)),
+        ],
       ],
     );
   }
+}
 
-  // Limpiar pide confirmar; quitar un solo vehículo no.
-  Future<void> _confirmClear(
-    BuildContext context,
-    CompareSelectionEntity selection,
-  ) async {
-    final cubit = context.read<CompareCubit>();
-    final confirmed = await showCompareClearDialog(context, selection.length);
-    if (confirmed) await cubit.clear();
+/// Salida de las columnas al limpiar: fundido y colapso del alto; sin animaciones, de golpe.
+class _ClearOut extends StatelessWidget {
+  const _ClearOut({required this.clearing, required this.child});
+
+  final bool clearing;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(end: clearing ? 0 : 1),
+      duration: AppMotion.of(
+        AppMotion.medium,
+        reduced: MediaQuery.of(context).disableAnimations,
+      ),
+      curve: AppMotion.change,
+      child: child,
+      builder: (context, value, child) => ClipRect(
+        child: Align(
+          alignment: Alignment.topCenter,
+          heightFactor: value,
+          child: Opacity(opacity: value, child: child),
+        ),
+      ),
+    );
   }
 }
 

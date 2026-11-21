@@ -50,6 +50,8 @@ class FavoritePayloadMapper {
               FavoritesConfig.payloadPhotoReferenceKey: photo.isReference,
               FavoritesConfig.payloadPhotoAspectKey: photo.aspectRatio,
               FavoritesConfig.payloadPhotoLocalKey: photo.localFileName,
+              FavoritesConfig.payloadPhotoWidthKey: photo.widthPixels,
+              FavoritesConfig.payloadPhotoHeightKey: photo.heightPixels,
             },
     });
   }
@@ -105,6 +107,11 @@ class FavoritePayloadMapper {
                 // Ausente en lo guardado antes de las fotos locales: queda nulo.
                 localFileName:
                     photoJson[FavoritesConfig.payloadPhotoLocalKey] as String?,
+                // Ausentes en lo guardado antes de medir las fotos: quedan nulos.
+                widthPixels:
+                    photoJson[FavoritesConfig.payloadPhotoWidthKey] as int?,
+                heightPixels:
+                    photoJson[FavoritesConfig.payloadPhotoHeightKey] as int?,
               ),
       ),
     );

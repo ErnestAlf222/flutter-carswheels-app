@@ -34,6 +34,17 @@ class VehicleSpecsConfig {
   static const String turbochargerKey = 'tCharger'; // 'T' si tiene turbo
   static const String superchargerKey =
       'sCharger'; // 'S' si tiene supercargador
+  static const String passengerVolume2DoorKey = 'pv2'; // pies cúbicos
+  static const String passengerVolume4DoorKey = 'pv4';
+  static const String passengerVolumeHatchbackKey = 'hpv';
+  static const String cargoVolume2DoorKey = 'lv2';
+  static const String cargoVolume4DoorKey = 'lv4';
+  static const String cargoVolumeHatchbackKey = 'hlv';
+  static const String charge240Key = 'charge240'; // horas a 240 V
+  static const String charge120Key = 'charge120'; // horas a 120 V
+  static const String startStopKey = 'startStop'; // 'Y' o 'N'
+  static const String startStopYes = 'Y';
+  static const String startStopNo = 'N';
   static const String turbochargerMark = 'T';
   static const String superchargerMark = 'S';
 
@@ -87,7 +98,7 @@ class VehicleSpecsConfig {
   static const int summaryCacheTimeToLiveDays = 30;
 
   // Versión de la clave del detalle; 'v3' invalida lo guardado sin los campos nuevos.
-  static const String vehicleDetailCacheKeyVersion = 'v5';
+  static const String vehicleDetailCacheKeyVersion = 'v6';
   // Versiones por variante, para abrir Detalle sin red.
   static const String groupOptionsCacheKeyVersion = 'options-v1';
 

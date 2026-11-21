@@ -10,6 +10,7 @@ export 'floating_nav_bar_widget.dart';
 export 'floating_nav_item_model.dart';
 export 'hero_header_widget.dart';
 export 'inline_message_widget.dart';
+export 'masonry_sliver_widget.dart';
 export 'photo_hero_shuttle.dart';
 export 'photo_placeholder_widget.dart';
 export 'placeholder_page_widget.dart';

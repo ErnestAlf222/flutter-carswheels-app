@@ -10,7 +10,11 @@ class HeroHeaderWidget extends StatelessWidget {
     required this.child,
     this.padding,
     this.includeTopInset = true,
+    this.color = AppColors.ink,
   });
+
+  /// Color de la banda; por defecto la tinta plana de toda la app.
+  final Color color;
 
   final Widget child;
 
@@ -24,9 +28,9 @@ class HeroHeaderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final topInset = includeTopInset ? MediaQuery.paddingOf(context).top : 0.0;
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        color: AppColors.ink,
-        borderRadius: BorderRadius.vertical(
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: const BorderRadius.vertical(
           bottom: Radius.circular(HeaderConfig.bottomRadius),
         ),
       ),

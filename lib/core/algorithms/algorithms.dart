@@ -7,4 +7,5 @@ export 'sort_strategy.dart';
 export 'binary_search.dart';
 export 'bounded_edit_distance.dart';
 export 'circular_index.dart';
+export 'masonry_layout.dart';
 export 'text_normalizer.dart';

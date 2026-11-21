@@ -65,6 +65,17 @@ class VehicleDetailBuilder {
       engineKind: classifier.engineKindOf(record.atvType),
       hasTurbo: record.hasTurbo,
       hasSupercharger: record.hasSupercharger,
+      passengerVolumeLiters: _cubicFeetToLiters(
+        record.passengerVolumeCubicFeet,
+      ),
+      cargoVolumeLiters: _cubicFeetToLiters(record.cargoVolumeCubicFeet),
+      chargeHours240: isElectric || isPluginHybrid
+          ? _positive(record.chargeHours240)
+          : null,
+      chargeHours120: isElectric || isPluginHybrid
+          ? _positive(record.chargeHours120)
+          : null,
+      hasStartStop: record.hasStartStop,
     );
   }
 
@@ -73,6 +84,9 @@ class VehicleDetailBuilder {
 
   double? _positive(double? value) =>
       value == null || value <= 0 ? null : value;
+
+  double? _cubicFeetToLiters(double? cubicFeet) =>
+      cubicFeet == null ? null : cubicFeet * UnitsConfig.litersPerCubicFoot;
 
   double? _milesToKilometers(double? miles) =>
       miles == null ? null : miles * UnitsConfig.kilometersPerMile;

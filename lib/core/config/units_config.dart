@@ -5,6 +5,9 @@ class UnitsConfig {
   static const double milesPerGallonToKilometersPerLiter = 0.425144;
   static const double kilometersPerMile = 1.609344;
 
+  // Litros por pie cúbico, para los volúmenes de cabina y de carga.
+  static const double litersPerCubicFoot = 28.3168;
+
   // Centímetros cúbicos por litro, para la cilindrada de México.
   static const double cubicCentimetersPerLiter = 1000.0;
 

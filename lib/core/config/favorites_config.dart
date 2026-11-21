@@ -29,6 +29,9 @@ class FavoritesConfig {
   static const String payloadPhotoSourceKey = 'source';
   static const String payloadPhotoReferenceKey = 'reference';
   static const String payloadPhotoAspectKey = 'aspect';
+  // Ancho y alto en píxeles de la foto; ausentes en lo guardado antes de existir.
+  static const String payloadPhotoWidthKey = 'width';
+  static const String payloadPhotoHeightKey = 'height';
   // Nombre del archivo local de la foto; ausente en lo guardado antes de existir.
   static const String payloadPhotoLocalKey = 'local';
 
@@ -66,6 +69,27 @@ class FavoritesConfig {
   static const double headerSubtitleGap = 2.0;
   static const double listTopGap = 20.0;
   static const double filterBottomGap = 12.0;
+
+  // Mosaico de dos columnas: proporción de la foto (ancho / alto) por defecto y límites.
+  static const double mosaicDefaultPhotoAspect = 1.3;
+  static const double mosaicMinPhotoAspect = 0.75;
+  static const double mosaicMaxPhotoAspect = 1.5;
+  // Atenuación de una tarjeta que no se puede elegir en el modo de selección.
+  static const double selectionDimmedOpacity = 0.4;
+
+  // Modo de selección: casilla circular sobre la foto y barra inferior.
+  static const double checkboxTouchSize = 44.0;
+  static const double checkboxSize = 24.0;
+  static const double checkboxIconSize = 16.0;
+  static const double checkboxBorderWidth = 2.0;
+  static const double selectionBarHorizontalPadding = 16.0;
+  static const double selectionBarVerticalPadding = 10.0;
+  static const double selectionBarGap = 12.0;
+  static const double selectionBarNoteGap = 6.0;
+  static const double selectionBarRadius = 20.0;
+  static const double selectionActionIconSize = 20.0;
+  // Espacio extra al final de la lista mientras la barra de selección está a la vista.
+  static const double selectionListReserve = 116.0;
 
   // Estado vacío: ilustración dibujada y espacios.
   static const double emptyIllustrationSize = 168.0;

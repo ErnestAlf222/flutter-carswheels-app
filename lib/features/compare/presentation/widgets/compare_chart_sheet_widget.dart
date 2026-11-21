@@ -7,6 +7,7 @@ import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/compare/domain/domain.dart';
 import 'package:cars_wheels_app/features/compare/presentation/widgets/compare_chart_painter.dart';
 import 'package:cars_wheels_app/features/compare/presentation/widgets/compare_sheet_frame_widget.dart';
+import 'package:cars_wheels_app/features/compare/presentation/widgets/compare_verdict_card_widget.dart';
 
 /// Abre la hoja oscura "Comparación visual" con las métricas dadas.
 Future<void> showCompareChartSheet(
@@ -129,6 +130,8 @@ class _CompareChartSheetWidgetState extends State<CompareChartSheetWidget> {
                     )
                   : const SizedBox.shrink(key: ValueKey('no-info')),
             ),
+            const SizedBox(height: CompareConfig.verdictTopGap),
+            CompareVerdictCardWidget(metric: metric, names: widget.names),
             const SizedBox(height: AppSpacing.m),
             Text(
               metric.lowerIsBetter

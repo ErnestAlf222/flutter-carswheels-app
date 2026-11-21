@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:dio/dio.dart';
 
@@ -82,6 +83,26 @@ class FileFavoritePhotoStore implements FavoritePhotoStore {
       }
     }
     return bytes.isEmpty ? null : bytes;
+  }
+
+  @override
+  Future<({int width, int height})?> measure(String fileName) async {
+    final file = File('${directory.path}/$fileName');
+    ui.ImmutableBuffer? buffer;
+    ui.ImageDescriptor? descriptor;
+    try {
+      if (!await file.exists()) return null;
+      buffer = await ui.ImmutableBuffer.fromUint8List(await file.readAsBytes());
+      // El descriptor lee el encabezado sin decodificar toda la imagen.
+      descriptor = await ui.ImageDescriptor.encoded(buffer);
+      final size = (width: descriptor.width, height: descriptor.height);
+      return size.width > 0 && size.height > 0 ? size : null;
+    } on Object {
+      return null;
+    } finally {
+      descriptor?.dispose();
+      buffer?.dispose();
+    }
   }
 
   @override

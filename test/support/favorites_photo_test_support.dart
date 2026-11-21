@@ -33,6 +33,13 @@ class FakeFavoritePhotoStore implements FavoritePhotoStore {
 
   DateTime now = DateTime(2026, 1, 1);
 
+  /// Tamaño que "mide" el archivo; nulo simula una imagen ilegible.
+  ({int width, int height})? size = (width: 960, height: 640);
+
+  @override
+  Future<({int width, int height})?> measure(String fileName) async =>
+      files.containsKey(fileName) ? size : null;
+
   @override
   Future<String?> download({
     required String fileName,

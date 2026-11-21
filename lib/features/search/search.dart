@@ -5,3 +5,5 @@ export 'infrastructure/infrastructure.dart';
 export 'presentation/cubits/cubits.dart';
 // Páginas públicas
 export 'presentation/pages/pages.dart';
+// Estilo de la banda del selector
+export 'presentation/widgets/search_band_style.dart';

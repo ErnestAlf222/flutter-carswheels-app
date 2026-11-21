@@ -8,10 +8,14 @@ class DetailInfoRowWidget extends StatelessWidget {
     super.key,
     required this.label,
     required this.value,
+    this.icon,
   });
 
   final String label;
   final String? value;
+
+  /// Ícono sutil a la izquierda del título; sin él la fila queda como siempre.
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +27,19 @@ class DetailInfoRowWidget extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Text(label, style: AppTextStyles.infoLabel),
+              if (icon != null) ...[
+                Icon(
+                  icon,
+                  size: UiConfig.specRowIconSize,
+                  color: AppColors.mutedText,
+                ),
+                const SizedBox(width: AppSpacing.s),
+              ],
+              icon == null
+                  ? Text(label, style: AppTextStyles.infoLabel)
+                  : Flexible(
+                      child: Text(label, style: AppTextStyles.infoLabel),
+                    ),
               const SizedBox(width: AppSpacing.m),
               Expanded(
                 child: Text(

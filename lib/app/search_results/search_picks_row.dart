@@ -14,8 +14,9 @@ Widget buildSearchPicksRow(
   BuildContext context,
   List<SearchResultEntity> picks,
   String resetKey,
-  ValueChanged<SearchResultEntity> onOpen,
-) {
+  ValueChanged<SearchResultEntity> onOpen, {
+  SearchResultActionBuilder? actionBuilder,
+}) {
   final scaler = MediaQuery.textScalerOf(context);
   const photoHeight =
       SearchConfig.picksCardWidth / SearchConfig.picksPhotoAspectRatio;
@@ -29,7 +30,11 @@ Widget buildSearchPicksRow(
           scaler.scale(
             AppTextStyles.modelName.fontSize! * AppTextStyles.modelName.height!,
           );
-  final height = photoHeight + AppSpacing.xs * 2 + textHeight;
+  // Con acción (botón "Comparar") la tarjeta crece lo que mide el botón.
+  final actionHeight = actionBuilder == null
+      ? 0.0
+      : AppSpacing.xs + CompareConfig.pickerButtonHeight;
+  final height = photoHeight + AppSpacing.xs * 2 + textHeight + actionHeight;
   return SearchCardsScope(
     resetKey: resetKey,
     child: SizedBox(
@@ -46,6 +51,7 @@ Widget buildSearchPicksRow(
           key: ValueKey((resetKey, picks[index])),
           result: picks[index],
           onTap: () => onOpen(picks[index]),
+          action: actionBuilder?.call(context, picks[index]),
         ),
       ),
     ),
@@ -54,10 +60,16 @@ Widget buildSearchPicksRow(
 
 /// Tarjeta compacta: pide su foto al mostrarse.
 class _PickCard extends StatefulWidget {
-  const _PickCard({super.key, required this.result, required this.onTap});
+  const _PickCard({
+    super.key,
+    required this.result,
+    required this.onTap,
+    this.action,
+  });
 
   final SearchResultEntity result;
   final VoidCallback onTap;
+  final Widget? action;
 
   @override
   State<_PickCard> createState() => _PickCardState();
@@ -87,52 +99,64 @@ class _PickCardState extends State<_PickCard> {
     final result = widget.result;
     final name = result.groupName ?? result.brand;
     final radius = BorderRadius.circular(SearchConfig.picksRadius);
-    return SizedBox(
-      width: SearchConfig.picksCardWidth,
-      child: Semantics(
-        button: true,
-        label: AppTexts.searchPickSemanticLabel(result.brand, name),
-        excludeSemantics: true,
-        child: InkWell(
-          onTap: widget.onTap,
-          borderRadius: radius,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AspectRatio(
-                aspectRatio: SearchConfig.picksPhotoAspectRatio,
-                child: ModelPhotoWidget(
-                  brand: result.brand,
-                  model: name,
-                  year: result.year,
-                  borderRadius: SearchConfig.picksRadius,
-                  heroTag: context.read<PhotosCubit>().keyFor(
-                    PhotoRequest(
-                      brand: result.brand,
-                      model: name,
-                      year: result.year,
-                    ),
+    final body = Semantics(
+      button: true,
+      label: AppTexts.searchPickSemanticLabel(result.brand, name),
+      excludeSemantics: true,
+      child: InkWell(
+        onTap: widget.onTap,
+        borderRadius: radius,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AspectRatio(
+              aspectRatio: SearchConfig.picksPhotoAspectRatio,
+              child: ModelPhotoWidget(
+                brand: result.brand,
+                model: name,
+                year: result.year,
+                borderRadius: SearchConfig.picksRadius,
+                heroTag: context.read<PhotosCubit>().keyFor(
+                  PhotoRequest(
+                    brand: result.brand,
+                    model: name,
+                    year: result.year,
                   ),
-                  showNoPhotoBadge: false,
                 ),
+                showNoPhotoBadge: false,
               ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                result.brand.toUpperCase(),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.brandOverline,
-              ),
-              Text(
-                name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.modelName,
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              result.brand.toUpperCase(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.brandOverline,
+            ),
+            Text(
+              name,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.modelName,
+            ),
+          ],
         ),
       ),
+    );
+    final action = widget.action;
+    return SizedBox(
+      width: SearchConfig.picksCardWidth,
+      // El botón queda al pie y alineado entre tarjetas de nombre corto o largo.
+      child: action == null
+          ? body
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: body),
+                const SizedBox(height: AppSpacing.xs),
+                action,
+              ],
+            ),
     );
   }
 }

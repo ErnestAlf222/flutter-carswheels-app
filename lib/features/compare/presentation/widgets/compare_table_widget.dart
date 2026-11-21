@@ -40,11 +40,22 @@ class CompareTableWidget extends StatelessWidget {
             onRetry: onRetry,
           ),
         ],
-        for (final section in sections) ...[
+        for (final (sectionIndex, section) in sections.indexed) ...[
           const SizedBox(height: CompareConfig.sectionTopGap),
           Text(section.title, style: AppTextStyles.sectionTitle),
           const SizedBox(height: CompareConfig.sectionTitleGap),
-          for (final row in section.rows) _Row(row: row, slots: slots),
+          for (final (rowIndex, row) in section.rows.indexed)
+            // Cascada corta en la primera carga; la llave evita repetirla al
+            // cambiar valores.
+            StaggeredEntryWidget(
+              key: ValueKey(row.kind),
+              index:
+                  sections
+                      .take(sectionIndex)
+                      .fold<int>(0, (sum, item) => sum + item.rows.length) +
+                  rowIndex,
+              child: _Row(row: row, slots: slots),
+            ),
         ],
       ],
     );
@@ -72,18 +83,23 @@ class _Row extends StatelessWidget {
           CompareGridRowWidget(
             cellBuilder: (index) {
               final cell = index < row.cells.length ? row.cells[index] : null;
-              if (cell == null) return const SizedBox.shrink();
-              return _Value(
-                cell: cell,
-                semanticLabel: AppTexts.compareCellSemanticLabel(
-                  row.label,
-                  AppTexts.compareColumnHeaderLabel(
-                    slots[index].brand,
-                    slots[index].modelName,
-                  ),
-                  cell.text,
-                  isBest: cell.isBest,
-                ),
+              // Cada columna se llena cuando llegan sus datos, con un fundido.
+              return _CellFade(
+                child: cell == null
+                    ? const SizedBox.shrink(key: ValueKey(_emptyCellKey))
+                    : _Value(
+                        key: ValueKey((cell.text, cell.isBest)),
+                        cell: cell,
+                        semanticLabel: AppTexts.compareCellSemanticLabel(
+                          row.label,
+                          AppTexts.compareColumnHeaderLabel(
+                            slots[index].brand,
+                            slots[index].modelName,
+                          ),
+                          cell.text,
+                          isBest: cell.isBest,
+                        ),
+                      ),
               );
             },
           ),
@@ -93,9 +109,41 @@ class _Row extends StatelessWidget {
   }
 }
 
+// Llave de la celda aún sin datos.
+const String _emptyCellKey = 'compare-empty-cell';
+
+/// Fundido entre el valor viejo y el nuevo de una celda; sin animaciones, de golpe.
+///
+/// Los dos valores se apilan arriba a la izquierda: el alto no salta a mitad.
+class _CellFade extends StatelessWidget {
+  const _CellFade({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: AppMotion.of(
+        AppMotion.medium,
+        reduced: MediaQuery.of(context).disableAnimations,
+      ),
+      switchInCurve: AppMotion.change,
+      switchOutCurve: AppMotion.change,
+      transitionBuilder: (child, animation) =>
+          FadeTransition(opacity: animation, child: child),
+      layoutBuilder: (current, previous) => Stack(
+        alignment: Alignment.topLeft,
+        clipBehavior: Clip.none,
+        children: [...previous, ?current],
+      ),
+      child: child,
+    );
+  }
+}
+
 /// Valor de una celda; el mejor va en una pastilla de relleno accentTint.
 class _Value extends StatelessWidget {
-  const _Value({required this.cell, required this.semanticLabel});
+  const _Value({super.key, required this.cell, required this.semanticLabel});
 
   final CompareTableCellEntity cell;
   final String semanticLabel;

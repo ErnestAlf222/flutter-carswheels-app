@@ -42,6 +42,7 @@ class AppDependencies {
     this.logoFileStore,
     this.favoritePhotoStore,
     this.attachFavoritePhotoUseCase,
+    this.measureFavoritePhotoUseCase,
     this.deleteFavoritePhotoUseCase,
     this.cleanOrphanFavoritePhotosUseCase,
     required this.summaryKeyBuilder,
@@ -498,6 +499,12 @@ class AppDependencies {
               datasource: favorites,
               store: favoritePhotoStore,
             ),
+      measureFavoritePhotoUseCase: favoritePhotoStore == null
+          ? null
+          : MeasureFavoritePhotoUseCase(
+              datasource: favorites,
+              store: favoritePhotoStore,
+            ),
       deleteFavoritePhotoUseCase: favoritePhotoStore == null
           ? null
           : DeleteFavoritePhotoUseCase(favoritePhotoStore),
@@ -742,6 +749,7 @@ class AppDependencies {
   final LogoFileStore? logoFileStore;
   final FavoritePhotoStore? favoritePhotoStore;
   final AttachFavoritePhotoUseCase? attachFavoritePhotoUseCase;
+  final MeasureFavoritePhotoUseCase? measureFavoritePhotoUseCase;
   final DeleteFavoritePhotoUseCase? deleteFavoritePhotoUseCase;
   final CleanOrphanFavoritePhotosUseCase? cleanOrphanFavoritePhotosUseCase;
   final SummaryKeyBuilder summaryKeyBuilder;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
+import 'package:cars_wheels_app/features/favorites/presentation/widgets/favorites_segment_widget.dart';
 
 /// Filtro de texto segmentado "Todos · EE. UU. · México", sin chips con relleno.
 ///
@@ -36,72 +37,19 @@ class FavoritesMarketFilterWidget extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _Segment(
+              FavoritesSegmentWidget(
                 label: AppTexts.favoritesFilterAll,
                 isSelected: selected == null,
                 onTap: () => onSelected(null),
               ),
               for (final code in marketCodes) ...[
                 const SizedBox(width: FavoritesConfig.filterGap),
-                _Segment(
+                FavoritesSegmentWidget(
                   label: _labelOf(code),
                   isSelected: selected == code,
                   onTap: () => onSelected(code),
                 ),
               ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Un texto del filtro; el elegido va en tinta fuerte con una línea debajo.
-class _Segment extends StatelessWidget {
-  const _Segment({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      selected: isSelected,
-      label: label,
-      excludeSemantics: true,
-      child: InkWell(
-        onTap: onTap,
-        // El ancho del texto manda: la línea de abajo se estira a él.
-        child: IntrinsicWidth(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                label,
-                style: isSelected
-                    ? AppTextStyles.bodyStrong
-                    : AppTextStyles.bodyStrong.copyWith(
-                        color: AppColors.mutedText,
-                      ),
-              ),
-              const SizedBox(height: FavoritesConfig.filterUnderlineGap),
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColors.ink : Colors.transparent,
-                  borderRadius: BorderRadius.circular(AppRadii.pill),
-                ),
-                child: const SizedBox(
-                  height: FavoritesConfig.filterUnderlineHeight,
-                ),
-              ),
             ],
           ),
         ),

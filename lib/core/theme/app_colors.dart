@@ -16,6 +16,10 @@ class AppColors {
   static const Color accent = Color(0xFFFFD60A);
   static const Color accentPressed = Color(0xFFF2C800);
   static const Color accentTint = Color(0xFFFFF6C2);
+  // Selector de Comparar: banda gris azulada propia, distinta de la tinta de Buscar.
+  static const Color pickerBand = Color(0xFF2B3544);
+  static const Color pickerBandField = Color(0xFF3A4658);
+  static const Color pickerBandFieldBorder = Color(0xFF4C586C);
   // Superficies.
   static const Color background = Color(0xFFFFFFFF);
   static const Color surface = Color(0xFFFFFFFF);

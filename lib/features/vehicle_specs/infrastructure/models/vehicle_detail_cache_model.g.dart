@@ -23,106 +23,137 @@ const VehicleDetailCacheModelSchema = CollectionSchema(
       name: r'annualFuelCostUsd',
       type: IsarType.long,
     ),
-    r'cityKmPerLiter': PropertySchema(
+    r'cargoVolumeLiters': PropertySchema(
       id: 1,
+      name: r'cargoVolumeLiters',
+      type: IsarType.double,
+    ),
+    r'chargeHours120': PropertySchema(
+      id: 2,
+      name: r'chargeHours120',
+      type: IsarType.double,
+    ),
+    r'chargeHours240': PropertySchema(
+      id: 3,
+      name: r'chargeHours240',
+      type: IsarType.double,
+    ),
+    r'cityKmPerLiter': PropertySchema(
+      id: 4,
       name: r'cityKmPerLiter',
       type: IsarType.double,
     ),
     r'co2GramsPerKilometer': PropertySchema(
-      id: 2,
+      id: 5,
       name: r'co2GramsPerKilometer',
       type: IsarType.double,
     ),
     r'combinedKmPerLiter': PropertySchema(
-      id: 3,
+      id: 6,
       name: r'combinedKmPerLiter',
       type: IsarType.double,
     ),
     r'cylinders': PropertySchema(
-      id: 4,
+      id: 7,
       name: r'cylinders',
       type: IsarType.long,
     ),
     r'displacementLiters': PropertySchema(
-      id: 5,
+      id: 8,
       name: r'displacementLiters',
       type: IsarType.double,
     ),
-    r'drive': PropertySchema(id: 6, name: r'drive', type: IsarType.string),
+    r'drive': PropertySchema(id: 9, name: r'drive', type: IsarType.string),
     r'electricConsumptionKwhPer100Kilometers': PropertySchema(
-      id: 7,
+      id: 10,
       name: r'electricConsumptionKwhPer100Kilometers',
       type: IsarType.double,
     ),
     r'electricRangeKilometers': PropertySchema(
-      id: 8,
+      id: 11,
       name: r'electricRangeKilometers',
       type: IsarType.double,
     ),
     r'emissionsScore': PropertySchema(
-      id: 9,
+      id: 12,
       name: r'emissionsScore',
       type: IsarType.long,
     ),
     r'engineKind': PropertySchema(
-      id: 10,
+      id: 13,
       name: r'engineKind',
       type: IsarType.string,
     ),
     r'fuelScore': PropertySchema(
-      id: 11,
+      id: 14,
       name: r'fuelScore',
       type: IsarType.long,
     ),
     r'fuelType': PropertySchema(
-      id: 12,
+      id: 15,
       name: r'fuelType',
       type: IsarType.string,
     ),
+    r'hasStartStop': PropertySchema(
+      id: 16,
+      name: r'hasStartStop',
+      type: IsarType.bool,
+    ),
+    r'hasSupercharger': PropertySchema(
+      id: 17,
+      name: r'hasSupercharger',
+      type: IsarType.bool,
+    ),
+    r'hasTurbo': PropertySchema(id: 18, name: r'hasTurbo', type: IsarType.bool),
     r'highwayKmPerLiter': PropertySchema(
-      id: 13,
+      id: 19,
       name: r'highwayKmPerLiter',
       type: IsarType.double,
     ),
     r'hybridGasKmPerLiter': PropertySchema(
-      id: 14,
+      id: 20,
       name: r'hybridGasKmPerLiter',
       type: IsarType.double,
     ),
-    r'key': PropertySchema(id: 15, name: r'key', type: IsarType.string),
-    r'make': PropertySchema(id: 16, name: r'make', type: IsarType.string),
-    r'model': PropertySchema(id: 17, name: r'model', type: IsarType.string),
+    r'key': PropertySchema(id: 21, name: r'key', type: IsarType.string),
+    r'make': PropertySchema(id: 22, name: r'make', type: IsarType.string),
+    r'model': PropertySchema(id: 23, name: r'model', type: IsarType.string),
+    r'passengerVolumeLiters': PropertySchema(
+      id: 24,
+      name: r'passengerVolumeLiters',
+      type: IsarType.double,
+    ),
     r'powertrain': PropertySchema(
-      id: 18,
+      id: 25,
       name: r'powertrain',
       type: IsarType.string,
     ),
     r'savedAtMillis': PropertySchema(
-      id: 19,
+      id: 26,
       name: r'savedAtMillis',
       type: IsarType.long,
     ),
     r'totalRangeKilometers': PropertySchema(
-      id: 20,
+      id: 27,
       name: r'totalRangeKilometers',
       type: IsarType.double,
     ),
     r'transmission': PropertySchema(
-      id: 21,
+      id: 28,
       name: r'transmission',
       type: IsarType.string,
     ),
     r'vehicleClass': PropertySchema(
-      id: 22,
+      id: 29,
       name: r'vehicleClass',
       type: IsarType.string,
     ),
     r'vehicleId': PropertySchema(
-      id: 23,
+      id: 30,
       name: r'vehicleId',
       type: IsarType.long,
     ),
-    r'year': PropertySchema(id: 24, name: r'year', type: IsarType.long),
+    r'year': PropertySchema(id: 31, name: r'year', type: IsarType.long),
   },
 
   estimateSize: _vehicleDetailCacheModelEstimateSize,
@@ -204,30 +235,40 @@ void _vehicleDetailCacheModelSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeLong(offsets[0], object.annualFuelCostUsd);
-  writer.writeDouble(offsets[1], object.cityKmPerLiter);
-  writer.writeDouble(offsets[2], object.co2GramsPerKilometer);
-  writer.writeDouble(offsets[3], object.combinedKmPerLiter);
-  writer.writeLong(offsets[4], object.cylinders);
-  writer.writeDouble(offsets[5], object.displacementLiters);
-  writer.writeString(offsets[6], object.drive);
-  writer.writeDouble(offsets[7], object.electricConsumptionKwhPer100Kilometers);
-  writer.writeDouble(offsets[8], object.electricRangeKilometers);
-  writer.writeLong(offsets[9], object.emissionsScore);
-  writer.writeString(offsets[10], object.engineKind);
-  writer.writeLong(offsets[11], object.fuelScore);
-  writer.writeString(offsets[12], object.fuelType);
-  writer.writeDouble(offsets[13], object.highwayKmPerLiter);
-  writer.writeDouble(offsets[14], object.hybridGasKmPerLiter);
-  writer.writeString(offsets[15], object.key);
-  writer.writeString(offsets[16], object.make);
-  writer.writeString(offsets[17], object.model);
-  writer.writeString(offsets[18], object.powertrain);
-  writer.writeLong(offsets[19], object.savedAtMillis);
-  writer.writeDouble(offsets[20], object.totalRangeKilometers);
-  writer.writeString(offsets[21], object.transmission);
-  writer.writeString(offsets[22], object.vehicleClass);
-  writer.writeLong(offsets[23], object.vehicleId);
-  writer.writeLong(offsets[24], object.year);
+  writer.writeDouble(offsets[1], object.cargoVolumeLiters);
+  writer.writeDouble(offsets[2], object.chargeHours120);
+  writer.writeDouble(offsets[3], object.chargeHours240);
+  writer.writeDouble(offsets[4], object.cityKmPerLiter);
+  writer.writeDouble(offsets[5], object.co2GramsPerKilometer);
+  writer.writeDouble(offsets[6], object.combinedKmPerLiter);
+  writer.writeLong(offsets[7], object.cylinders);
+  writer.writeDouble(offsets[8], object.displacementLiters);
+  writer.writeString(offsets[9], object.drive);
+  writer.writeDouble(
+    offsets[10],
+    object.electricConsumptionKwhPer100Kilometers,
+  );
+  writer.writeDouble(offsets[11], object.electricRangeKilometers);
+  writer.writeLong(offsets[12], object.emissionsScore);
+  writer.writeString(offsets[13], object.engineKind);
+  writer.writeLong(offsets[14], object.fuelScore);
+  writer.writeString(offsets[15], object.fuelType);
+  writer.writeBool(offsets[16], object.hasStartStop);
+  writer.writeBool(offsets[17], object.hasSupercharger);
+  writer.writeBool(offsets[18], object.hasTurbo);
+  writer.writeDouble(offsets[19], object.highwayKmPerLiter);
+  writer.writeDouble(offsets[20], object.hybridGasKmPerLiter);
+  writer.writeString(offsets[21], object.key);
+  writer.writeString(offsets[22], object.make);
+  writer.writeString(offsets[23], object.model);
+  writer.writeDouble(offsets[24], object.passengerVolumeLiters);
+  writer.writeString(offsets[25], object.powertrain);
+  writer.writeLong(offsets[26], object.savedAtMillis);
+  writer.writeDouble(offsets[27], object.totalRangeKilometers);
+  writer.writeString(offsets[28], object.transmission);
+  writer.writeString(offsets[29], object.vehicleClass);
+  writer.writeLong(offsets[30], object.vehicleId);
+  writer.writeLong(offsets[31], object.year);
 }
 
 VehicleDetailCacheModel _vehicleDetailCacheModelDeserialize(
@@ -238,31 +279,40 @@ VehicleDetailCacheModel _vehicleDetailCacheModelDeserialize(
 ) {
   final object = VehicleDetailCacheModel(
     annualFuelCostUsd: reader.readLongOrNull(offsets[0]),
-    cityKmPerLiter: reader.readDoubleOrNull(offsets[1]),
-    co2GramsPerKilometer: reader.readDoubleOrNull(offsets[2]),
-    combinedKmPerLiter: reader.readDoubleOrNull(offsets[3]),
-    cylinders: reader.readLongOrNull(offsets[4]),
-    displacementLiters: reader.readDoubleOrNull(offsets[5]),
-    drive: reader.readStringOrNull(offsets[6]),
-    electricConsumptionKwhPer100Kilometers: reader.readDoubleOrNull(offsets[7]),
-    electricRangeKilometers: reader.readDoubleOrNull(offsets[8]),
-    emissionsScore: reader.readLongOrNull(offsets[9]),
-    engineKind: reader.readStringOrNull(offsets[10]),
-    fuelScore: reader.readLongOrNull(offsets[11]),
-    fuelType: reader.readStringOrNull(offsets[12]),
-    highwayKmPerLiter: reader.readDoubleOrNull(offsets[13]),
-    hybridGasKmPerLiter: reader.readDoubleOrNull(offsets[14]),
+    cargoVolumeLiters: reader.readDoubleOrNull(offsets[1]),
+    chargeHours120: reader.readDoubleOrNull(offsets[2]),
+    chargeHours240: reader.readDoubleOrNull(offsets[3]),
+    cityKmPerLiter: reader.readDoubleOrNull(offsets[4]),
+    co2GramsPerKilometer: reader.readDoubleOrNull(offsets[5]),
+    combinedKmPerLiter: reader.readDoubleOrNull(offsets[6]),
+    cylinders: reader.readLongOrNull(offsets[7]),
+    displacementLiters: reader.readDoubleOrNull(offsets[8]),
+    drive: reader.readStringOrNull(offsets[9]),
+    electricConsumptionKwhPer100Kilometers: reader.readDoubleOrNull(
+      offsets[10],
+    ),
+    electricRangeKilometers: reader.readDoubleOrNull(offsets[11]),
+    emissionsScore: reader.readLongOrNull(offsets[12]),
+    engineKind: reader.readStringOrNull(offsets[13]),
+    fuelScore: reader.readLongOrNull(offsets[14]),
+    fuelType: reader.readStringOrNull(offsets[15]),
+    hasStartStop: reader.readBoolOrNull(offsets[16]),
+    hasSupercharger: reader.readBoolOrNull(offsets[17]) ?? false,
+    hasTurbo: reader.readBoolOrNull(offsets[18]) ?? false,
+    highwayKmPerLiter: reader.readDoubleOrNull(offsets[19]),
+    hybridGasKmPerLiter: reader.readDoubleOrNull(offsets[20]),
     id: id,
-    key: reader.readString(offsets[15]),
-    make: reader.readString(offsets[16]),
-    model: reader.readString(offsets[17]),
-    powertrain: reader.readString(offsets[18]),
-    savedAtMillis: reader.readLong(offsets[19]),
-    totalRangeKilometers: reader.readDoubleOrNull(offsets[20]),
-    transmission: reader.readStringOrNull(offsets[21]),
-    vehicleClass: reader.readStringOrNull(offsets[22]),
-    vehicleId: reader.readLong(offsets[23]),
-    year: reader.readLong(offsets[24]),
+    key: reader.readString(offsets[21]),
+    make: reader.readString(offsets[22]),
+    model: reader.readString(offsets[23]),
+    passengerVolumeLiters: reader.readDoubleOrNull(offsets[24]),
+    powertrain: reader.readString(offsets[25]),
+    savedAtMillis: reader.readLong(offsets[26]),
+    totalRangeKilometers: reader.readDoubleOrNull(offsets[27]),
+    transmission: reader.readStringOrNull(offsets[28]),
+    vehicleClass: reader.readStringOrNull(offsets[29]),
+    vehicleId: reader.readLong(offsets[30]),
+    year: reader.readLong(offsets[31]),
   );
   return object;
 }
@@ -283,46 +333,60 @@ P _vehicleDetailCacheModelDeserializeProp<P>(
     case 3:
       return (reader.readDoubleOrNull(offset)) as P;
     case 4:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 5:
       return (reader.readDoubleOrNull(offset)) as P;
     case 6:
-      return (reader.readStringOrNull(offset)) as P;
-    case 7:
       return (reader.readDoubleOrNull(offset)) as P;
+    case 7:
+      return (reader.readLongOrNull(offset)) as P;
     case 8:
       return (reader.readDoubleOrNull(offset)) as P;
     case 9:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 10:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 11:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 12:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 13:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 14:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 15:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 16:
-      return (reader.readString(offset)) as P;
+      return (reader.readBoolOrNull(offset)) as P;
     case 17:
-      return (reader.readString(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 18:
-      return (reader.readString(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 19:
-      return (reader.readLong(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 20:
       return (reader.readDoubleOrNull(offset)) as P;
     case 21:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 22:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 23:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 24:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 25:
+      return (reader.readString(offset)) as P;
+    case 26:
+      return (reader.readLong(offset)) as P;
+    case 27:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 28:
+      return (reader.readStringOrNull(offset)) as P;
+    case 29:
+      return (reader.readStringOrNull(offset)) as P;
+    case 30:
+      return (reader.readLong(offset)) as P;
+    case 31:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -667,6 +731,357 @@ extension VehicleDetailCacheModelQueryFilter
           includeLower: includeLower,
           upper: upper,
           includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  cargoVolumeLitersIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'cargoVolumeLiters'),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  cargoVolumeLitersIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'cargoVolumeLiters'),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  cargoVolumeLitersEqualTo(double? value, {double epsilon = Query.epsilon}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'cargoVolumeLiters',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  cargoVolumeLitersGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'cargoVolumeLiters',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  cargoVolumeLitersLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'cargoVolumeLiters',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  cargoVolumeLitersBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'cargoVolumeLiters',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  chargeHours120IsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'chargeHours120'),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  chargeHours120IsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'chargeHours120'),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  chargeHours120EqualTo(double? value, {double epsilon = Query.epsilon}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'chargeHours120',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  chargeHours120GreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'chargeHours120',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  chargeHours120LessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'chargeHours120',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  chargeHours120Between(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'chargeHours120',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  chargeHours240IsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'chargeHours240'),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  chargeHours240IsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'chargeHours240'),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  chargeHours240EqualTo(double? value, {double epsilon = Query.epsilon}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'chargeHours240',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  chargeHours240GreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'chargeHours240',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  chargeHours240LessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'chargeHours240',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  chargeHours240Between(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'chargeHours240',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+
+          epsilon: epsilon,
         ),
       );
     });
@@ -2301,6 +2716,71 @@ extension VehicleDetailCacheModelQueryFilter
     VehicleDetailCacheModel,
     QAfterFilterCondition
   >
+  hasStartStopIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'hasStartStop'),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  hasStartStopIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'hasStartStop'),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  hasStartStopEqualTo(bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'hasStartStop', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  hasSuperchargerEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'hasSupercharger', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  hasTurboEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'hasTurbo', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
   highwayKmPerLiterIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3136,6 +3616,126 @@ extension VehicleDetailCacheModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(property: r'model', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  passengerVolumeLitersIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'passengerVolumeLiters'),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  passengerVolumeLitersIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'passengerVolumeLiters'),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  passengerVolumeLitersEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'passengerVolumeLiters',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  passengerVolumeLitersGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'passengerVolumeLiters',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  passengerVolumeLitersLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'passengerVolumeLiters',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    VehicleDetailCacheModel,
+    VehicleDetailCacheModel,
+    QAfterFilterCondition
+  >
+  passengerVolumeLitersBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'passengerVolumeLiters',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+
+          epsilon: epsilon,
+        ),
       );
     });
   }
@@ -4099,6 +4699,48 @@ extension VehicleDetailCacheModelQuerySortBy
   }
 
   QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  sortByCargoVolumeLiters() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cargoVolumeLiters', Sort.asc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  sortByCargoVolumeLitersDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cargoVolumeLiters', Sort.desc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  sortByChargeHours120() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'chargeHours120', Sort.asc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  sortByChargeHours120Desc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'chargeHours120', Sort.desc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  sortByChargeHours240() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'chargeHours240', Sort.asc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  sortByChargeHours240Desc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'chargeHours240', Sort.desc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
   sortByCityKmPerLiter() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'cityKmPerLiter', Sort.asc);
@@ -4273,6 +4915,48 @@ extension VehicleDetailCacheModelQuerySortBy
   }
 
   QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  sortByHasStartStop() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasStartStop', Sort.asc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  sortByHasStartStopDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasStartStop', Sort.desc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  sortByHasSupercharger() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasSupercharger', Sort.asc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  sortByHasSuperchargerDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasSupercharger', Sort.desc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  sortByHasTurbo() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasTurbo', Sort.asc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  sortByHasTurboDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasTurbo', Sort.desc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
   sortByHighwayKmPerLiter() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'highwayKmPerLiter', Sort.asc);
@@ -4339,6 +5023,20 @@ extension VehicleDetailCacheModelQuerySortBy
   sortByModelDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'model', Sort.desc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  sortByPassengerVolumeLiters() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'passengerVolumeLiters', Sort.asc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  sortByPassengerVolumeLitersDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'passengerVolumeLiters', Sort.desc);
     });
   }
 
@@ -4459,6 +5157,48 @@ extension VehicleDetailCacheModelQuerySortThenBy
   thenByAnnualFuelCostUsdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'annualFuelCostUsd', Sort.desc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  thenByCargoVolumeLiters() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cargoVolumeLiters', Sort.asc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  thenByCargoVolumeLitersDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cargoVolumeLiters', Sort.desc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  thenByChargeHours120() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'chargeHours120', Sort.asc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  thenByChargeHours120Desc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'chargeHours120', Sort.desc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  thenByChargeHours240() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'chargeHours240', Sort.asc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  thenByChargeHours240Desc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'chargeHours240', Sort.desc);
     });
   }
 
@@ -4637,6 +5377,48 @@ extension VehicleDetailCacheModelQuerySortThenBy
   }
 
   QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  thenByHasStartStop() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasStartStop', Sort.asc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  thenByHasStartStopDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasStartStop', Sort.desc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  thenByHasSupercharger() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasSupercharger', Sort.asc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  thenByHasSuperchargerDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasSupercharger', Sort.desc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  thenByHasTurbo() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasTurbo', Sort.asc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  thenByHasTurboDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasTurbo', Sort.desc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
   thenByHighwayKmPerLiter() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'highwayKmPerLiter', Sort.asc);
@@ -4717,6 +5499,20 @@ extension VehicleDetailCacheModelQuerySortThenBy
   thenByModelDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'model', Sort.desc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  thenByPassengerVolumeLiters() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'passengerVolumeLiters', Sort.asc);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QAfterSortBy>
+  thenByPassengerVolumeLitersDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'passengerVolumeLiters', Sort.desc);
     });
   }
 
@@ -4834,6 +5630,27 @@ extension VehicleDetailCacheModelQueryWhereDistinct
   }
 
   QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QDistinct>
+  distinctByCargoVolumeLiters() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'cargoVolumeLiters');
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QDistinct>
+  distinctByChargeHours120() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'chargeHours120');
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QDistinct>
+  distinctByChargeHours240() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'chargeHours240');
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QDistinct>
   distinctByCityKmPerLiter() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'cityKmPerLiter');
@@ -4918,6 +5735,27 @@ extension VehicleDetailCacheModelQueryWhereDistinct
   }
 
   QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QDistinct>
+  distinctByHasStartStop() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'hasStartStop');
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QDistinct>
+  distinctByHasSupercharger() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'hasSupercharger');
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QDistinct>
+  distinctByHasTurbo() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'hasTurbo');
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QDistinct>
   distinctByHighwayKmPerLiter() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'highwayKmPerLiter');
@@ -4949,6 +5787,13 @@ extension VehicleDetailCacheModelQueryWhereDistinct
   distinctByModel({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'model', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, VehicleDetailCacheModel, QDistinct>
+  distinctByPassengerVolumeLiters() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'passengerVolumeLiters');
     });
   }
 
@@ -5019,6 +5864,27 @@ extension VehicleDetailCacheModelQueryProperty
   annualFuelCostUsdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'annualFuelCostUsd');
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, double?, QQueryOperations>
+  cargoVolumeLitersProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'cargoVolumeLiters');
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, double?, QQueryOperations>
+  chargeHours120Property() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'chargeHours120');
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, double?, QQueryOperations>
+  chargeHours240Property() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'chargeHours240');
     });
   }
 
@@ -5106,6 +5972,27 @@ extension VehicleDetailCacheModelQueryProperty
     });
   }
 
+  QueryBuilder<VehicleDetailCacheModel, bool?, QQueryOperations>
+  hasStartStopProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'hasStartStop');
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, bool, QQueryOperations>
+  hasSuperchargerProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'hasSupercharger');
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, bool, QQueryOperations>
+  hasTurboProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'hasTurbo');
+    });
+  }
+
   QueryBuilder<VehicleDetailCacheModel, double?, QQueryOperations>
   highwayKmPerLiterProperty() {
     return QueryBuilder.apply(this, (query) {
@@ -5138,6 +6025,13 @@ extension VehicleDetailCacheModelQueryProperty
   modelProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'model');
+    });
+  }
+
+  QueryBuilder<VehicleDetailCacheModel, double?, QQueryOperations>
+  passengerVolumeLitersProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'passengerVolumeLiters');
     });
   }
 

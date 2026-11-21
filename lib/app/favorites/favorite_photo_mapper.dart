@@ -19,7 +19,7 @@ PhotoEntity favoritePhotoEntityOf(
     licenseName: photo.licenseName,
     sourceUrl: photo.sourceUrl,
     isReference: photo.isReference,
-    aspectRatio: photo.aspectRatio,
+    aspectRatio: photo.proportion,
     localPath: fileName == null ? null : _store(context)?.pathOf(fileName),
   );
 }

@@ -37,6 +37,11 @@ class VehicleDetailEntity extends Equatable {
     this.engineKind,
     this.hasTurbo = false,
     this.hasSupercharger = false,
+    this.passengerVolumeLiters,
+    this.cargoVolumeLiters,
+    this.chargeHours240,
+    this.chargeHours120,
+    this.hasStartStop,
   });
 
   final int id;
@@ -96,6 +101,17 @@ class VehicleDetailEntity extends Equatable {
   final bool hasTurbo;
   final bool hasSupercharger;
 
+  /// Solo EE. UU.: volumen de pasajeros y de carga en litros.
+  final double? passengerVolumeLiters;
+  final double? cargoVolumeLiters;
+
+  /// Solo EE. UU.: horas de carga completa a 240 V y a 120 V.
+  final double? chargeHours240;
+  final double? chargeHours120;
+
+  /// Solo EE. UU.: arranque-parada; nulo si la fuente no lo informa.
+  final bool? hasStartStop;
+
   @override
   List<Object?> get props => [
     id,
@@ -130,5 +146,10 @@ class VehicleDetailEntity extends Equatable {
     engineKind,
     hasTurbo,
     hasSupercharger,
+    passengerVolumeLiters,
+    cargoVolumeLiters,
+    chargeHours240,
+    chargeHours120,
+    hasStartStop,
   ];
 }

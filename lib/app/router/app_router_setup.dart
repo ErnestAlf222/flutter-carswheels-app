@@ -3,9 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:cars_wheels_app/app/compare/compare_navigation.dart';
+import 'package:cars_wheels_app/app/compare/compare_detail_opener.dart';
 import 'package:cars_wheels_app/app/compare/compare_picker_sheet.dart';
+import 'package:cars_wheels_app/app/compare/compare_picks.dart';
 import 'package:cars_wheels_app/app/compare/compare_route_args.dart';
 import 'package:cars_wheels_app/app/compare/compare_slot_visuals_builder.dart';
+import 'package:cars_wheels_app/app/favorites/compare_from_favorites.dart';
 import 'package:cars_wheels_app/app/favorites/favorite_detail_opener.dart';
 import 'package:cars_wheels_app/app/favorites/favorite_hearts.dart';
 import 'package:cars_wheels_app/app/favorites/favorites_grid.dart';
@@ -78,6 +81,7 @@ GoRouter buildAppRouter() => GoRouter(
               resultsGridBuilder: buildSearchResultsGrid,
               selectorBuilder: buildSearchMarketYearSelector,
               picksBuilder: buildSearchPicksRow,
+              infiniteFeed: true,
             ),
           ),
         ),
@@ -91,6 +95,8 @@ GoRouter buildAppRouter() => GoRouter(
                 selectorBuilder: buildSearchMarketYearSelector,
                 visuals: marketCompareSlotVisuals,
                 onOpenPicker: showComparePickerSheet,
+                onOpenDetail: openCompareSlotInDetail,
+                startBuilder: buildComparePicksSection,
                 openPickerOnEntry:
                     extra is CompareRouteArgs && extra.openPicker,
               ),
@@ -106,6 +112,9 @@ GoRouter buildAppRouter() => GoRouter(
               gridBuilder: buildFavoritesGrid,
               onOpen: openFavoriteInDetail,
               onExplore: openHomeFromFavorites,
+              loadCompareCapacity: favoriteCompareCapacity,
+              onCompare: compareFromFavorites,
+              onGoToCompare: goToCompareFromFavorites,
             ),
           ),
         ),

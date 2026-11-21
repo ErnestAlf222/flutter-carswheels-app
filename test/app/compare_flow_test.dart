@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:cars_wheels_app/app/app.dart';
+import 'package:cars_wheels_app/app/compare/compare_picks.dart';
 import 'package:cars_wheels_app/app/search_results/search_card_cubits_factory.dart';
 import 'package:cars_wheels_app/app/search_results/search_cubit_factory.dart';
 import 'package:cars_wheels_app/core/core.dart';
@@ -55,9 +56,16 @@ class _CatalogRepository implements CatalogRepository {
 
 /// La app real (router incluido) con cubits falsos en los bordes.
 class _Flow {
-  _Flow({int initialVehicles = 0, this.initialLocation = RoutesConfig.home}) {
+  _Flow({
+    int initialVehicles = 0,
+    this.initialLocation = RoutesConfig.home,
+    this.animated = false,
+    this.size = const Size(800, 2400),
+    this.textScale = 1.0,
+    Map<String, List<String>>? groupsByBrand,
+  }) {
     store = InMemoryCompareSelection();
-    tabSearch = SearchHarness();
+    tabSearch = SearchHarness(groupsByBrand: groupsByBrand);
     pickerSearch = SearchHarness();
     initial = [
       for (final model in ['Camry', 'RAV4', 'Prius'].take(initialVehicles))
@@ -74,11 +82,18 @@ class _Flow {
   late final List<CompareSlotEntity> initial;
   late final GoRouter router;
   final String initialLocation;
+
+  // Con animaciones reales (por defecto se piden menos movimientos).
+  final bool animated;
+
+  // Pantalla y escala del texto de la prueba.
+  final Size size;
+  final double textScale;
   final ScrollOffsetStore tabScroll = ScrollOffsetStore();
   final FakeCompareVersionLabeler versionLabeler = FakeCompareVersionLabeler();
 
   Future<void> pump(WidgetTester tester) async {
-    tester.view.physicalSize = const Size(800, 2400);
+    tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await store.write('us', initial);
@@ -201,7 +216,10 @@ class _Flow {
           child: MaterialApp.router(
             routerConfig: router,
             builder: (context, child) => MediaQuery(
-              data: MediaQuery.of(context).copyWith(disableAnimations: true),
+              data: MediaQuery.of(context).copyWith(
+                disableAnimations: !animated,
+                textScaler: TextScaler.linear(textScale),
+              ),
               child: child!,
             ),
           ),
@@ -241,7 +259,11 @@ Finder get _pickerClose => find
     )
     .first;
 
-Finder get _pickerButtons => find.byType(ComparePickerButtonWidget);
+// Solo los botones del selector: la pantalla de fondo también tiene los suyos.
+Finder get _pickerButtons => find.descendant(
+  of: find.byType(SearchPage),
+  matching: find.byType(ComparePickerButtonWidget),
+);
 
 Finder get _addLabel => find.descendant(
   of: _pickerButtons,
@@ -513,7 +535,13 @@ void main() {
       await tester.tap(_pickerClose);
       await flow.settle(tester);
       expect(flow.router.state.uri.path, RoutesConfig.compare);
-      expect(find.text('Corolla'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(CompareFilledSlotWidget),
+          matching: find.text('Corolla'),
+        ),
+        findsOneWidget,
+      );
       expect(_pickerTitle, findsNothing);
     });
 
@@ -627,6 +655,329 @@ void main() {
       expect(flow.router.state.uri.path, RoutesConfig.detail);
       final saved = await flow.store.read('us');
       expect(saved.map((slot) => slot.modelName), ['Camry', 'RAV4', 'Prius']);
+    });
+  });
+
+  group('Comparar con vida', () {
+    // Pide el índice de la pestaña Buscar para que haya de dónde sugerir.
+    Future<_Flow> openCompare(
+      WidgetTester tester, {
+      int vehicles = 0,
+      bool withIndex = true,
+      bool animated = false,
+    }) async {
+      final flow = _Flow(
+        initialVehicles: vehicles,
+        initialLocation: RoutesConfig.compare,
+        animated: animated,
+      );
+      await flow.pump(tester);
+      if (withIndex) flow.tabSearch.cubit.ensureIndex();
+      await flow.settle(tester);
+      return flow;
+    }
+
+    testWidgets('a 360 dp y texto 1.3 la entrada y el selector no desbordan', (
+      tester,
+    ) async {
+      final flow = _Flow(
+        initialVehicles: 1,
+        initialLocation: RoutesConfig.compare,
+        size: const Size(360, 800),
+        textScale: 1.3,
+      );
+      await flow.pump(tester);
+      flow.tabSearch.cubit.ensureIndex();
+      await flow.settle(tester);
+      expect(find.text(AppTexts.compareStartTitle), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.byType(CompareEmptySlotWidget).first);
+      await flow.settle(tester);
+      expect(_pickerTitle, findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    Finder startCards() => find.descendant(
+      of: find.byType(ComparePicksSection),
+      matching: find.byType(ComparePickerButtonWidget),
+    );
+
+    testWidgets('vacío: "Para empezar" con 6 sugerencias del índice', (
+      tester,
+    ) async {
+      await openCompare(tester);
+      expect(find.text(AppTexts.compareStartTitle), findsOneWidget);
+      // La fila es perezosa: en pantalla caben varias, nunca más del tope.
+      expect(startCards(), findsAtLeast(4));
+      expect(
+        startCards().evaluate().length,
+        lessThanOrEqualTo(CompareConfig.suggestionsCount),
+      );
+      // Solo un botón amarillo en la pantalla: el de agregar vehículo.
+      expect(find.byType(AccentButton), findsOneWidget);
+    });
+
+    testWidgets('con un solo auto excluye el que ya está agregado', (
+      tester,
+    ) async {
+      await openCompare(tester, vehicles: 1);
+      expect(find.text(AppTexts.compareStartTitle), findsOneWidget);
+      final names = find.descendant(
+        of: find.byType(ComparePicksSection),
+        matching: find.text('Camry'),
+      );
+      expect(names, findsNothing);
+      expect(startCards(), findsWidgets);
+    });
+
+    testWidgets('con dos autos "Para empezar" ya no aparece', (tester) async {
+      await openCompare(tester, vehicles: 2);
+      expect(find.text(AppTexts.compareStartTitle), findsNothing);
+      expect(startCards(), findsNothing);
+    });
+
+    testWidgets('sin datos en el índice no muestra nada ni esqueletos', (
+      tester,
+    ) async {
+      final flow = _Flow(
+        initialLocation: RoutesConfig.compare,
+        groupsByBrand: const {},
+      );
+      await flow.pump(tester);
+      await flow.settle(tester);
+      expect(find.text(AppTexts.compareStartTitle), findsNothing);
+      expect(startCards(), findsNothing);
+      expect(find.byType(AppLoader), findsNothing);
+      expect(find.byType(SkeletonBarWidget), findsNothing);
+    });
+
+    testWidgets('el botón "Comparar" de una sugerencia la agrega directo', (
+      tester,
+    ) async {
+      final flow = await openCompare(tester);
+      await tester.tap(startCards().first);
+      await flow.settle(tester);
+      expect(await flow.store.read('us'), hasLength(1));
+      expect(flow.router.state.uri.path, RoutesConfig.compare);
+      flow.compare.dismissNotice();
+    });
+
+    testWidgets('tocar la tarjeta de una sugerencia abre Detalle', (
+      tester,
+    ) async {
+      final flow = await openCompare(tester);
+      final card = find.descendant(
+        of: find.byType(ComparePicksSection),
+        matching: find.byType(InkWell),
+      );
+      await tester.tap(card.first);
+      await flow.settle(tester);
+      expect(flow.router.state.uri.path, RoutesConfig.detail);
+      expect(await flow.store.read('us'), isEmpty);
+    });
+
+    testWidgets('el selector abre con banda propia, contador y sugerencias', (
+      tester,
+    ) async {
+      final flow = await openCompare(tester, vehicles: 1, withIndex: false);
+      await tester.tap(find.byType(CompareEmptySlotWidget).first);
+      await flow.settle(tester);
+      expect(_pickerTitle, findsOneWidget);
+      expect(
+        find.text(AppTexts.comparePickerCountLabel(1, CompareConfig.maxSlots)),
+        findsOneWidget,
+      );
+      // La banda tiene su token y no es la tinta de Buscar.
+      final band = tester
+          .widgetList<HeroHeaderWidget>(
+            find.descendant(
+              of: find.byType(SearchPage),
+              matching: find.byType(HeroHeaderWidget),
+            ),
+          )
+          .single;
+      expect(band.color, AppColors.pickerBand);
+      expect(band.color, isNot(AppColors.ink));
+      // Sin aviso de modo comparar: la identidad lo reemplaza.
+      expect(find.byIcon(Symbols.info), findsNothing);
+      // Con el campo vacío ya hay sugerencias, cada una con su botón.
+      expect(find.text(AppTexts.searchPicksTitle), findsOneWidget);
+      expect(_pickerButtons, findsWidgets);
+      // Excluye al auto ya agregado.
+      expect(
+        find.descendant(
+          of: find.byType(SearchPage),
+          matching: find.text('Camry'),
+        ),
+        findsNothing,
+      );
+      // Con texto escrito las sugerencias se van.
+      await flow.type(tester, 'civic');
+      await flow.settle(tester);
+      expect(find.text(AppTexts.searchPicksTitle), findsNothing);
+      expect(flow.pickerSearch.cubit.state.query, 'civic');
+    });
+
+    testWidgets('el botón de una sugerencia del selector agrega y cierra', (
+      tester,
+    ) async {
+      final flow = await openCompare(tester, vehicles: 1, withIndex: false);
+      await tester.tap(find.byType(CompareEmptySlotWidget).first);
+      await flow.settle(tester);
+      await tester.tap(_addLabel.first);
+      await flow.settle(tester);
+      expect(_pickerTitle, findsNothing);
+      expect(await flow.store.read('us'), hasLength(2));
+      flow.compare.dismissNotice();
+    });
+
+    testWidgets('tocar la foto o el nombre abre el Detalle de esa columna', (
+      tester,
+    ) async {
+      final flow = await openCompare(tester, vehicles: 2, withIndex: false);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(CompareFilledSlotWidget).last,
+          matching: find.text('RAV4'),
+        ),
+      );
+      await flow.settle(tester);
+      expect(flow.router.state.uri.path, RoutesConfig.detail);
+      final args = flow.router.state.extra! as DetailArgsEntity;
+      expect(args.groupName, 'RAV4');
+      expect(args.year, 2025);
+      expect(args.market, Market.unitedStates);
+    });
+
+    testWidgets('la "x" de la columna quita sin abrir Detalle', (tester) async {
+      final flow = await openCompare(tester, vehicles: 2, withIndex: false);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(CompareFilledSlotWidget).last,
+          matching: find.byIcon(Symbols.close),
+        ),
+      );
+      await flow.settle(tester);
+      expect(flow.router.state.uri.path, RoutesConfig.compare);
+      expect(await flow.store.read('us'), hasLength(1));
+    });
+
+    testWidgets(
+      'la columna se anuncia como "Ver detalle de X" y mide 44 o más',
+      (tester) async {
+        await openCompare(tester, vehicles: 2, withIndex: false);
+        final label = AppTexts.compareOpenDetailSemanticLabel('Toyota Camry');
+        expect(find.bySemanticsLabel(label), findsOneWidget);
+        final size = tester.getSize(find.byType(CompareFilledSlotWidget).first);
+        expect(
+          size.height,
+          greaterThanOrEqualTo(CompareConfig.removeTouchSize),
+        );
+        expect(size.width, greaterThanOrEqualTo(CompareConfig.removeTouchSize));
+      },
+    );
+
+    testWidgets('Limpiar: las columnas salen con fundido antes del vacío', (
+      tester,
+    ) async {
+      final flow = await openCompare(tester, vehicles: 2, animated: true);
+      await tester.tap(find.text(AppTexts.compareClearLabel));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      // Confirma en el diálogo.
+      await tester.tap(
+        find.descendant(
+          of: find.byType(CompareClearDialogWidget),
+          matching: find.text(AppTexts.compareClearLabel),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      // A mitad de la salida: aún se guarda todo y las columnas se atenúan.
+      expect(await flow.store.read('us'), hasLength(2));
+      final opacity = tester
+          .widgetList<Opacity>(
+            find.ancestor(
+              of: find.byType(CompareSlotsRowWidget),
+              matching: find.byType(Opacity),
+            ),
+          )
+          .first
+          .opacity;
+      expect(opacity, lessThan(1.0));
+      await tester.pump(AppMotion.medium);
+      await tester.pump(AppMotion.slow);
+      await tester.pump(AppMotion.slow);
+      expect(await flow.store.read('us'), isEmpty);
+      expect(
+        find.text(AppTexts.compareEmptyTitle(CompareConfig.maxSlots)),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('Limpiar sin animaciones vacía de inmediato', (tester) async {
+      final flow = await openCompare(tester, vehicles: 2, withIndex: false);
+      await tester.tap(find.text(AppTexts.compareClearLabel));
+      await flow.settle(tester);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(CompareClearDialogWidget),
+          matching: find.text(AppTexts.compareClearLabel),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(await flow.store.read('us'), isEmpty);
+    });
+  });
+
+  group('vaciar el campo con la "x"', () {
+    testWidgets('el texto se desvanece y no aparece "sin resultados"', (
+      tester,
+    ) async {
+      final flow = _Flow(initialLocation: RoutesConfig.search, animated: true);
+      await flow.pump(tester);
+      await flow.type(tester, 'toy');
+      await flow.settle(tester);
+      expect(flow.tabSearch.cubit.state.results, isNotEmpty);
+      await tester.tap(find.byTooltip(AppTexts.searchClearSemanticLabel));
+      await tester.pump();
+      await tester.pump(AppMotion.fast ~/ 2);
+      // A mitad: el texto sigue en el campo pero atenuado; sin "sin resultados".
+      final fade = tester
+          .widgetList<AnimatedOpacity>(
+            find.ancestor(
+              of: find.byType(TextField),
+              matching: find.byType(AnimatedOpacity),
+            ),
+          )
+          .single;
+      expect(fade.opacity, 0);
+      expect(flow.tabSearch.cubit.state.query, 'toy');
+      expect(find.textContaining('No encontramos'), findsNothing);
+      await tester.pump(AppMotion.fast);
+      await tester.pump(AppMotion.medium);
+      expect(flow.tabSearch.cubit.state.query, isEmpty);
+      expect(find.textContaining('No encontramos'), findsNothing);
+      final after = tester
+          .widgetList<AnimatedOpacity>(
+            find.ancestor(
+              of: find.byType(TextField),
+              matching: find.byType(AnimatedOpacity),
+            ),
+          )
+          .single;
+      expect(after.opacity, 1);
+    });
+
+    testWidgets('sin animaciones se vacía de inmediato', (tester) async {
+      final flow = _Flow(initialLocation: RoutesConfig.search);
+      await flow.pump(tester);
+      await flow.type(tester, 'toy');
+      await flow.settle(tester);
+      await tester.tap(find.byTooltip(AppTexts.searchClearSemanticLabel));
+      await tester.pump();
+      expect(flow.tabSearch.cubit.state.query, isEmpty);
     });
   });
 }

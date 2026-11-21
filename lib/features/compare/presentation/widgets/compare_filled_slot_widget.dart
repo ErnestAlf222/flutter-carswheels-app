@@ -13,11 +13,15 @@ class CompareFilledSlotWidget extends StatelessWidget {
     required this.slot,
     required this.visuals,
     required this.onRemove,
+    required this.onOpen,
   });
 
   final CompareSlotEntity slot;
   final CompareSlotVisuals visuals;
   final VoidCallback onRemove;
+
+  /// Abre el Detalle del vehículo; lo dispara la foto o el nombre.
+  final VoidCallback onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -36,65 +40,78 @@ class CompareFilledSlotWidget extends StatelessWidget {
         ),
         child: Semantics(
           container: true,
-          label: '${slot.brand} ${slot.modelName}',
+          button: true,
+          label: AppTexts.compareOpenDetailSemanticLabel(
+            AppTexts.compareColumnHeaderLabel(slot.brand, slot.modelName),
+          ),
+          onTap: onOpen,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
-                height: CompareSlotMetrics.photoHeight(constraints.maxWidth),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    ExcludeSemantics(
-                      child: visuals.photoBuilder(context, slot),
-                    ),
-                    Positioned(
-                      top: CompareConfig.removeButtonInset,
-                      right: CompareConfig.removeButtonInset,
-                      child: _RemoveButton(
-                        name: slot.modelName,
-                        onTap: onRemove,
+              // Foto y texto abren Detalle; la "x" de la foto gana su propio toque.
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onOpen,
+                child: SizedBox(
+                  height: CompareSlotMetrics.photoHeight(constraints.maxWidth),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      ExcludeSemantics(
+                        child: visuals.photoBuilder(context, slot),
                       ),
-                    ),
-                  ],
+                      Positioned(
+                        top: CompareConfig.removeButtonInset,
+                        right: CompareConfig.removeButtonInset,
+                        child: _RemoveButton(
+                          name: slot.modelName,
+                          onTap: onRemove,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: CompareConfig.slotTextPadding,
-                    vertical: CompareConfig.slotTextPadding,
-                  ),
-                  child: ExcludeSemantics(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            visuals.logoBuilder(
-                              context,
-                              slot,
-                              CompareConfig.slotLogoSize,
-                            ),
-                            const SizedBox(width: CompareConfig.slotLogoGap),
-                            Expanded(
-                              child: Text(
-                                slot.brand.toUpperCase(),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: AppTextStyles.brandOverline,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: onOpen,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: CompareConfig.slotTextPadding,
+                      vertical: CompareConfig.slotTextPadding,
+                    ),
+                    child: ExcludeSemantics(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              visuals.logoBuilder(
+                                context,
+                                slot,
+                                CompareConfig.slotLogoSize,
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: CompareConfig.slotLogoGap),
-                        Text(
-                          slot.modelName,
-                          maxLines: CompareConfig.slotNameMaxLines,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.modelName,
-                        ),
-                      ],
+                              const SizedBox(width: CompareConfig.slotLogoGap),
+                              Expanded(
+                                child: Text(
+                                  slot.brand.toUpperCase(),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppTextStyles.brandOverline,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: CompareConfig.slotLogoGap),
+                          Text(
+                            slot.modelName,
+                            maxLines: CompareConfig.slotNameMaxLines,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.modelName,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

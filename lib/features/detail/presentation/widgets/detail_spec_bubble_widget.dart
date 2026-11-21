@@ -4,6 +4,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/detail/domain/domain.dart';
 import 'package:cars_wheels_app/features/detail/presentation/widgets/detail_info_row_widget.dart';
+import 'package:cars_wheels_app/features/detail/presentation/widgets/spec_icon_mapper.dart';
 
 /// Burbuja flotante de la ficha técnica y su panel con los datos de la versión.
 ///
@@ -178,6 +179,34 @@ class _DetailSpecBubbleWidgetState extends State<DetailSpecBubbleWidget>
     );
   }
 
+  // Filas con el título de su sección; solo hay secciones con datos.
+  List<Widget> _rows() {
+    return [
+      for (final (index, entry) in widget.entries.indexed) ...[
+        if (index == 0 || widget.entries[index - 1].section != entry.section)
+          Padding(
+            padding: EdgeInsets.only(
+              top: index == 0
+                  ? UiConfig.specSectionTopGap / 2
+                  : UiConfig.specSectionTopGap,
+            ),
+            child: Semantics(
+              header: true,
+              child: Text(
+                SpecIconMapper.titleFor(entry.section),
+                style: AppTextStyles.specSectionTitle,
+              ),
+            ),
+          ),
+        DetailInfoRowWidget(
+          label: entry.label,
+          value: entry.value,
+          icon: SpecIconMapper.iconFor(entry),
+        ),
+      ],
+    ];
+  }
+
   Widget _panel(BuildContext context) {
     final maxHeight =
         MediaQuery.sizeOf(context).height * UiConfig.specPanelMaxHeightFraction;
@@ -252,13 +281,8 @@ class _DetailSpecBubbleWidgetState extends State<DetailSpecBubbleWidget>
               Flexible(
                 child: SingleChildScrollView(
                   child: Column(
-                    children: [
-                      for (final entry in widget.entries)
-                        DetailInfoRowWidget(
-                          label: entry.label,
-                          value: entry.value,
-                        ),
-                    ],
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: _rows(),
                   ),
                 ),
               ),

@@ -30,30 +30,39 @@ class BrandTileWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: CarouselConfig.brandTileSize,
-              height: CarouselConfig.brandTileSize,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(AppRadii.tile),
-                border: const Border.fromBorderSide(
-                  BorderSide(
-                    color: AppColors.outline,
-                    width: UiConfig.cardBorderWidth,
-                  ),
-                ),
-                boxShadow: selected
-                    ? [
-                        AppShadows.selectedRing(
-                          CarouselConfig.selectedRingWidth,
-                        ),
-                      ]
-                    : AppShadows.soft,
+            // La escala no cambia el espacio que ocupa la ficha.
+            AnimatedScale(
+              scale: selected ? CarouselConfig.selectedScale : 1.0,
+              duration: AppMotion.of(
+                AppMotion.medium,
+                reduced: MediaQuery.of(context).disableAnimations,
               ),
-              child: BrandLogoWidget(
-                brandName: brandName,
-                size: CarouselConfig.brandLogoSize,
+              curve: AppMotion.settle,
+              child: Container(
+                width: CarouselConfig.brandTileSize,
+                height: CarouselConfig.brandTileSize,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppRadii.tile),
+                  border: const Border.fromBorderSide(
+                    BorderSide(
+                      color: AppColors.outline,
+                      width: UiConfig.cardBorderWidth,
+                    ),
+                  ),
+                  boxShadow: selected
+                      ? [
+                          AppShadows.selectedRing(
+                            CarouselConfig.selectedRingWidth,
+                          ),
+                        ]
+                      : AppShadows.soft,
+                ),
+                child: BrandLogoWidget(
+                  brandName: brandName,
+                  size: CarouselConfig.brandLogoSize,
+                ),
               ),
             ),
             const SizedBox(height: AppSpacing.xs),

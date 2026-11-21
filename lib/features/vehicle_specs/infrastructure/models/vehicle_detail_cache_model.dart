@@ -31,6 +31,13 @@ class VehicleDetailCacheModel {
     this.fuelScore,
     this.emissionsScore,
     this.engineKind,
+    this.hasTurbo = false,
+    this.hasSupercharger = false,
+    this.passengerVolumeLiters,
+    this.cargoVolumeLiters,
+    this.chargeHours240,
+    this.chargeHours120,
+    this.hasStartStop,
     this.id = Isar.autoIncrement,
   });
 
@@ -68,4 +75,11 @@ class VehicleDetailCacheModel {
 
   /// Nombre del valor del enum EngineKind; nulo si no se conoce.
   final String? engineKind;
+  final bool hasTurbo;
+  final bool hasSupercharger;
+  final double? passengerVolumeLiters;
+  final double? cargoVolumeLiters;
+  final double? chargeHours240;
+  final double? chargeHours120;
+  final bool? hasStartStop;
 }

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:cars_wheels_app/app/favorites/favorite_card_cubits.dart';
 import 'package:cars_wheels_app/app/favorites/favorite_photo_mapper.dart';
+import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/catalog/catalog.dart';
 import 'package:cars_wheels_app/features/favorites/favorites.dart';
 import 'package:cars_wheels_app/features/photos/photos.dart';
@@ -18,10 +19,12 @@ Widget buildFavoritesGrid(
   List<FavoriteEntity> favorites,
   ValueChanged<FavoriteEntity> onOpen,
   ValueChanged<FavoriteEntity> onRemove,
+  FavoritesSelectionView? selection,
 ) => _FavoritesCardsScope(
   favorites: favorites,
   onOpen: onOpen,
   onRemove: onRemove,
+  selection: selection,
 );
 
 // Fotos y resúmenes de un mercado: un par de cubits por mercado evita que dos
@@ -39,11 +42,15 @@ class _FavoritesCardsScope extends StatefulWidget {
     required this.favorites,
     required this.onOpen,
     required this.onRemove,
+    required this.selection,
   });
 
   final List<FavoriteEntity> favorites;
   final ValueChanged<FavoriteEntity> onOpen;
   final ValueChanged<FavoriteEntity> onRemove;
+
+  /// Datos del modo de selección; nulo fuera de él.
+  final FavoritesSelectionView? selection;
 
   @override
   State<_FavoritesCardsScope> createState() => _FavoritesCardsScopeState();
@@ -152,15 +159,29 @@ class _FavoritesCardsScopeState extends State<_FavoritesCardsScope> {
 
   @override
   Widget build(BuildContext context) {
-    final favorites = widget.favorites;
-    return ModelGridSliver(
-      showBrandLabel: true,
-      delegate: SliverChildBuilderDelegate((context, index) {
-        final favorite = favorites[index];
+    final scaler = MediaQuery.textScalerOf(context);
+    final selection = widget.selection;
+    return MasonrySliverWidget<FavoriteEntity>(
+      items: widget.favorites,
+      keyOf: (favorite) => favorite.key,
+      columns: ModelGridConfig.columns,
+      spacing: ModelGridConfig.crossAxisSpacing,
+      // Cada tarjeta mide lo que su foto: proporción real, limitada al rango.
+      heightOf: (favorite, width) => ModelGridMetrics.cellHeight(
+        width,
+        scaler,
+        showBrandLabel: true,
+        photoAspectRatio: FavoritePhotoProportion.of(favorite.snapshot.photo),
+      ),
+      itemBuilder: (context, favorite, index) {
         final cubits = _cubitsFor(favorite.marketCode);
-        return MultiBlocProvider(
-          // La llave evita que una tarjeta herede el estado de otra al quitar.
-          key: ValueKey(favorite.key),
+        final selected =
+            selection?.selectedKeys.contains(favorite.key) ?? false;
+        final dimmed =
+            selection != null &&
+            !selected &&
+            selection.blockOf(favorite) != FavoriteSelectionBlock.none;
+        final card = MultiBlocProvider(
           providers: [
             BlocProvider<PhotosCubit>.value(value: cubits.photos),
             BlocProvider<SummariesCubit>.value(value: cubits.summaries),
@@ -176,20 +197,42 @@ class _FavoritesCardsScopeState extends State<_FavoritesCardsScope> {
             brand: favorite.brand,
             year: favorite.year,
             index: index,
-            animateEntry: false,
             showBrandLabel: true,
-            onTap: () => widget.onOpen(favorite),
-            leadingAction: FavoriteHeartButtonWidget(
-              identity: favorite.identity,
-              onTap: () => widget.onRemove(favorite),
+            photoAspectRatio: FavoritePhotoProportion.of(
+              favorite.snapshot.photo,
             ),
+            onTap: selection == null
+                ? () => widget.onOpen(favorite)
+                : () => selection.onToggle(favorite),
+            // En modo de selección la casilla ocupa el lugar del corazón.
+            leadingAction: selection == null
+                ? FavoriteHeartButtonWidget(
+                    identity: favorite.identity,
+                    onTap: () => widget.onRemove(favorite),
+                  )
+                : FavoriteSelectCheckboxWidget(
+                    selected: selected,
+                    enabled: !dimmed,
+                    semanticLabel: FavoritesTexts.selectCardSemanticLabel(
+                      favorite.modelName,
+                      selected,
+                    ),
+                    onTap: () => selection.onToggle(favorite),
+                  ),
             photoBadge: FavoriteMarketBadgeWidget(
               marketCode: favorite.marketCode,
               year: favorite.year,
             ),
           ),
         );
-      }, childCount: favorites.length),
+        return AnimatedOpacity(
+          duration: MediaQuery.of(context).disableAnimations
+              ? Duration.zero
+              : AppMotion.fast,
+          opacity: dimmed ? FavoritesConfig.selectionDimmedOpacity : 1,
+          child: card,
+        );
+      },
     );
   }
 }

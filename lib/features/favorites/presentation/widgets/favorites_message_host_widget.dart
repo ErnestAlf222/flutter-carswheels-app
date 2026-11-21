@@ -90,6 +90,9 @@ class _Message extends StatelessWidget {
       FavoriteMessageKind.removed => AppTexts.favoriteRemovedMessage,
       FavoriteMessageKind.removedWithUndo =>
         AppTexts.favoriteRemovedNamedMessage(subject ?? ''),
+      FavoriteMessageKind.addedToCompare => FavoritesTexts.addedToCompare(
+        int.tryParse(subject ?? '') ?? 0,
+      ),
     };
     final undoable = kind == FavoriteMessageKind.removedWithUndo;
     return Semantics(
@@ -110,8 +113,10 @@ class _Message extends StatelessWidget {
           ),
           child: Row(
             children: [
-              const Icon(
-                Symbols.favorite,
+              Icon(
+                kind == FavoriteMessageKind.addedToCompare
+                    ? Symbols.compare_arrows
+                    : Symbols.favorite,
                 size: FavoritesConfig.messageIconSize,
                 color: AppColors.ink,
               ),

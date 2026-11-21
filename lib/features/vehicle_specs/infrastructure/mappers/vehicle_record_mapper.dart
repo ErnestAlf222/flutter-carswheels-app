@@ -32,8 +32,37 @@ class VehicleRecordMapper {
       hasTurbo: model.turbocharger == VehicleSpecsConfig.turbochargerMark,
       hasSupercharger:
           model.supercharger == VehicleSpecsConfig.superchargerMark,
+      passengerVolumeCubicFeet: _volume([
+        model.passengerVolume2Door,
+        model.passengerVolume4Door,
+        model.passengerVolumeHatchback,
+      ]),
+      cargoVolumeCubicFeet: _volume([
+        model.cargoVolume2Door,
+        model.cargoVolume4Door,
+        model.cargoVolumeHatchback,
+      ]),
+      chargeHours240: _positive(model.charge240),
+      chargeHours120: _positive(model.charge120),
+      hasStartStop: _flag(model.startStop),
     );
   }
+
+  // Suma de los volúmenes que aplican; nulo si ninguno es mayor que 0.
+  static double? _volume(List<String?> texts) {
+    final total = texts.fold<double>(
+      0,
+      (sum, text) => sum + (_positive(text) ?? 0),
+    );
+    return total > 0 ? total : null;
+  }
+
+  // 'Y' es verdadero, 'N' falso y cualquier otro valor es dato ausente.
+  static bool? _flag(String? text) => switch (text) {
+    VehicleSpecsConfig.startStopYes => true,
+    VehicleSpecsConfig.startStopNo => false,
+    _ => null,
+  };
 
   // El número solo si es válido y no negativo; el 0 se conserva.
   static double? _nonNegative(String? text) {

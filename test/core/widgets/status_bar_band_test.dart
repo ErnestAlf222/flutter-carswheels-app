@@ -134,10 +134,13 @@ void main() {
         create: (_) => buildFavoritesCubit(),
         child: FavoritesPage(
           selectorBuilder: (_) => const SizedBox.shrink(),
-          gridBuilder: (_, _, _, _) =>
+          gridBuilder: (_, _, _, _, _) =>
               const SliverToBoxAdapter(child: SizedBox.shrink()),
           onOpen: (_, _) {},
           onExplore: (_) {},
+          loadCompareCapacity: (_) async => const {},
+          onCompare: (_, _) async => false,
+          onGoToCompare: (_) {},
         ),
       ),
     ),

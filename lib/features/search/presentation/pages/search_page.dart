@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -51,13 +52,30 @@ class SearchPage extends StatefulWidget {
     this.belowHeader,
     this.picksBuilder,
     this.picksSeed,
+    this.picksCount = SearchConfig.picksCount,
+    this.picksFirst = false,
+    this.bandStyle,
+    this.infiniteFeed = false,
   });
+
+  /// Con el campo vacío y sin filtros, sigue un feed de más autos que carga por
+  /// páginas al llegar al final; el selector de Comparar no lo usa.
+  final bool infiniteFeed;
+
+  /// Identidad propia de la banda compacta (el selector de Comparar).
+  final SearchBandStyle? bandStyle;
+
+  /// Las sugerencias van antes que las marcas y los recientes.
+  final bool picksFirst;
 
   /// Sugerencias con el campo vacío; sin él (selector) no se muestran.
   final SearchPicksBuilder? picksBuilder;
 
   /// Semilla de las sugerencias de esta visita; por defecto, una al azar.
   final int? picksSeed;
+
+  /// Cuántas sugerencias se piden al índice (la capa app puede descartar algunas).
+  final int picksCount;
 
   /// Título del encabezado; el modo selección usa el suyo.
   final String title;
@@ -94,6 +112,18 @@ class _SearchPageState extends State<SearchPage> {
   // Cada visita (estado nuevo de la pantalla) trae sus propias sugerencias.
   late final int _picksSeed = widget.picksSeed ?? Random().nextInt(1 << 30);
 
+  // Feed infinito: lo ya mostrado en esta visita, su alcance y la página en camino.
+  List<SearchResultEntity> _feed = const [];
+  String _feedScopeKey = '';
+  bool _feedLoading = false;
+  bool _feedDone = false;
+  Timer? _feedTimer;
+  ScrollController? _scrollController;
+
+  // Vaciado con la "x": el texto y la lista se desvanecen y luego se vacía.
+  bool _clearing = false;
+  Timer? _clearTimer;
+
   @override
   void initState() {
     super.initState();
@@ -106,6 +136,8 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   void dispose() {
+    _clearTimer?.cancel();
+    _feedTimer?.cancel();
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -125,6 +157,103 @@ class _SearchPageState extends State<SearchPage> {
       text: state.query,
       selection: TextSelection.collapsed(offset: state.query.length),
     );
+  }
+
+  // El texto y los resultados se desvanecen; luego se vacía y entran las sugerencias.
+  void _clearField() {
+    final cubit = context.read<SearchCubit>();
+    if (MediaQuery.of(context).disableAnimations) {
+      cubit.clearQuery();
+      return;
+    }
+    if (_clearing) return;
+    setState(() => _clearing = true);
+    _clearTimer = Timer(AppMotion.fast, () {
+      cubit.clearQuery();
+      if (mounted) setState(() => _clearing = false);
+    });
+  }
+
+  // El feed solo existe con el campo vacío y sin filtros, como las sugerencias.
+  bool _feedActive(SearchState state) =>
+      widget.infiniteFeed &&
+      state.scope != null &&
+      state.query.isEmpty &&
+      !state.filters.isActive &&
+      !state.hasQuery;
+
+  // Identidades que el feed no debe repetir: las sugerencias y lo ya mostrado.
+  Set<String> _shownKeys(List<SearchResultEntity> picks) => {
+    for (final result in [...picks, ..._feed])
+      '${result.brand}${SearchConfig.feedKeySeparator}${result.groupName ?? ''}',
+  };
+
+  // Otro mercado o año reinicia el feed; lo en camino de antes se descarta.
+  void _syncFeedScope(SearchState state) {
+    // Un índice que vuelve a crecer (reintento) reabre el feed.
+    if (state.isPreparing) _feedDone = false;
+    final key = state.scope?.key ?? '';
+    if (key == _feedScopeKey) return;
+    _feedScopeKey = key;
+    _feed = const [];
+    _feedLoading = false;
+    _feedDone = false;
+    _feedTimer?.cancel();
+  }
+
+  // Pide la siguiente página si hay algo que mostrar y se está cerca del final.
+  void _requestMore({bool force = false}) {
+    if (!mounted || _feedLoading || _feedDone) return;
+    final cubit = context.read<SearchCubit>();
+    final state = cubit.state;
+    if (!_feedActive(state)) return;
+    final controller = _scrollController;
+    final position = (controller?.hasClients ?? false)
+        ? controller!.position
+        : null;
+    final near =
+        position == null ||
+        position.extentAfter < SearchConfig.feedLoadThreshold;
+    if (!near && !force) return;
+    final picks = cubit.picksFor(_picksSeed, count: widget.picksCount);
+    // El feed empieza cuando las sugerencias ya están.
+    if (picks.isEmpty) return;
+    final page = cubit.feedPage(_picksSeed, exclude: _shownKeys(picks));
+    if (page.results.isEmpty) {
+      // Sin nada que mostrar y con el índice completo, ya no se vuelve a calcular.
+      _feedDone = !page.isBuilding;
+      return;
+    }
+    final scopeKey = _feedScopeKey;
+    setState(() => _feedLoading = true);
+    final reduced = MediaQuery.of(context).disableAnimations;
+    _feedTimer = Timer(
+      reduced
+          ? Duration.zero
+          : const Duration(
+              milliseconds: SearchConfig.feedPageDelayMilliseconds,
+            ),
+      () {
+        if (!mounted || scopeKey != _feedScopeKey) return;
+        // Se pide de nuevo: el índice pudo crecer mientras tanto.
+        final latest = cubit.feedPage(
+          _picksSeed,
+          exclude: _shownKeys(
+            cubit.picksFor(_picksSeed, count: widget.picksCount),
+          ),
+        );
+        setState(() {
+          _feed = [..._feed, ...latest.results];
+          _feedLoading = false;
+        });
+        _scheduleFill();
+      },
+    );
+  }
+
+  // Tras cada cambio, si la lista aún no llena la pantalla pide otra página.
+  void _scheduleFill() {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _requestMore());
   }
 
   void _openResult(BuildContext context, SearchResultEntity result) {
@@ -157,90 +286,125 @@ class _SearchPageState extends State<SearchPage> {
                 ModelGridConfig.listBottomGap;
             final scopeBrand = state.scopeBrand;
             final scope = state.scope;
+            _syncFeedScope(state);
+            if (_feedActive(state)) _scheduleFill();
             return RememberedScroll(
               store: context.read<ScrollOffsetStore>(),
               sectionKey: ScrollConfig.searchSectionKey,
               contextKey: scope?.key ?? '',
-              builder: (context, scrollController) => Stack(
-                children: [
-                  CustomScrollView(
-                    controller: scrollController,
-                    keyboardDismissBehavior:
-                        ScrollViewKeyboardDismissBehavior.onDrag,
-                    slivers: [
-                      SliverPersistentHeader(
-                        pinned: true,
-                        delegate: widget.compact
-                            ? SearchCompactHeaderDelegate(
-                                title: widget.title,
-                                onClose: widget.onBack,
-                                controller: _controller,
-                                focusNode: _focusNode,
-                                onChanged: cubit.onQueryChanged,
-                                onSubmitted: (_) => cubit.submit(),
-                                onClear: cubit.clearQuery,
-                              )
-                            : SearchHeaderDelegate(
-                                title: widget.title,
-                                onBack: widget.onBack,
-                                topInset: MediaQuery.paddingOf(context).top,
-                                selectorBuilder: widget.selectorBuilder,
-                                controller: _controller,
-                                focusNode: _focusNode,
-                                onChanged: cubit.onQueryChanged,
-                                onSubmitted: (_) => cubit.submit(),
-                                onClear: cubit.clearQuery,
+              builder: (context, scrollController) {
+                _scrollController = scrollController;
+                return Stack(
+                  children: [
+                    NotificationListener<ScrollNotification>(
+                      onNotification: (notification) {
+                        _scrollController = scrollController;
+                        if (notification.depth == 0 &&
+                            notification.metrics.extentAfter <
+                                SearchConfig.feedLoadThreshold) {
+                          _requestMore();
+                        }
+                        return false;
+                      },
+                      child: CustomScrollView(
+                        controller: scrollController,
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
+                        slivers: [
+                          SliverPersistentHeader(
+                            pinned: true,
+                            delegate: widget.compact
+                                ? SearchCompactHeaderDelegate(
+                                    title: widget.title,
+                                    onClose: widget.onBack,
+                                    style: widget.bandStyle,
+                                    controller: _controller,
+                                    focusNode: _focusNode,
+                                    onChanged: cubit.onQueryChanged,
+                                    onSubmitted: (_) => cubit.submit(),
+                                    onClear: _clearField,
+                                    fadingText: _clearing,
+                                  )
+                                : SearchHeaderDelegate(
+                                    title: widget.title,
+                                    onBack: widget.onBack,
+                                    topInset: MediaQuery.paddingOf(context).top,
+                                    selectorBuilder: widget.selectorBuilder,
+                                    controller: _controller,
+                                    focusNode: _focusNode,
+                                    onChanged: cubit.onQueryChanged,
+                                    onSubmitted: (_) => cubit.submit(),
+                                    onClear: _clearField,
+                                    fadingText: _clearing,
+                                  ),
+                          ),
+                          const ConnectivityBandSliver(),
+                          if (widget.belowHeader case final notice?)
+                            SliverToBoxAdapter(child: notice),
+                          if (scopeBrand != null)
+                            SliverPersistentHeader(
+                              pinned: true,
+                              delegate: SearchScopeRowDelegate(
+                                brand: scopeBrand,
+                                onClear: cubit.clearScopeBrand,
                               ),
+                            ),
+                          if (state.isPreparing)
+                            SliverToBoxAdapter(
+                              child: SearchProgressWidget(
+                                progress: state.indexStatus?.progress,
+                              ),
+                            ),
+                          if (state.indexStatus != null &&
+                              (state.isPartial ||
+                                  (state.isPreparing && state.hasQuery)))
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: UiConfig.pageHorizontalPadding,
+                                ),
+                                child: SearchPartialNoticeWidget(
+                                  indexed: state.indexStatus!.indexedBrands,
+                                  total: state.indexStatus!.totalBrands,
+                                  onRetry: state.isPartial
+                                      ? cubit.retryIndex
+                                      : null,
+                                ),
+                              ),
+                            ),
+                          // Al vaciar con la "x" la lista se desvanece y vuelve ya con
+                          // las sugerencias, sin pasar por "sin resultados".
+                          for (final sliver in _bodySlivers(
+                            context,
+                            state,
+                            bottomPadding,
+                          ))
+                            SliverAnimatedOpacity(
+                              opacity: _clearing ? 0 : 1,
+                              duration: AppMotion.of(
+                                AppMotion.fast,
+                                reduced: MediaQuery.of(context)
+                                    .disableAnimations,
+                              ),
+                              curve: AppMotion.change,
+                              sliver: sliver,
+                            ),
+                        ],
                       ),
-                      const ConnectivityBandSliver(),
-                      if (widget.belowHeader case final notice?)
-                        SliverToBoxAdapter(child: notice),
-                      if (scopeBrand != null)
-                        SliverPersistentHeader(
-                          pinned: true,
-                          delegate: SearchScopeRowDelegate(
-                            brand: scopeBrand,
-                            onClear: cubit.clearScopeBrand,
-                          ),
-                        ),
-                      if (state.isPreparing)
-                        SliverToBoxAdapter(
-                          child: SearchProgressWidget(
-                            progress: state.indexStatus?.progress,
-                          ),
-                        ),
-                      if (state.indexStatus != null &&
-                          (state.isPartial ||
-                              (state.isPreparing && state.hasQuery)))
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: UiConfig.pageHorizontalPadding,
-                            ),
-                            child: SearchPartialNoticeWidget(
-                              indexed: state.indexStatus!.indexedBrands,
-                              total: state.indexStatus!.totalBrands,
-                              onRetry: state.isPartial
-                                  ? cubit.retryIndex
-                                  : null,
-                            ),
-                          ),
-                        ),
-                      ..._bodySlivers(context, state, bottomPadding),
-                    ],
-                  ),
-                  ScrollToTopButton(
-                    controller: scrollController,
-                    reserveNavSpace: widget.reserveNavSpace,
-                  ),
-                  SearchFilterButton(
-                    activeCount: state.filters.activeCount,
-                    visible: state.totalResults > 0 || state.filters.isActive,
-                    onTap: () => showSearchFiltersSheet(context),
-                    reserveNavSpace: widget.reserveNavSpace,
-                  ),
-                ],
-              ),
+                    ),
+                    ScrollToTopButton(
+                      controller: scrollController,
+                      reserveNavSpace: widget.reserveNavSpace,
+                    ),
+                    SearchFilterButton(
+                      activeCount: state.filters.activeCount,
+                      visible: state.totalResults > 0 || state.filters.isActive,
+                      onTap: () => showSearchFiltersSheet(context),
+                      reserveNavSpace: widget.reserveNavSpace,
+                    ),
+                  ],
+                );
+              },
             );
           },
         ),
@@ -525,7 +689,8 @@ class _SearchPageState extends State<SearchPage> {
     double bottomPadding,
   ) {
     final cubit = context.read<SearchCubit>();
-    if (state.recents.isEmpty && state.brands.isEmpty) {
+    final picks = _picksSlivers(context, state);
+    if (state.recents.isEmpty && state.brands.isEmpty && picks.isEmpty) {
       return [
         SliverFillRemaining(
           hasScrollBody: false,
@@ -537,6 +702,7 @@ class _SearchPageState extends State<SearchPage> {
       ];
     }
     return [
+      if (widget.picksFirst) ...picks,
       if (state.brands.isNotEmpty)
         SliverToBoxAdapter(
           child: SearchBrandRowWidget(
@@ -554,8 +720,73 @@ class _SearchPageState extends State<SearchPage> {
             onClearAll: cubit.clearRecentSearches,
           ),
         ),
-      ..._picksSlivers(context, state),
+      if (!widget.picksFirst) ...picks,
+      ..._feedSlivers(context, state),
       SliverToBoxAdapter(child: SizedBox(height: bottomPadding)),
+    ];
+  }
+
+  // Feed bajo las sugerencias: una cuadrícula por página, el cargador o la nota de final.
+  List<Widget> _feedSlivers(BuildContext context, SearchState state) {
+    if (!_feedActive(state)) return const [];
+    final cubit = context.read<SearchCubit>();
+    final picks = cubit.picksFor(_picksSeed, count: widget.picksCount);
+    if (picks.isEmpty) return const [];
+    final scope = state.scope!;
+    final resetKey = '${scope.key} feed $_picksSeed';
+    const pageSize = SearchConfig.feedPageSize;
+    final status = cubit.feedPage(
+      _picksSeed,
+      exclude: _shownKeys(picks),
+      pageSize: 0,
+    );
+    return [
+      // Una cuadrícula por página: la entrada en cascada vuelve a empezar en cada una.
+      for (final start in List<int>.generate(
+        (_feed.length / pageSize).ceil(),
+        (page) => page * pageSize,
+      ))
+        SliverPadding(
+          key: ValueKey('$resetKey page ${start ~/ pageSize}'),
+          padding: EdgeInsets.fromLTRB(
+            UiConfig.pageHorizontalPadding,
+            start == 0 ? AppSpacing.m : ModelGridConfig.mainAxisSpacing,
+            UiConfig.pageHorizontalPadding,
+            0,
+          ),
+          sliver: widget.resultsGridBuilder(
+            context,
+            _feed.sublist(start, min(start + pageSize, _feed.length)),
+            resetKey,
+            (result) => _openResult(context, result),
+          ),
+        ),
+      if (_feedLoading || (status.isBuilding && status.remaining == 0))
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: SearchConfig.feedFooterVerticalGap,
+            ),
+            child: Semantics(
+              label: AppTexts.searchFeedLoadingSemanticLabel,
+              child: const AppLoader(compact: true),
+            ),
+          ),
+        )
+      else if (_feed.isNotEmpty && status.isExhausted)
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: UiConfig.pageHorizontalPadding,
+              vertical: SearchConfig.feedFooterVerticalGap,
+            ),
+            child: Text(
+              AppTexts.searchFeedEndNote,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.caption,
+            ),
+          ),
+        ),
     ];
   }
 
@@ -566,7 +797,10 @@ class _SearchPageState extends State<SearchPage> {
       return const [];
     }
     final scope = state.scope;
-    final picks = context.read<SearchCubit>().picksFor(_picksSeed);
+    final picks = context.read<SearchCubit>().picksFor(
+      _picksSeed,
+      count: widget.picksCount,
+    );
     if (scope == null || picks.isEmpty) return const [];
     return [
       _padded(

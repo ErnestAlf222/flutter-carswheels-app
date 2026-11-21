@@ -90,6 +90,8 @@ class SearchConfig {
   static const double compactHeaderTopPadding = 12.0;
   static const double compactHeaderGap = 12.0;
   static const double compactHeaderBottomPadding = 20.0;
+  // Línea del contador bajo el título cuando la banda lo lleva.
+  static const double compactCounterRowHeight = 20.0;
   static const double fieldHeight = 56.0;
   static const double fieldOverlap = fieldHeight / 2;
   static const double fieldIconSize = 22.0;
@@ -183,6 +185,17 @@ class SearchConfig {
   static const double picksPhotoAspectRatio = 1.5;
   static const double picksCardGap = 12.0;
   static const double picksRadius = 20.0;
+
+  // Feed infinito (campo vacío, sin filtros): tamaño de página, umbral y pausa de carga.
+  static const int feedPageSize = 10;
+  static const double feedLoadThreshold = 600.0;
+  static const int feedPageDelayMilliseconds = 180;
+  static const double feedFooterVerticalGap = 24.0;
+  // Constantes del orden aleatorio determinista por semilla (FNV-1a de 32 bits).
+  static const int feedHashOffset = 0x811C9DC5;
+  static const int feedHashPrime = 0x01000193;
+  static const int feedHashMask = 0xFFFFFFFF;
+  static const String feedKeySeparator = '|';
 
   // "¿Quisiste decir…?": área táctil, ícono y entrada suave.
   static const double didYouMeanTouchHeight = 44.0;

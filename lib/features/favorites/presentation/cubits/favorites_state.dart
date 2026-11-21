@@ -12,6 +12,9 @@ enum FavoriteMessageKind {
 
   /// Se quitó desde Favoritos: lleva el nombre y la acción de deshacer.
   removedWithUndo,
+
+  /// Se agregaron favoritos a la comparación; el sujeto es la cantidad.
+  addedToCompare,
 }
 
 /// Estado de los favoritos a nivel de app.
@@ -34,6 +37,7 @@ class FavoritesLoaded extends FavoritesState {
     this.message,
     this.messageSubject,
     this.messageId = 0,
+    this.sortMode = FavoriteSortMode.recent,
   }) : keys = {for (final favorite in favorites) favorite.key};
 
   final List<FavoriteEntity> favorites;
@@ -48,6 +52,9 @@ class FavoritesLoaded extends FavoritesState {
   /// Cambia con cada mensaje nuevo, aunque sea el mismo texto.
   final int messageId;
 
+  /// Orden elegido en Favoritos; se conserva durante la sesión.
+  final FavoriteSortMode sortMode;
+
   bool isFavorite(String key) => keys.contains(key);
 
   FavoritesLoaded copyWith({
@@ -55,14 +62,22 @@ class FavoritesLoaded extends FavoritesState {
     FavoriteMessageKind? message,
     String? messageSubject,
     int? messageId,
+    FavoriteSortMode? sortMode,
     bool clearMessage = false,
   }) => FavoritesLoaded(
     favorites: favorites ?? this.favorites,
     message: clearMessage ? null : message ?? this.message,
     messageSubject: clearMessage ? null : messageSubject ?? this.messageSubject,
     messageId: messageId ?? this.messageId,
+    sortMode: sortMode ?? this.sortMode,
   );
 
   @override
-  List<Object?> get props => [favorites, message, messageSubject, messageId];
+  List<Object?> get props => [
+    favorites,
+    message,
+    messageSubject,
+    messageId,
+    sortMode,
+  ];
 }

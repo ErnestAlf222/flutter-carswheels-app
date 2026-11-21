@@ -82,6 +82,11 @@ VehicleDetailEntity testDetail({
   EngineKind? engineKind,
   bool hasTurbo = false,
   bool hasSupercharger = false,
+  double? passengerVolumeLiters,
+  double? cargoVolumeLiters,
+  double? chargeHours240,
+  double? chargeHours120,
+  bool? hasStartStop,
 }) => VehicleDetailEntity(
   id: id,
   year: 2020,
@@ -115,6 +120,11 @@ VehicleDetailEntity testDetail({
   engineKind: engineKind,
   hasTurbo: hasTurbo,
   hasSupercharger: hasSupercharger,
+  passengerVolumeLiters: passengerVolumeLiters,
+  cargoVolumeLiters: cargoVolumeLiters,
+  chargeHours240: chargeHours240,
+  chargeHours120: chargeHours120,
+  hasStartStop: hasStartStop,
 );
 
 /// Versión de un grupo con su variante.

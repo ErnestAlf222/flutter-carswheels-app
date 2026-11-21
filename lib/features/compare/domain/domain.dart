@@ -10,6 +10,7 @@ export 'entities/compare_table_row_entity.dart';
 export 'entities/compare_table_section_entity.dart';
 export 'entities/compare_vehicle_detail_entity.dart';
 export 'entities/compare_version_option_entity.dart';
+export 'entities/compare_verdict_entity.dart';
 export 'entities/compare_version_update_result.dart';
 // Contratos
 export 'datasources/compare_market_source.dart';
@@ -21,6 +22,7 @@ export 'datasources/compare_versions_source.dart';
 // Servicios
 export 'services/compare_chart_builder.dart';
 export 'services/compare_table_builder.dart';
+export 'services/compare_verdict_builder.dart';
 // Casos de uso
 export 'usecases/add_to_compare_usecase.dart';
 export 'usecases/clear_compare_usecase.dart';

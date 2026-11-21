@@ -13,7 +13,11 @@ class ComparePickerButtonWidget extends StatelessWidget {
     required this.vehicleName,
     required this.isAdded,
     this.onTap,
+    this.emphasized = true,
   });
+
+  /// Con otro botón amarillo en pantalla, va solo con contorno de tinta.
+  final bool emphasized;
 
   /// Nombre del vehículo, para la etiqueta accesible.
   final String vehicleName;
@@ -27,16 +31,21 @@ class ComparePickerButtonWidget extends StatelessWidget {
       maxScaleFactor: CompareConfig.pickerButtonMaxTextScale,
       child: isAdded
           ? _AddedPill(name: vehicleName, onTap: onTap)
-          : _AddButton(name: vehicleName, onTap: onTap),
+          : _AddButton(name: vehicleName, onTap: onTap, emphasized: emphasized),
     );
   }
 }
 
 class _AddButton extends StatelessWidget {
-  const _AddButton({required this.name, required this.onTap});
+  const _AddButton({
+    required this.name,
+    required this.onTap,
+    required this.emphasized,
+  });
 
   final String name;
   final VoidCallback? onTap;
+  final bool emphasized;
 
   @override
   Widget build(BuildContext context) {
@@ -47,8 +56,16 @@ class _AddButton extends StatelessWidget {
       label: AppTexts.comparePickerAddSemanticLabel(name),
       excludeSemantics: true,
       child: Material(
-        color: AppColors.accent,
-        borderRadius: radius,
+        color: emphasized ? AppColors.accent : AppColors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: radius,
+          side: emphasized
+              ? BorderSide.none
+              : const BorderSide(
+                  color: AppColors.ink,
+                  width: CompareConfig.pickerButtonBorderWidth,
+                ),
+        ),
         child: InkWell(
           onTap: onTap,
           borderRadius: radius,

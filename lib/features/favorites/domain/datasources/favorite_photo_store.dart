@@ -6,6 +6,9 @@ abstract class FavoritePhotoStore {
   /// excede el tamaño máximo (entonces solo queda la referencia de red).
   Future<String?> download({required String fileName, required String url});
 
+  /// Ancho y alto en píxeles del archivo guardado; nulo si no existe o no se lee.
+  Future<({int width, int height})?> measure(String fileName);
+
   /// Borra el archivo; sin efecto si no existe.
   Future<void> delete(String fileName);
 

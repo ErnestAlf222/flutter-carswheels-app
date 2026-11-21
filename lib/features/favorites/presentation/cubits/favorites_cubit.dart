@@ -18,6 +18,7 @@ class FavoritesCubit extends Cubit<FavoritesState> {
     required this.snapshotSource,
     this.attachPhoto,
     this.deletePhoto,
+    this.measurePhoto,
     this.clock = DateTime.now,
     this.messageDuration = const Duration(
       milliseconds: FavoritesConfig.messageDurationMilliseconds,
@@ -45,6 +46,9 @@ class FavoritesCubit extends Cubit<FavoritesState> {
   final AttachFavoritePhotoUseCase? attachPhoto;
   final DeleteFavoritePhotoUseCase? deletePhoto;
 
+  /// Completa el tamaño de las fotos guardadas antes de medirlas.
+  final MeasureFavoritePhotoUseCase? measurePhoto;
+
   /// Reloj inyectado para controlar el tiempo en las pruebas.
   final DateTime Function() clock;
   final Duration messageDuration;
@@ -58,6 +62,9 @@ class FavoritesCubit extends Cubit<FavoritesState> {
   // Últimas instantáneas conocidas por clave: al volver a guardar un modelo que se
   // quitó no se pierden sus datos aunque ahora no se puedan resolver (otro mercado).
   final Map<String, FavoriteSnapshotEntity> _knownSnapshots = {};
+
+  // Favoritos cuya foto ya se intentó medir: una sola vez por sesión.
+  final Set<String> _measured = {};
 
   // Escrituras en curso: mientras hay alguna, los eventos del disco se ignoran.
   final Set<Object> _writing = {};
@@ -148,6 +155,13 @@ class FavoritesCubit extends Cubit<FavoritesState> {
     await _write(() => restoreFavorite(favorite));
   }
 
+  /// Cambia el orden de la lista; se conserva mientras la app siga abierta.
+  void setSortMode(FavoriteSortMode mode) {
+    final current = state;
+    if (current is! FavoritesLoaded || current.sortMode == mode) return;
+    emit(current.copyWith(sortMode: mode));
+  }
+
   /// Oculta el mensaje antes de que venza.
   void dismissMessage() {
     _messageTimer?.cancel();
@@ -227,6 +241,43 @@ class FavoritesCubit extends Cubit<FavoritesState> {
           ? current.copyWith(favorites: favorites)
           : FavoritesLoaded(favorites: favorites),
     );
+    _measurePending(favorites);
+  }
+
+  // Mide, sin bloquear, las fotos locales que aún no tienen tamaño.
+  void _measurePending(List<FavoriteEntity> favorites) {
+    final measure = measurePhoto;
+    if (measure == null) return;
+    for (final favorite in favorites) {
+      final photo = favorite.snapshot.photo;
+      if (photo == null ||
+          photo.localFileName == null ||
+          photo.hasDimensions ||
+          !_measured.add(favorite.key)) {
+        continue;
+      }
+      unawaited(_measureOne(measure, favorite.key));
+    }
+  }
+
+  Future<void> _measureOne(
+    MeasureFavoritePhotoUseCase measure,
+    String key,
+  ) async {
+    try {
+      await measure(key);
+    } on Object {
+      // Sin tamaño la tarjeta usa la proporción por defecto.
+    }
+  }
+
+  /// Avisa que se agregaron [count] autos a la comparación.
+  void announceAddedToCompare(int count) {
+    _showMessage(
+      FavoriteMessageKind.addedToCompare,
+      messageDuration,
+      subject: '$count',
+    );
   }
 
   void _emitList(List<FavoriteEntity> favorites) {
@@ -254,6 +305,9 @@ class FavoritesCubit extends Cubit<FavoritesState> {
         message: kind,
         messageSubject: subject,
         messageId: previousId + 1,
+        sortMode: current is FavoritesLoaded
+            ? current.sortMode
+            : FavoriteSortMode.recent,
       ),
     );
     _messageTimer?.cancel();

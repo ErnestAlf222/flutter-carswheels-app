@@ -26,6 +26,15 @@ class FuelEconomyVehicleModel {
     this.greenhouseGasScore,
     this.turbocharger,
     this.supercharger,
+    this.passengerVolume2Door,
+    this.passengerVolume4Door,
+    this.passengerVolumeHatchback,
+    this.cargoVolume2Door,
+    this.cargoVolume4Door,
+    this.cargoVolumeHatchback,
+    this.charge240,
+    this.charge120,
+    this.startStop,
   });
 
   /// Tolera campos ausentes o vacíos; falla si la raíz no es un objeto.
@@ -65,6 +74,23 @@ class FuelEconomyVehicleModel {
       ),
       turbocharger: _readText(json[VehicleSpecsConfig.turbochargerKey]),
       supercharger: _readText(json[VehicleSpecsConfig.superchargerKey]),
+      passengerVolume2Door: _readText(
+        json[VehicleSpecsConfig.passengerVolume2DoorKey],
+      ),
+      passengerVolume4Door: _readText(
+        json[VehicleSpecsConfig.passengerVolume4DoorKey],
+      ),
+      passengerVolumeHatchback: _readText(
+        json[VehicleSpecsConfig.passengerVolumeHatchbackKey],
+      ),
+      cargoVolume2Door: _readText(json[VehicleSpecsConfig.cargoVolume2DoorKey]),
+      cargoVolume4Door: _readText(json[VehicleSpecsConfig.cargoVolume4DoorKey]),
+      cargoVolumeHatchback: _readText(
+        json[VehicleSpecsConfig.cargoVolumeHatchbackKey],
+      ),
+      charge240: _readText(json[VehicleSpecsConfig.charge240Key]),
+      charge120: _readText(json[VehicleSpecsConfig.charge120Key]),
+      startStop: _readText(json[VehicleSpecsConfig.startStopKey]),
     );
   }
 
@@ -93,6 +119,21 @@ class FuelEconomyVehicleModel {
   /// Marcas de aspiración: 'T' con turbo y 'S' con supercargador; nulas si no hay.
   final String? turbocharger;
   final String? supercharger;
+
+  /// Volúmenes en pies cúbicos según la carrocería; 0 significa que no aplica.
+  final String? passengerVolume2Door;
+  final String? passengerVolume4Door;
+  final String? passengerVolumeHatchback;
+  final String? cargoVolume2Door;
+  final String? cargoVolume4Door;
+  final String? cargoVolumeHatchback;
+
+  /// Horas de carga completa a 240 V y a 120 V; 0 significa sin dato.
+  final String? charge240;
+  final String? charge120;
+
+  /// 'Y' o 'N'; vacío en vehículos antiguos.
+  final String? startStop;
 
   // Texto sin espacios sobrantes; nulo si falta o queda vacío.
   static String? _readText(Object? value) {

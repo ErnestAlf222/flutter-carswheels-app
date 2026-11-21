@@ -39,6 +39,13 @@ class CachedDetailMapper {
         engineKind: model.engineKind == null
             ? null
             : EngineKind.fromName(model.engineKind!),
+        hasTurbo: model.hasTurbo,
+        hasSupercharger: model.hasSupercharger,
+        passengerVolumeLiters: model.passengerVolumeLiters,
+        cargoVolumeLiters: model.cargoVolumeLiters,
+        chargeHours240: model.chargeHours240,
+        chargeHours120: model.chargeHours120,
+        hasStartStop: model.hasStartStop,
       ),
       savedAt: DateTime.fromMillisecondsSinceEpoch(model.savedAtMillis),
     );
@@ -75,6 +82,13 @@ class CachedDetailMapper {
       fuelScore: detail.fuelScore,
       emissionsScore: detail.emissionsScore,
       engineKind: detail.engineKind?.name,
+      hasTurbo: detail.hasTurbo,
+      hasSupercharger: detail.hasSupercharger,
+      passengerVolumeLiters: detail.passengerVolumeLiters,
+      cargoVolumeLiters: detail.cargoVolumeLiters,
+      chargeHours240: detail.chargeHours240,
+      chargeHours120: detail.chargeHours120,
+      hasStartStop: detail.hasStartStop,
       savedAtMillis: entity.savedAt.millisecondsSinceEpoch,
     );
   }

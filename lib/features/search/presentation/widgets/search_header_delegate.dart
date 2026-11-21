@@ -17,6 +17,7 @@ class SearchHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.onChanged,
     required this.onSubmitted,
     required this.onClear,
+    this.fadingText = false,
     this.title = AppTexts.searchPageTitle,
     this.onBack,
   });
@@ -35,6 +36,9 @@ class SearchHeaderDelegate extends SliverPersistentHeaderDelegate {
   final ValueChanged<String> onChanged;
   final ValueChanged<String> onSubmitted;
   final VoidCallback onClear;
+
+  /// El texto del campo se desvanece antes de vaciarse.
+  final bool fadingText;
 
   // Alto del contenido sobre el campo: área segura, relleno y fila del título.
   double get _titleBottom =>
@@ -140,6 +144,7 @@ class SearchHeaderDelegate extends SliverPersistentHeaderDelegate {
                 onChanged: onChanged,
                 onSubmitted: onSubmitted,
                 onClear: onClear,
+                fadingText: fadingText,
               ),
             ),
           ),
@@ -163,6 +168,7 @@ class SearchHeaderDelegate extends SliverPersistentHeaderDelegate {
       controller != oldDelegate.controller ||
       focusNode != oldDelegate.focusNode ||
       onChanged != oldDelegate.onChanged ||
+      fadingText != oldDelegate.fadingText ||
       onClear != oldDelegate.onClear;
 }
 

@@ -12,8 +12,10 @@ class ModelGridMetrics {
           ModelGridConfig.crossAxisSpacing * (ModelGridConfig.columns - 1)) /
       ModelGridConfig.columns;
 
-  static double photoHeight(double cellWidth) =>
-      cellWidth / ModelGridConfig.photoAspectRatio;
+  static double photoHeight(
+    double cellWidth, [
+    double aspectRatio = ModelGridConfig.photoAspectRatio,
+  ]) => cellWidth / aspectRatio;
 
   static double nameHeight(TextScaler scaler) =>
       ModelGridConfig.nameMaxLines *
@@ -45,8 +47,9 @@ class ModelGridMetrics {
     TextScaler scaler, {
     bool showBrandLabel = false,
     bool reserveActionRow = false,
+    double photoAspectRatio = ModelGridConfig.photoAspectRatio,
   }) =>
-      (photoHeight(cellWidth) +
+      (photoHeight(cellWidth, photoAspectRatio) +
               (showBrandLabel ? brandLabelHeight(scaler) : 0) +
               ModelGridConfig.textTopPadding +
               nameHeight(scaler) +

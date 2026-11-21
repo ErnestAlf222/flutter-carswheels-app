@@ -25,6 +25,11 @@ class VehicleRecordEntity extends Equatable {
     this.greenhouseGasScore,
     this.hasTurbo = false,
     this.hasSupercharger = false,
+    this.passengerVolumeCubicFeet,
+    this.cargoVolumeCubicFeet,
+    this.chargeHours240,
+    this.chargeHours120,
+    this.hasStartStop,
   });
 
   /// Clase del vehículo en inglés, como la entrega la API.
@@ -69,6 +74,17 @@ class VehicleRecordEntity extends Equatable {
   final bool hasTurbo;
   final bool hasSupercharger;
 
+  /// Volumen de pasajeros y de carga en pies cúbicos; nulos si no aplican.
+  final double? passengerVolumeCubicFeet;
+  final double? cargoVolumeCubicFeet;
+
+  /// Horas de carga completa a 240 V y a 120 V; nulas si no hay dato.
+  final double? chargeHours240;
+  final double? chargeHours120;
+
+  /// Arranque-parada: nulo si la API no lo informa.
+  final bool? hasStartStop;
+
   @override
   List<Object?> get props => [
     vehicleClass,
@@ -93,5 +109,10 @@ class VehicleRecordEntity extends Equatable {
     greenhouseGasScore,
     hasTurbo,
     hasSupercharger,
+    passengerVolumeCubicFeet,
+    cargoVolumeCubicFeet,
+    chargeHours240,
+    chargeHours120,
+    hasStartStop,
   ];
 }
