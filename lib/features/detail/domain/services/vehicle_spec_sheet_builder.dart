@@ -45,6 +45,7 @@ class VehicleSpecSheetBuilder {
         AppTexts.detailDisplacementRowLabel,
         liters == null ? null : AppTexts.displacementLabel(liters),
       ),
+      (AppTexts.detailAspirationRowLabel, _aspirationLabel(detail)),
       (
         AppTexts.detailTransmissionRowLabel,
         transmissionLabeler.labelFor(detail.transmission),
@@ -63,6 +64,16 @@ class VehicleSpecSheetBuilder {
         consumption == null ? null : AppTexts.kwhPer100KmFigure(consumption),
       ),
     ];
+  }
+
+  // Texto de aspiración forzada; nulo (fila oculta) si no tiene.
+  String? _aspirationLabel(VehicleDetailEntity detail) {
+    if (detail.hasTurbo && detail.hasSupercharger) {
+      return AppTexts.aspirationBoth;
+    }
+    if (detail.hasTurbo) return AppTexts.aspirationTurbo;
+    if (detail.hasSupercharger) return AppTexts.aspirationSupercharger;
+    return null;
   }
 
   // México (CONUEE): combustible, motor, transmisión, potencia, torque y compresión.

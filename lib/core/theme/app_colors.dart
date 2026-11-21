@@ -11,6 +11,7 @@ class AppColors {
   static const Color mutedOnDark = Color(0xB3FFFFFF);
   static const Color onDark = Color(0xFFFFFFFF);
   static const Color transparent = Color(0x00000000);
+  static const Color backgroundClear = Color(0x00FFFFFF);
   // Amarillo: relleno con tinta encima, o texto e ícono solo sobre oscuro.
   static const Color accent = Color(0xFFFFD60A);
   static const Color accentPressed = Color(0xFFF2C800);
@@ -51,14 +52,22 @@ class AppColors {
   static const Color engineDiesel = Color(0xFFD97706);
   static const Color engineFuel = mutedText;
   static const Color engineBadgeBackground = Color(0xF2FFFFFF);
-  // Banderas de la celebración de mercado: solo franjas y campos, sin escudos.
+  // Acentos de las banderas (solo colores, sin escudos) para el águila.
   static const Color flagMexicoGreen = Color(0xFF006847);
   static const Color flagMexicoWhite = Color(0xFFFFFFFF);
   static const Color flagMexicoRed = Color(0xFFCE1126);
   static const Color flagUsRed = Color(0xFFB22234);
   static const Color flagUsWhite = Color(0xFFFFFFFF);
   static const Color flagUsBlue = Color(0xFF3C3B6E);
-  // Brillo y sombra de las crestas de la onda.
-  static const Color flagWaveLight = Color(0xFFFFFFFF);
-  static const Color flagWaveDark = Color(0xFF000000);
+  // Águila real (México): cuerpo café oscuro, plumas y nuca doradas.
+  static const Color eagleGoldenBody = Color(0xFF4A2E17);
+  static const Color eagleGoldenLight = Color(0xFFC9953C);
+  static const Color eagleGoldenCrown = Color(0xFFE2B45E);
+  // Águila calva (EE. UU.): cuerpo oscuro, cabeza y cola blancas.
+  static const Color eagleBaldBody = Color(0xFF2B1D14);
+  static const Color eagleBaldLight = Color(0xFF4A3526);
+  static const Color eagleBaldWhite = Color(0xFFFFFFFF);
+  static const Color eagleBeak = Color(0xFFF2B705);
+  // Ojo y contorno de ambas águilas.
+  static const Color eagleOutline = Color(0xFF1A110A);
 }

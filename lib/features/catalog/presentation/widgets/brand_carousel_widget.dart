@@ -208,11 +208,13 @@ class _BrandCarouselBodyState extends State<_BrandCarouselBody> {
                       itemCount: _scrollable ? null : _count,
                       itemBuilder: (context, position) {
                         final index = CircularIndex.wrap(position, _count);
-                        return Center(
-                          child: BrandTileWidget(
-                            brandName: state.brands[index].name,
-                            selected: index == state.selectedIndex,
-                            onTap: () => cubit.selectBrand(index),
+                        return RepaintBoundary(
+                          child: Center(
+                            child: BrandTileWidget(
+                              brandName: state.brands[index].name,
+                              selected: index == state.selectedIndex,
+                              onTap: () => cubit.selectBrand(index),
+                            ),
                           ),
                         );
                       },
@@ -254,7 +256,10 @@ class _BrandCarouselBodyState extends State<_BrandCarouselBody> {
   }
 }
 
-/// Desvanece los logos hacia los bordes con un degradado de ancho fijo.
+/// Desvanece los logos hacia los bordes con dos degradados fijos encima.
+///
+/// Más barato que un ShaderMask: el contenido que se desplaza no se re-pinta
+/// en una capa aparte.
 class _EdgeFade extends StatelessWidget {
   const _EdgeFade({required this.width, required this.child});
 
@@ -263,21 +268,43 @@ class _EdgeFade extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fraction = width <= 0
+    final fadeWidth = width <= 0
         ? 0.0
-        : (CarouselConfig.edgeFadeWidth / width).clamp(0.0, 0.5);
-    return ShaderMask(
-      blendMode: BlendMode.dstIn,
-      shaderCallback: (bounds) => LinearGradient(
-        stops: [0, fraction, 1 - fraction, 1],
-        colors: const [
-          AppColors.transparent,
-          AppColors.ink,
-          AppColors.ink,
-          AppColors.transparent,
-        ],
-      ).createShader(bounds),
-      child: child,
+        : CarouselConfig.edgeFadeWidth.clamp(0.0, width / 2);
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        child,
+        _fade(left: 0, width: fadeWidth, begin: Alignment.centerLeft),
+        _fade(right: 0, width: fadeWidth, begin: Alignment.centerRight),
+      ],
+    );
+  }
+
+  // Del fondo opaco en el borde a transparente hacia adentro.
+  Widget _fade({
+    double? left,
+    double? right,
+    required double width,
+    required Alignment begin,
+  }) {
+    return Positioned(
+      left: left,
+      right: right,
+      top: 0,
+      bottom: 0,
+      width: width,
+      child: IgnorePointer(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: begin,
+              end: Alignment(-begin.x, 0),
+              colors: const [AppColors.background, AppColors.backgroundClear],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -24,6 +24,8 @@ class FuelEconomyVehicleModel {
     this.co2TailpipeGramsPerMile,
     this.fuelEconomyScore,
     this.greenhouseGasScore,
+    this.turbocharger,
+    this.supercharger,
   });
 
   /// Tolera campos ausentes o vacíos; falla si la raíz no es un objeto.
@@ -61,6 +63,8 @@ class FuelEconomyVehicleModel {
       greenhouseGasScore: _readText(
         json[VehicleSpecsConfig.greenhouseGasScoreKey],
       ),
+      turbocharger: _readText(json[VehicleSpecsConfig.turbochargerKey]),
+      supercharger: _readText(json[VehicleSpecsConfig.superchargerKey]),
     );
   }
 
@@ -85,6 +89,10 @@ class FuelEconomyVehicleModel {
   final String? co2TailpipeGramsPerMile;
   final String? fuelEconomyScore;
   final String? greenhouseGasScore;
+
+  /// Marcas de aspiración: 'T' con turbo y 'S' con supercargador; nulas si no hay.
+  final String? turbocharger;
+  final String? supercharger;
 
   // Texto sin espacios sobrantes; nulo si falta o queda vacío.
   static String? _readText(Object? value) {

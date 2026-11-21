@@ -464,6 +464,40 @@ void main() {
       });
     });
 
+    test('al cambiar de año sin la marca elegida avisa la marca perdida', () {
+      final harness = SearchHarness();
+      _run(harness, (async) {
+        harness.cubit.ensureIndex();
+        _settle(async);
+        harness.cubit.selectBrand('Toyota');
+        _settle(async);
+        expect(harness.cubit.state.droppedBrand, isNull);
+        harness.source.groupsByBrand.remove('Toyota');
+        harness.context.change(
+          const SearchScopeEntity(marketCode: 'us', year: 2027),
+        );
+        _settle(async);
+        expect(harness.cubit.state.scopeBrand, isNull);
+        expect(harness.cubit.state.droppedBrand, 'Toyota');
+      });
+    });
+
+    test('al cambiar de mercado la marca perdida no se avisa como de año', () {
+      final harness = SearchHarness();
+      _run(harness, (async) {
+        harness.cubit.ensureIndex();
+        _settle(async);
+        harness.cubit.selectBrand('Toyota');
+        _settle(async);
+        harness.source.groupsByBrand.remove('Toyota');
+        harness.context.change(null);
+        harness.context.change(mxScope);
+        _settle(async);
+        expect(harness.cubit.state.scopeBrand, isNull);
+        expect(harness.cubit.state.droppedBrand, isNull);
+      });
+    });
+
     test('mientras el alcance es nulo conserva texto y marca sin buscar', () {
       final harness = SearchHarness();
       _run(harness, (async) {

@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/detail/detail.dart';
 import 'package:cars_wheels_app/features/detail/presentation/widgets/widgets.dart';
@@ -106,18 +107,52 @@ void main() {
       expect(find.textContaining('Foto:'), findsNothing);
     });
 
-    testWidgets('al tocarla entrega la fuente', (tester) async {
-      final opened = <String>[];
+    Widget creditWith(Future<bool> Function(Uri) launcher) => detailHost(
+      DetailPhotoCreditWidget(launcher: launcher),
+      galleryCubit: buildMockGalleryCubit(
+        GalleryState(photos: [testPhoto(source: 'https://f.test/x')]),
+      ),
+    );
+
+    testWidgets('al tocarla abre la fuente en el navegador', (tester) async {
+      final opened = <Uri>[];
       await tester.pumpWidget(
-        detailHost(
-          DetailPhotoCreditWidget(onOpenSource: opened.add),
-          galleryCubit: buildMockGalleryCubit(
-            GalleryState(photos: [testPhoto(source: 'https://f.test/x')]),
-          ),
-        ),
+        creditWith((uri) async {
+          opened.add(uri);
+          return true;
+        }),
       );
       await tester.tap(find.textContaining('Foto:'));
-      expect(opened, ['https://f.test/x']);
+      await tester.pump();
+      expect(opened, [Uri.parse('https://f.test/x')]);
+      expect(find.text(AppTexts.photoSourceCopiedMessage), findsNothing);
+    });
+
+    testWidgets('si no se puede abrir, copia el enlace y avisa', (
+      tester,
+    ) async {
+      final copied = <String>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          if (call.method == 'Clipboard.setData') {
+            copied.add((call.arguments as Map)['text'] as String);
+          }
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        ),
+      );
+      await tester.pumpWidget(creditWith((_) async => false));
+      await tester.tap(find.textContaining('Foto:'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(copied, ['https://f.test/x']);
+      expect(find.text(AppTexts.photoSourceCopiedMessage), findsOneWidget);
     });
   });
 }

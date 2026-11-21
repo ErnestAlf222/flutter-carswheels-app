@@ -56,6 +56,9 @@ class SearchCubit extends Cubit<SearchState> {
   StreamSubscription<SearchScopeEntity?>? _scopeSubscription;
   StreamSubscription<SearchIndexStatusEntity>? _indexSubscription;
   StreamSubscription<SearchOtherYearsStatusEntity>? _otherYearsSubscription;
+
+  // El último cambio de alcance fue de año (no de mercado) y aún no se evaluó.
+  bool _yearChangePending = false;
   StreamSubscription<SearchTraitsUpdate>? _analysisSubscription;
 
   // Agrupa los avances del índice antes de repetir la consulta vigente.
@@ -347,6 +350,9 @@ class SearchCubit extends Cubit<SearchState> {
     final knownBrands = newBrands ?? state.brands;
     // Tras un cambio de mercado, la marca se conserva solo si existe en el nuevo.
     final brandLost = _isBrandMissing(state.scopeBrand, knownBrands);
+    // Solo un cambio de año hecho en el mismo mercado cuenta como aviso.
+    final announceDrop = brandLost && _yearChangePending;
+    if (brandLost) _yearChangePending = false;
     final brand = brandLost ? null : state.scopeBrand;
     final hasText = state.hasText;
     final canOffer =
@@ -383,6 +389,7 @@ class SearchCubit extends Cubit<SearchState> {
         isSearching: settling,
         clearScopeBrand: brandLost,
         brands: newBrands,
+        droppedBrand: announceDrop ? state.scopeBrand : null,
       ),
     );
     // Con filtros que lo necesitan, los resultados nuevos se analizan solos.
@@ -399,6 +406,12 @@ class SearchCubit extends Cubit<SearchState> {
   // Otro mercado o año: cancela y reconstruye; conserva texto y marca elegida.
   void _onScopeChanged(SearchScopeEntity? scope) {
     if (scope == state.scope) return;
+    final previous = state.scope;
+    _yearChangePending =
+        previous != null &&
+        scope != null &&
+        previous.marketCode == scope.marketCode &&
+        previous.year != scope.year;
     _cancelBuild();
     _cancelOtherYears();
     _cancelAnalysis();
@@ -420,6 +433,7 @@ class SearchCubit extends Cubit<SearchState> {
         suggestions: const [],
         brands: const [],
         searchedText: '',
+        clearDroppedBrand: true,
       ),
     );
     if (scope != null && _indexWanted) _startBuild(scope);

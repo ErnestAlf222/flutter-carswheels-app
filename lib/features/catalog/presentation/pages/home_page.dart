@@ -63,6 +63,9 @@ class HomePage extends StatelessWidget {
             backgroundColor: Colors.transparent,
             // Un solo árbol para todos los estados: el encabezado no se reconstruye.
             body: BlocBuilder<CatalogCubit, CatalogState>(
+              // Mover la ventana del carrusel no reconstruye la pantalla entera.
+              buildWhen: (previous, current) =>
+                  !_onlyWindowMoved(previous, current),
               builder: (context, state) => _HomeContent(
                 state: state,
                 onSearchTap: onSearchTap,
@@ -74,6 +77,13 @@ class HomePage extends StatelessWidget {
       ),
     );
   }
+
+  // Solo cambió la ventana del carrusel, que se reconstruye por su cuenta.
+  static bool _onlyWindowMoved(CatalogState previous, CatalogState current) =>
+      previous is CatalogLoaded &&
+      current is CatalogLoaded &&
+      previous.windowStart != current.windowStart &&
+      previous.copyWith(windowStart: current.windowStart) == current;
 
   // Catálogo con marcas, sin cambio de año, recarga ni fallo en curso.
   static bool _isReady(CatalogState state) =>

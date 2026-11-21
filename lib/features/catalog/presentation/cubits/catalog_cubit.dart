@@ -139,6 +139,7 @@ class CatalogCubit extends Cubit<CatalogState> {
             keptIndex,
             brands.length,
           ),
+          droppedBrand: _droppedBrand(brands, current),
         ),
       );
     } on AppFailure catch (failure) {
@@ -170,6 +171,17 @@ class CatalogCubit extends Cubit<CatalogState> {
     if (current is! CatalogLoaded) return;
     final failedYear = current.failedYear;
     if (failedYear != null) await selectYear(failedYear);
+  }
+
+  // Nombre de la marca elegida si el año nuevo no la trae; nulo si sigue ahí.
+  String? _droppedBrand(List<BrandEntity> brands, CatalogLoaded base) {
+    if (base.brands.isEmpty || brands.isEmpty) return null;
+    final previous = base.brands[base.selectedIndex];
+    final wanted = TextNormalizer.normalize(previous.name);
+    final kept = brands.any(
+      (brand) => TextNormalizer.normalize(brand.name) == wanted,
+    );
+    return kept ? null : previous.name;
   }
 
   // Índice de la marca seleccionada en [brands], por nombre; 0 si no existe.

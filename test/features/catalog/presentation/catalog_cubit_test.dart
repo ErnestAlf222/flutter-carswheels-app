@@ -424,6 +424,29 @@ void main() {
       ],
     );
 
+    test('selectYear avisa la marca que el año nuevo no trae', () async {
+      final cubit = build();
+      await cubit.loadBrands();
+      cubit.selectBrand(1);
+      // La carga inicial y la selección no son un aviso.
+      expect((cubit.state as CatalogLoaded).droppedBrand, isNull);
+      await cubit.selectYear(2024);
+      expect((cubit.state as CatalogLoaded).droppedBrand, isNotNull);
+      // Elegir otra marca limpia el aviso.
+      cubit.selectBrand(0);
+      expect((cubit.state as CatalogLoaded).droppedBrand, isNull);
+      await cubit.close();
+    });
+
+    test('selectYear sin perder la marca no avisa', () async {
+      final cubit = build();
+      await cubit.loadBrands();
+      cubit.selectBrand(1);
+      await cubit.selectYear(2025);
+      expect((cubit.state as CatalogLoaded).droppedBrand, isNull);
+      await cubit.close();
+    });
+
     blocTest<CatalogCubit, CatalogState>(
       'selectYear con un año inválido o el actual no hace nada',
       build: build,

@@ -35,6 +35,8 @@ class VehicleDetailEntity extends Equatable {
     this.torqueText,
     this.compressionRatioText,
     this.engineKind,
+    this.hasTurbo = false,
+    this.hasSupercharger = false,
   });
 
   final int id;
@@ -90,6 +92,10 @@ class VehicleDetailEntity extends Equatable {
   /// Tipo de motorización fino (distingue híbrido y combustibles); nulo si no se conoce.
   final EngineKind? engineKind;
 
+  /// Solo EE. UU.: turbo o supercargador según FuelEconomy.
+  final bool hasTurbo;
+  final bool hasSupercharger;
+
   @override
   List<Object?> get props => [
     id,
@@ -122,5 +128,7 @@ class VehicleDetailEntity extends Equatable {
     torqueText,
     compressionRatioText,
     engineKind,
+    hasTurbo,
+    hasSupercharger,
   ];
 }

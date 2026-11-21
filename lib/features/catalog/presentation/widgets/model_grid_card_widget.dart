@@ -163,8 +163,10 @@ class ModelGridCardWidget extends StatelessWidget {
         ],
       ),
     );
-    if (!animateEntry) return card;
-    return StaggeredEntryWidget(index: index, child: card);
+    // Cada tarjeta se pinta en su propia capa: el scroll no la repinta.
+    final isolated = RepaintBoundary(child: card);
+    if (!animateEntry) return isolated;
+    return StaggeredEntryWidget(index: index, child: isolated);
   }
 }
 

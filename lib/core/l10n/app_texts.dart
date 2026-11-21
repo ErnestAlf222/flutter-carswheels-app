@@ -148,6 +148,10 @@ class AppTexts {
   static const String detailClassRowLabel = 'Clase';
   static const String detailFuelRowLabel = 'Combustible';
   static const String detailDriveRowLabel = 'Tracción';
+  static const String detailAspirationRowLabel = 'Aspiración';
+  static const String aspirationTurbo = 'Turbo';
+  static const String aspirationSupercharger = 'Supercargador';
+  static const String aspirationBoth = 'Turbo y supercargador';
   static const String detailCylindersRowLabel = 'Cilindros';
   static const String detailDisplacementRowLabel = 'Cilindrada';
   static const String detailTransmissionRowLabel = 'Transmisión';
@@ -245,7 +249,7 @@ class AppTexts {
 
   static String photoCreditLabel(String author, String license) =>
       license.trim().isEmpty ? 'Foto: $author' : 'Foto: $author · $license';
-  static const String photoCreditSemanticHint = 'Copia el enlace de la fuente';
+  static const String photoCreditSemanticHint = 'Abre la fuente de la foto';
   static const String photoSourceCopiedMessage = 'Enlace de la fuente copiado';
 
   // Ficha técnica flotante de Detalle.
@@ -565,6 +569,10 @@ class AppTexts {
       'Cerrar la explicación';
   static const String compareChartInfoOpenSemanticLabel =
       'Qué mide esta métrica';
+
+  // Aviso cuando la marca activa no tiene registros en el año elegido.
+  static String yearWithoutDataNotice(String brand, int year) =>
+      '$brand no tiene registros para $year';
 
   // Aviso al cambiar de mercado desde la píldora.
   static String marketChangedTitle(String market) => 'Cambiaste a $market';

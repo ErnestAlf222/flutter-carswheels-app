@@ -30,6 +30,7 @@ class CatalogLoaded extends CatalogState {
     this.isReloading = false,
     this.failedYear,
     this.refreshFailure,
+    this.droppedBrand,
   });
 
   final int year;
@@ -56,6 +57,9 @@ class CatalogLoaded extends CatalogState {
 
   /// Fallo del último cambio de año; nulo si no hubo fallo.
   final AppFailure? refreshFailure;
+
+  /// Marca que estaba elegida y no tiene registros en el año recién elegido.
+  final String? droppedBrand;
 
   CatalogLoaded copyWith({int? selectedIndex, int? windowStart}) =>
       CatalogLoaded(
@@ -113,6 +117,7 @@ class CatalogLoaded extends CatalogState {
     isReloading,
     failedYear,
     refreshFailure,
+    droppedBrand,
   ];
 }
 

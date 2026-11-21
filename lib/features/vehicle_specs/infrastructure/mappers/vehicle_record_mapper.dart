@@ -1,3 +1,4 @@
+import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/domain/entities/vehicle_record_entity.dart';
 import 'package:cars_wheels_app/features/vehicle_specs/infrastructure/models/fuel_economy_vehicle_model.dart';
 
@@ -28,6 +29,9 @@ class VehicleRecordMapper {
       co2GramsPerMile: _nonNegative(model.co2TailpipeGramsPerMile),
       fuelEconomyScore: int.tryParse(model.fuelEconomyScore ?? ''),
       greenhouseGasScore: int.tryParse(model.greenhouseGasScore ?? ''),
+      hasTurbo: model.turbocharger == VehicleSpecsConfig.turbochargerMark,
+      hasSupercharger:
+          model.supercharger == VehicleSpecsConfig.superchargerMark,
     );
   }
 

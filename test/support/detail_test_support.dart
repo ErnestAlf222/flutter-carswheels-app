@@ -80,6 +80,8 @@ VehicleDetailEntity testDetail({
   String? torqueText,
   String? compressionRatioText,
   EngineKind? engineKind,
+  bool hasTurbo = false,
+  bool hasSupercharger = false,
 }) => VehicleDetailEntity(
   id: id,
   year: 2020,
@@ -111,6 +113,8 @@ VehicleDetailEntity testDetail({
   torqueText: torqueText,
   compressionRatioText: compressionRatioText,
   engineKind: engineKind,
+  hasTurbo: hasTurbo,
+  hasSupercharger: hasSupercharger,
 );
 
 /// Versión de un grupo con su variante.

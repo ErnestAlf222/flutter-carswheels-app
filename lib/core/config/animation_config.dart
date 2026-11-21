@@ -8,7 +8,7 @@ class AnimationConfig {
   static const int motionFastMilliseconds = 150;
   static const int motionMediumMilliseconds = 250;
   static const int motionSlowMilliseconds = 350;
-  static const int motionCelebrationMilliseconds = 1200;
+  static const int motionCelebrationMilliseconds = 1400;
   // Resorte suave: amortiguación y vueltas; termina en 1 sin rebote visible de más.
   static const double springDamping = 6.0;
   static const double springCycles = 1.0;

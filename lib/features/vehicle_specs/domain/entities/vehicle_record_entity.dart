@@ -23,6 +23,8 @@ class VehicleRecordEntity extends Equatable {
     this.co2GramsPerMile,
     this.fuelEconomyScore,
     this.greenhouseGasScore,
+    this.hasTurbo = false,
+    this.hasSupercharger = false,
   });
 
   /// Clase del vehículo en inglés, como la entrega la API.
@@ -63,6 +65,10 @@ class VehicleRecordEntity extends Equatable {
   final int? fuelEconomyScore;
   final int? greenhouseGasScore;
 
+  /// Aspiración forzada según la API (turbo o supercargador).
+  final bool hasTurbo;
+  final bool hasSupercharger;
+
   @override
   List<Object?> get props => [
     vehicleClass,
@@ -85,5 +91,7 @@ class VehicleRecordEntity extends Equatable {
     co2GramsPerMile,
     fuelEconomyScore,
     greenhouseGasScore,
+    hasTurbo,
+    hasSupercharger,
   ];
 }

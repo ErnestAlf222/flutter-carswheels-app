@@ -63,6 +63,8 @@ class VehicleDetailBuilder {
       fuelScore: _validScore(record.fuelEconomyScore),
       emissionsScore: _validScore(record.greenhouseGasScore),
       engineKind: classifier.engineKindOf(record.atvType),
+      hasTurbo: record.hasTurbo,
+      hasSupercharger: record.hasSupercharger,
     );
   }
 

@@ -9,6 +9,7 @@ import 'package:cars_wheels_app/app/compare/market_compare_market_source.dart';
 import 'package:cars_wheels_app/app/favorites/favorite_card_cubits.dart';
 import 'package:cars_wheels_app/app/market_catalog/market_change_notice.dart';
 import 'package:cars_wheels_app/app/market_catalog/market_search_context_source.dart';
+import 'package:cars_wheels_app/app/market_catalog/year_without_data_notice.dart';
 import 'package:cars_wheels_app/app/router/app_router_setup.dart';
 import 'package:cars_wheels_app/app/search_results/market_search_traits_source.dart';
 import 'package:cars_wheels_app/app/search_results/search_card_cubits_factory.dart';
@@ -123,6 +124,33 @@ class _AppState extends State<App> {
       market: market,
       year: year,
       onCompare: onCompare,
+    );
+  }
+
+  String get _currentPath => _router.routeInformationProvider.value.uri.path;
+
+  // Aviso de año sin datos de la marca del carrusel; solo en Inicio.
+  void _onCatalogYearGap(BuildContext context, CatalogState state) {
+    final messenger = _messengerKey.currentState;
+    if (state is! CatalogLoaded || messenger == null) return;
+    if (_currentPath != RoutesConfig.home) return;
+    showYearWithoutDataNotice(
+      messenger,
+      brand: state.droppedBrand!,
+      year: state.year,
+    );
+  }
+
+  // Aviso de año sin datos de la marca de la búsqueda; solo en Buscar.
+  void _onSearchYearGap(BuildContext context, SearchState state) {
+    final messenger = _messengerKey.currentState;
+    final year = state.scope?.year;
+    if (messenger == null || year == null) return;
+    if (_currentPath != RoutesConfig.search) return;
+    showYearWithoutDataNotice(
+      messenger,
+      brand: state.droppedBrand!,
+      year: year,
     );
   }
 
@@ -349,10 +377,22 @@ class _AppState extends State<App> {
             cubit: _dependencies.connectivityCubit,
             child: ConnectivityRestoreListener(
               onRestored: () => _restoreAfterReconnect(context),
-              child: BlocListener<MarketCubit, MarketState>(
-                // Solo el cambio hecho por la persona; la restauración inicial no cuenta.
-                listenWhen: isUserMarketChange,
-                listener: _onMarketChanged,
+              child: MultiBlocListener(
+                listeners: [
+                  BlocListener<MarketCubit, MarketState>(
+                    // Solo el cambio hecho por la persona; la restauración inicial no cuenta.
+                    listenWhen: isUserMarketChange,
+                    listener: _onMarketChanged,
+                  ),
+                  BlocListener<CatalogCubit, CatalogState>(
+                    listenWhen: isCatalogYearGap,
+                    listener: _onCatalogYearGap,
+                  ),
+                  BlocListener<SearchCubit, SearchState>(
+                    listenWhen: isSearchYearGap,
+                    listener: _onSearchYearGap,
+                  ),
+                ],
                 child: MaterialApp.router(
                   debugShowCheckedModeBanner: AppConfig.showDebugBanner,
                   title: AppConfig.appName,

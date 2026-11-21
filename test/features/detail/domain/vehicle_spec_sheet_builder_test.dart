@@ -34,6 +34,40 @@ void main() {
     },
   );
 
+  group('EE. UU.: aspiración', () {
+    String? aspiration({bool turbo = false, bool supercharger = false}) {
+      final entries = builder.build(
+        testDetail(hasTurbo: turbo, hasSupercharger: supercharger),
+        isMexico: false,
+      );
+      final matches = entries.where(
+        (entry) => entry.label == AppTexts.detailAspirationRowLabel,
+      );
+      return matches.isEmpty ? null : matches.single.value;
+    }
+
+    test('sin turbo ni supercargador la fila no aparece', () {
+      expect(aspiration(), isNull);
+    });
+
+    test('con turbo, con supercargador o con ambos', () {
+      expect(aspiration(turbo: true), AppTexts.aspirationTurbo);
+      expect(aspiration(supercharger: true), AppTexts.aspirationSupercharger);
+      expect(
+        aspiration(turbo: true, supercharger: true),
+        AppTexts.aspirationBoth,
+      );
+    });
+
+    test('México nunca muestra la fila de aspiración', () {
+      final entries = builder.build(testDetail(hasTurbo: true), isMexico: true);
+      expect(
+        labels(entries),
+        isNot(contains(AppTexts.detailAspirationRowLabel)),
+      );
+    });
+  });
+
   test('EE. UU.: eléctrico suma autonomía y consumo; lo nulo no aparece', () {
     final entries = builder.build(
       testDetail(

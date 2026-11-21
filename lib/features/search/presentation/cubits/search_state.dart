@@ -26,6 +26,7 @@ class SearchState extends Equatable {
     this.traits = const {},
     this.isAnalyzing = false,
     this.isSearching = false,
+    this.droppedBrand,
   });
 
   /// Texto tal como está en el campo.
@@ -85,6 +86,9 @@ class SearchState extends Equatable {
 
   /// El texto vigente aún no se calma o su búsqueda no termina: no hay certeza.
   final bool isSearching;
+
+  /// Marca elegida que el año recién cambiado no tiene; se borra al cambiar de alcance.
+  final String? droppedBrand;
 
   /// Resultados que se analizan (los de la marca primero), hasta el tope.
   List<SearchResultEntity> get analysisCandidates => [
@@ -181,6 +185,8 @@ class SearchState extends Equatable {
     Map<String, SearchResultTraitsEntity>? traits,
     bool? isAnalyzing,
     bool? isSearching,
+    String? droppedBrand,
+    bool clearDroppedBrand = false,
   }) => SearchState(
     query: query ?? this.query,
     scope: clearScope ? null : scope ?? this.scope,
@@ -202,6 +208,7 @@ class SearchState extends Equatable {
     traits: traits ?? this.traits,
     isAnalyzing: isAnalyzing ?? this.isAnalyzing,
     isSearching: isSearching ?? this.isSearching,
+    droppedBrand: clearDroppedBrand ? null : droppedBrand ?? this.droppedBrand,
   );
 
   @override
@@ -226,5 +233,6 @@ class SearchState extends Equatable {
     traits,
     isAnalyzing,
     isSearching,
+    droppedBrand,
   ];
 }

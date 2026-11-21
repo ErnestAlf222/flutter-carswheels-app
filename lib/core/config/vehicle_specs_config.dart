@@ -31,6 +31,11 @@ class VehicleSpecsConfig {
   static const String co2TailpipeKey = 'co2TailpipeGpm'; // gramos por milla
   static const String fuelEconomyScoreKey = 'feScore'; // 1 a 10; -1 sin dato
   static const String greenhouseGasScoreKey = 'ghgScore'; // 1 a 10; -1 sin dato
+  static const String turbochargerKey = 'tCharger'; // 'T' si tiene turbo
+  static const String superchargerKey =
+      'sCharger'; // 'S' si tiene supercargador
+  static const String turbochargerMark = 'T';
+  static const String superchargerMark = 'S';
 
   // Límites de las puntuaciones EPA de consumo y de emisiones.
   static const int scoreMin = 1;

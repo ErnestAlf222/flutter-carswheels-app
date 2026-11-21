@@ -65,11 +65,15 @@ class _BrandLogoWidgetState extends State<BrandLogoWidget> {
         errorBuilder: (_, _, _) => monogram,
       );
     }
+    // Se decodifica al tamaño en pantalla, no al original.
+    final pixels = (widget.size * MediaQuery.devicePixelRatioOf(context))
+        .ceil();
     return CachedNetworkImage(
       imageUrl: url,
       httpHeaders: LogosConfig.requestHeaders,
       width: widget.size,
       height: widget.size,
+      memCacheWidth: pixels,
       placeholder: (_, _) => monogram,
       errorWidget: (_, _, _) => monogram,
     );

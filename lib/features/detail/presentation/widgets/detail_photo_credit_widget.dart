@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cars_wheels_app/core/core.dart';
 import 'package:cars_wheels_app/features/detail/presentation/cubits/cubits.dart';
 
 /// Crédito discreto de la foto visible: "Foto: autor · licencia".
 ///
-/// Sin autor no se muestra. Al tocarlo copia el enlace de la fuente, porque la
-/// app no tiene un paquete para abrir enlaces externos.
+/// Sin autor no se muestra. Al tocarlo abre la fuente en el navegador externo;
+/// si no se puede, copia el enlace y lo avisa.
 class DetailPhotoCreditWidget extends StatelessWidget {
-  const DetailPhotoCreditWidget({super.key, this.onOpenSource});
+  const DetailPhotoCreditWidget({super.key, this.launcher = _launchExternal});
 
-  /// Reemplaza la acción al tocar (por defecto copia el enlace de la fuente).
-  final ValueChanged<String>? onOpenSource;
+  /// Abre el enlace fuera de la app; devuelve false si no pudo (inyectable).
+  final Future<bool> Function(Uri url) launcher;
+
+  static Future<bool> _launchExternal(Uri url) =>
+      launchUrl(url, mode: LaunchMode.externalApplication);
 
   @override
   Widget build(BuildContext context) {
@@ -62,11 +66,7 @@ class DetailPhotoCreditWidget extends StatelessWidget {
   }
 
   Future<void> _open(BuildContext context, String url) async {
-    final handler = onOpenSource;
-    if (handler != null) {
-      handler(url);
-      return;
-    }
+    if (await _tryLaunch(url)) return;
     await Clipboard.setData(ClipboardData(text: url));
     if (!context.mounted) return;
     ScaffoldMessenger.maybeOf(context)
@@ -74,5 +74,15 @@ class DetailPhotoCreditWidget extends StatelessWidget {
       ..showSnackBar(
         const SnackBar(content: Text(AppTexts.photoSourceCopiedMessage)),
       );
+  }
+
+  Future<bool> _tryLaunch(String url) async {
+    final uri = Uri.tryParse(url.trim());
+    if (uri == null) return false;
+    try {
+      return await launcher(uri);
+    } on Object {
+      return false;
+    }
   }
 }

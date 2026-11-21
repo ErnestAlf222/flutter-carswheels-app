@@ -27,6 +27,27 @@ void main() {
       expect(record.greenhouseGasScore, 10);
     });
 
+    test('lee tCharger y sCharger reales de FuelEconomy', () {
+      final turbo = VehicleRecordMapper.toEntity(
+        FuelEconomyVehicleModel.fromJson(const {'tCharger': 'T'}),
+      );
+      final supercharged = VehicleRecordMapper.toEntity(
+        FuelEconomyVehicleModel.fromJson(const {
+          'sCharger': 'S',
+          'tCharger': '',
+        }),
+      );
+      final plain = VehicleRecordMapper.toEntity(
+        FuelEconomyVehicleModel.fromJson(const <String, dynamic>{}),
+      );
+      expect((turbo.hasTurbo, turbo.hasSupercharger), (true, false));
+      expect(
+        (supercharged.hasTurbo, supercharged.hasSupercharger),
+        (false, true),
+      );
+      expect((plain.hasTurbo, plain.hasSupercharger), (false, false));
+    });
+
     test('campos ausentes quedan nulos sin lanzar', () {
       final record = VehicleRecordMapper.toEntity(
         FuelEconomyVehicleModel.fromJson(const <String, dynamic>{}),
